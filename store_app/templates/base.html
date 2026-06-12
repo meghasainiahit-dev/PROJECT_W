@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1B175D',
+                        primaryLight: '#3930C3',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.cdnfonts.com/css/google-sans" rel="stylesheet">
+    <style>
+        * { font-family: 'Google Sans', 'Product Sans', Arial, sans-serif; }
+        body { background-color: #FAFAFA; }
+        .gradient-btn { background: linear-gradient(135deg, #1B175D, #3930C3); }
+        .sidebar-item.active { background-color: #1B175D; color: white; }
+        .sidebar-item.active img { filter: brightness(0) invert(1); }
+        .sidebar-item img { filter: brightness(0); }
+        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; }
+        .modal-overlay.show { display:flex; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #1B175D; }
+    </style>
+<link rel="stylesheet" href="/static/css/mobile-responsive.css">
+</head>
+<body class="bg-gray-50">
+<div class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <div class="flex flex-col w-20 bg-transparent py-4 px-2 gap-2 overflow-y-auto">
+
+        <!-- Logo -->
+        <a href="/api/home" class="flex justify-center mb-2">
+            <img src="assets/logo.png" alt="logo" class="w-14">
+        </a>
+
+        <p class="text-xs text-gray-400 text-center">Menu</p>
+
+        <div class="bg-white border border-gray-200 rounded-3xl p-2 flex flex-col gap-1">
+            <a href="/api/home" class="sidebar-item flex flex-col items-center gap-1 p-2 rounded-xl cursor-pointer hover:bg-gray-100 text-xs text-gray-600 no-underline" id="nav-dashboard">
+                <img src="assets/dashboard.png" alt="" class="w-6 h-6">
+                <span>Dashboard</span>
+            </a>
+            <a href="/dashboard/" class="sidebar-item flex flex-col items-center gap-1 p-2 rounded-xl cursor-pointer hover:bg-gray-100 text-xs text-gray-600 no-underline" id="nav-main-info">
+                <i class="bi bi-info-circle text-xl"></i>
+                <span>Main Info</span>
+            </a>
+            <a href="/api/inventory-page/" class="sidebar-item flex flex-col items-center gap-1 p-2 rounded-xl cursor-pointer hover:bg-gray-100 text-xs text-gray-600 no-underline" id="nav-inventory">
+                <img src="../assets/inventory.png" alt="" class="w-6 h-6">
+                <span>Inventory</span>
+            </a>
+            <a href="/billing/" class="sidebar-item flex flex-col items-center gap-1 p-2 rounded-xl cursor-pointer hover:bg-gray-100 text-xs text-gray-600 no-underline" id="nav-billing">
+                <img src="../assets/billing.png" alt="" class="w-6 h-6">
+                <span>Billing</span>
+            </a>
+            <a href="/api/purchase-page/" class="sidebar-item flex flex-col items-center gap-1 p-2 rounded-xl cursor-pointer hover:bg-gray-100 text-xs text-gray-600 no-underline" id="nav-purchase">
+                <img src="../assets/purchase.png" alt="" class="w-6 h-6">
+                <span>Purchase</span>
+            </a>
+        </div>
+
+        <p class="text-xs text-gray-400 text-center mt-1">Inventory</p>
+
+        <div class="bg-white border border-gray-200 rounded-3xl p-2 flex flex-col gap-1">
+            <a href="/api/items/" class="sidebar-item flex flex-col items-center gap-1 p-2 rounded-xl cursor-pointer hover:bg-gray-100 text-xs text-gray-600 no-underline" id="nav-items">
+                <img src="../assets/items.png" alt="" class="w-6 h-6">
+                <span>Items</span>
+            </a>
+            <a href="/api/vendors-page/" class="sidebar-item flex flex-col items-center gap-1 p-2 rounded-xl cursor-pointer hover:bg-gray-100 text-xs text-gray-600 no-underline" id="nav-vendors">
+                <img src="../assets/vendors.png" alt="" class="w-6 h-6">
+                <span>Vendors</span>
+            </a>
+            <a href="/api/orders-page/" class="sidebar-item flex flex-col items-center gap-1 p-2 rounded-xl cursor-pointer hover:bg-gray-100 text-xs text-gray-600 no-underline" id="nav-orders">
+                <img src="../assets/order.png" alt="" class="w-6 h-6">
+                <span>Order</span>
+            </a>
+        </div>
+
+        <!-- Logout -->
+        <div class="mt-auto flex justify-center pb-2">
+            <div class="w-14 h-14 rounded-full bg-primary flex flex-col items-center justify-center cursor-pointer gap-1" style="background:#1B175D">
+                <img src="assets/logout.png" alt="" class="w-5 h-5" style="filter:brightness(0) invert(1)">
+                <span class="text-white text-xs">Logout</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="flex flex-col flex-1 overflow-hidden">
+
+        <!-- HEADER -->
+        <div class="flex items-center px-4 py-2 h-20 bg-transparent gap-4">
+            <a href="/api/home">
+                <img src="assets/logo.png" alt="logo" class="w-24">
+            </a>
+            <div class="flex-1 mx-2">
+                <div class="flex items-center border border-gray-200 rounded-full px-4 py-2 bg-white gap-2">
+                    <i class="bi bi-search text-gray-400"></i>
+                    <input type="text" class="flex-1 border-0 text-sm bg-transparent" placeholder="Search items, vendors & orders..." style="outline:none">
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="/settings/">
+                    <div class="w-11 h-11 rounded-full flex items-center justify-center cursor-pointer" style="background:#1B175D">
+                        <img src="assets/setting.png" alt="" class="w-5 h-5" style="filter:brightness(0) invert(1)">
+                    </div>
+                </a>
+                <a href="#">
+                    <div class="w-11 h-11 rounded-full flex items-center justify-center cursor-pointer" style="background:#1B175D">
+                        <img src="assets/treding.png" alt="" class="w-5 h-5" style="filter:brightness(0) invert(1)">
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- PAGE CONTENT -->
+        <div class="flex-1 overflow-y-auto flex gap-4 px-4 pb-4">

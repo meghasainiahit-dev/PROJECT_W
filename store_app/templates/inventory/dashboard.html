@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory Dashboard - StockOS</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link href="https://fonts.cdnfonts.com/css/google-sans" rel="stylesheet">
+<style>
+:root{--ink:#0D0C2B;--brand:#1B175D;--brand-mid:#2E2A8A;--accent:#6C63FF;--surface:#F5F4FF;--card:#fff;--muted:#6B6A8A;--border:#E4E3F4;--green:#2EAA65;--danger:#EF4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;background:var(--surface);color:var(--ink);min-height:100vh}
+h1,h2,h3{font-family: 'Google Sans', 'Product Sans', Arial, sans-serif}
+.sidebar{width:80px;background:var(--brand);display:flex;flex-direction:column;align-items:center;padding:22px 0 16px;gap:4px;position:fixed;inset:0 auto 0 0;z-index:100;box-shadow:4px 0 30px rgba(27,23,93,.18)}
+.sidebar-logo{width:42px;height:42px;background:#fff;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;font-weight:800;font-size:15px;color:var(--brand);letter-spacing:-1px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,.2);text-decoration:none;flex-shrink:0}
+.sidebar-section-label{font-size:8px;font-weight:600;letter-spacing:.1em;color:rgba(255,255,255,.28);text-transform:uppercase;margin:8px 0 4px}
+.nav-link{width:56px;height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:14px;color:rgba(255,255,255,.42);font-size:9px;font-weight:500;gap:4px;text-decoration:none;transition:all .2s}
+.nav-link i{font-size:18px}
+.nav-link:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.85)}
+.nav-link.active{background:rgba(255,255,255,.18);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.sidebar-spacer{flex:1}
+.main-wrap{margin-left:80px;min-height:100vh;display:flex;flex-direction:column}
+.topbar{height:68px;background:#fff;border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+.search-wrap{flex:1;max-width:420px;position:relative}
+.search-wrap i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+.search-wrap input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:9px 14px 9px 36px;font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;font-size:13px;color:var(--ink);outline:none}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.icon-btn{width:40px;height:40px;background:var(--brand);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;text-decoration:none;transition:all .2s}
+.icon-btn:hover{background:var(--brand-mid);transform:translateY(-1px)}
+.content{padding:26px 30px 34px;display:grid;gap:24px}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+.page-head h1{font-size:26px}
+.page-head p{font-size:13px;color:var(--muted);margin-top:4px}
+.filters{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.filters label{font-size:12px;color:var(--muted);display:grid;gap:6px}
+.filters input{height:38px;border:1.5px solid var(--border);border-radius:10px;padding:0 11px;background:#fff;font-size:13px}
+.filters button{height:38px;border:0;border-radius:10px;background:var(--brand);color:#fff;padding:0 16px;font-weight:700;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.04),0 4px 20px rgba(27,23,93,.06)}
+.card h3{font-size:16px;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px;background:#FAFAFE;color:var(--muted);font-weight:700}
+td{padding:10px;border-bottom:1px solid var(--border)}
+tr:hover td{background:#FAFAFE}
+.badge{padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:capitalize}
+.badge.success{background:#E5F7EB;color:#19733D}
+.badge.pending{background:#FFF3CE;color:#956600}
+.danger{color:var(--danger);font-weight:700}
+.message{border-radius:12px;padding:12px 14px;font-size:13px;border:1px solid var(--border)}
+.message.success{background:#E5F7EB;color:#19733D;border-color:#BFE7CE}
+.message.error{background:#FFF0F0;color:var(--danger);border-color:#FFD1D1}
+.user-summary{display:flex;align-items:center;gap:12px}
+.user-avatar{width:42px;height:42px;border-radius:14px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:800;flex-shrink:0}
+.user-summary strong{display:block;font-size:14px}
+.user-summary span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.user-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:10px}
+.user-form .field{display:grid;gap:6px}
+.user-form label{font-size:12px;color:var(--muted);font-weight:700}
+.user-form input{height:40px;border:1.5px solid var(--border);border-radius:10px;padding:0 11px;background:#fff;font-size:13px;outline:none}
+.user-form input:focus{border-color:var(--accent)}
+.user-form .full{grid-column:1/-1}
+.user-form button{height:42px;border:0;border-radius:11px;background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;font-weight:800;cursor:pointer}
+.status-chip{display:inline-flex;align-items:center;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:700}
+.status-chip.active{background:#E5F7EB;color:#19733D}
+.status-chip.inactive{background:#FFF3CE;color:#956600}
+@media(max-width:760px){body{background:#FBFAFF}.sidebar{display:flex}.main-wrap{margin-left:0}.topbar{min-height:62px;height:auto;padding:10px 14px 10px 64px;gap:10px;align-items:center}.topbar-right{gap:8px}.icon-btn{width:38px;height:38px;border-radius:11px}.content{padding:18px 14px 28px;gap:18px}.page-head{display:grid;align-items:start;gap:14px}.page-head h1{font-size:22px}.filters{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}.filters label{min-width:0}.filters input,.filters button{width:100%}.filters button{grid-column:1/-1}.grid{grid-template-columns:1fr;gap:14px}.card{border-radius:12px;padding:15px;overflow:hidden}.card h3{font-size:15px}.user-summary{align-items:flex-start}.table-scroll{margin:0 -15px -15px;padding:0 15px 15px;overflow-x:auto;-webkit-overflow-scrolling:touch}.table-scroll table{min-width:620px}.search-wrap input{font-size:12px}}
+@media(max-width:760px){.user-form{grid-template-columns:1fr}}
+@media(max-width:420px){.topbar{padding-right:10px}.topbar-right .icon-btn:first-child{display:none}.filters{grid-template-columns:1fr}.user-avatar{width:38px;height:38px;border-radius:12px}.card{padding:14px}.table-scroll{margin:0 -14px -14px;padding:0 14px 14px}}
+</style>
+<link rel="stylesheet" href="/static/css/mobile-responsive.css">
+</head>
+<body>
+<nav class="sidebar">
+    <a href="/api/home" class="sidebar-logo">OS</a>
+    <span class="sidebar-section-label">Main</span>
+    <a href="/api/home" class="nav-link"><i class="bi bi-speedometer2"></i><span>Dash</span></a>
+    <a href="/dashboard/" class="nav-link active"><i class="bi bi-info-circle"></i><span>Main Info</span></a>
+    <a href="/api/inventory-page/" class="nav-link"><i class="bi bi-box"></i><span>Inventory</span></a>
+    <a href="/billing/" class="nav-link"><i class="bi bi-receipt"></i><span>Billing</span></a>
+    <a href="/api/purchase-page/" class="nav-link"><i class="bi bi-bag"></i><span>Purchase</span></a>
+    <span class="sidebar-section-label">Stock</span>
+    <a href="/api/items/" class="nav-link"><i class="bi bi-grid-1x2"></i><span>Items</span></a>
+    <a href="/api/vendors-page/" class="nav-link"><i class="bi bi-people"></i><span>Vendors</span></a>
+    <a href="/api/orders-page/" class="nav-link"><i class="bi bi-truck"></i><span>Orders</span></a>
+    <a href="/users/" class="nav-link"><i class="bi bi-person-gear"></i><span>Users</span></a>
+    <div class="sidebar-spacer"></div>
+    <a href="/settings/" class="nav-link"><i class="bi bi-gear"></i><span>Settings</span></a>
+    <a href="/logout/" class="nav-link"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
+</nav>
+
+<div class="main-wrap">
+    <header class="topbar">
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search items, vendors & orders...">
+        </div>
+        <div class="topbar-right">
+            <a href="/settings/" class="icon-btn"><i class="bi bi-gear"></i></a>
+            <a href="/api/home" class="icon-btn"><i class="bi bi-bar-chart-line"></i></a>
+        </div>
+    </header>
+
+    <main class="content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <section class="page-head">
+            <div>
+                <h1>Inventory Dashboard</h1>
+                <p>Monthly sales, purchases and stock overview</p>
+            </div>
+            <div class="filters">
+                <label>From <input type="date" id="start"></label>
+                <label>To <input type="date" id="end"></label>
+                <button onclick="loadData()">Apply Filter</button>
+            </div>
+        </section>
+
+        <section class="grid">
+            <div class="card">
+                <h3>Logged In User</h3>
+                <div class="user-summary">
+                    <div class="user-avatar">{{ request.user.username|first|upper }}</div>
+                    <div>
+                        <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                        <span>{{ request.user.email|default:"No email added" }}</span>
+                        <span>Username: {{ request.user.username }}</span>
+                        <span>Role: {{ access_profile.get_role_display }}</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid">
+            <div class="card">
+                <h3>Top Selling Products</h3>
+                <canvas id="topProducts" height="140"></canvas>
+            </div>
+            <div class="card">
+                <h3>Purchase vs Sale</h3>
+                <canvas id="purchaseSale" height="140"></canvas>
+            </div>
+        </section>
+
+        <section class="card">
+            <h3>Recent Orders</h3>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr><th>ID</th><th>Customer</th><th>Status</th><th>Date</th></tr>
+                    </thead>
+                    <tbody id="orders"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="grid">
+            <div class="card">
+                <h3>All Products Stock</h3>
+                <div class="table-scroll">
+                    <table>
+                        <thead><tr><th>SKU</th><th>Name</th><th>Qty</th></tr></thead>
+                        <tbody id="products"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Low Stock</h3>
+                <div class="table-scroll">
+                    <table>
+                        <thead><tr><th>SKU</th><th>Name</th><th>Qty</th></tr></thead>
+                        <tbody id="lowStock"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+let topChart, psChart;
+
+function loadData() {
+    const s = document.getElementById("start").value;
+    const e = document.getElementById("end").value;
+
+    fetch(`/api/dashboard-data/?start=${s}&end=${e}`)
+        .then(res => res.json())
+        .then(data => {
+            renderTopProducts(data.top_products || []);
+            renderPurchaseSale(data.total_purchase || 0, data.total_sales || 0);
+            renderOrders(data.orders || []);
+            renderProducts(data.products || []);
+            renderLowStock(data.low_stock || []);
+        });
+}
+
+function renderTopProducts(data) {
+    const labels = data.map(i => i.product__name);
+    const values = data.map(i => i.total_sold);
+
+    if (topChart) topChart.destroy();
+    topChart = new Chart(document.getElementById("topProducts"), {
+        type: "bar",
+        data: { labels, datasets: [{ label: "Sold Qty", data: values, backgroundColor: "#6C63FF", borderRadius: 6 }] },
+    });
+}
+
+function renderPurchaseSale(purchase, sale) {
+    if (psChart) psChart.destroy();
+    psChart = new Chart(document.getElementById("purchaseSale"), {
+        type: "doughnut",
+        data: { labels: ["Purchase", "Sale"], datasets: [{ data: [purchase, sale], backgroundColor: ["#2EAA65", "#6C63FF"] }] },
+    });
+}
+
+function renderOrders(data) {
+    document.getElementById("orders").innerHTML = data.map(o => `
+        <tr>
+            <td>#${o.id}</td>
+            <td>${o.customer_name || "-"}</td>
+            <td><span class="badge ${String(o.paid_status).toUpperCase() === "PAID" ? "success" : "pending"}">${o.paid_status || "PENDING"}</span></td>
+            <td>${o.created_at || ""}</td>
+        </tr>
+    `).join("");
+}
+
+function renderProducts(data) {
+    document.getElementById("products").innerHTML = data.map(p => `
+        <tr><td>${p.product__sku || ""}</td><td>${p.product__name || ""}</td><td>${p.quantity || 0}</td></tr>
+    `).join("");
+}
+
+function renderLowStock(data) {
+    document.getElementById("lowStock").innerHTML = data.map(p => `
+        <tr class="danger"><td>${p.product__sku || ""}</td><td>${p.product__name || ""}</td><td>${p.quantity || 0}</td></tr>
+    `).join("");
+}
+
+loadData();
+</script>
+<script src="/static/js/mobile-sidebar.js"></script>
+</body>
+</html>

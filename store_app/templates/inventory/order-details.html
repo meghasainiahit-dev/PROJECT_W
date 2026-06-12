@@ -1,0 +1,1188 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Details</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link href="https://fonts.cdnfonts.com/css/google-sans" rel="stylesheet">
+<style>
+*{box-sizing:border-box;font-family: 'Google Sans', 'Product Sans', Arial, sans-serif}
+:root{--navy:#1B175D;--indigo:#3930C3;--ink:#0E1244;--muted:#8B8B97;--line:#E8E8EF;--blue-soft:#CFE9FF;--green:#2EAA65;--green-soft:#EDFDF4;--soft:#FAFAFA;--surface:#F5F4FF}
+body{margin:0;background:#EFEFF4;color:var(--ink)}
+.desktop-sidebar{display:none}
+.left-stack,.right-stack{display:contents}
+.phone-shell{width:min(100%,390px);min-height:100vh;margin:20px auto;background:var(--soft);padding:22px 22px 34px;border-radius:28px;position:relative;overflow-x:hidden;box-shadow:0 20px 50px rgba(0,0,0,.12)}
+.details-topbar{height:64px;display:flex;align-items:center;justify-content:space-between}
+.back-btn{width:36px;height:36px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);display:grid;place-items:center;text-decoration:none}
+.bill-btn{height:36px;border:0;border-radius:10px;padding:0 15px;background:linear-gradient(135deg,var(--navy),var(--indigo));color:#fff;font-weight:600;font-size:12px;box-shadow:0 7px 16px rgba(27,23,93,.25);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.bill-btn.generated,.bill-btn:disabled{background:#D8D8E1;color:#767680;box-shadow:none;cursor:not-allowed}
+.page-head{margin:8px 0 14px}.page-head h1,.section-title{margin:0;font-size:20px;font-weight:700;color:#1C1C28}.page-head p{margin:3px 0 0;color:var(--muted);font-size:10px}
+.summary-card{background:linear-gradient(135deg,var(--navy),var(--indigo));color:#fff;border-radius:9px;min-height:86px;display:grid;grid-template-columns:.8fr 1.3fr 1fr;align-items:center;margin-bottom:16px}
+.summary-card div{display:grid;justify-items:center;gap:3px;text-align:center;border-right:1px solid rgba(255,255,255,.22);min-width:0}.summary-card div:last-child{border-right:0}.summary-card strong{font-size:15px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.summary-card span{font-size:10px;color:#D9D6FF}
+.card-box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}.card-box h2{margin:0 0 13px;font-size:12px;font-weight:700}.info-card p{margin:0 0 5px;font-size:11px;word-break:break-word}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.card-head a{border:0;background:transparent;color:var(--navy);font-weight:700;font-size:11px;text-decoration:none;white-space:nowrap}
+.remark-list{display:grid;gap:8px}.remark-box{border:1px solid var(--line);border-radius:8px;min-height:52px;display:flex;align-items:center;gap:12px;padding:10px;background:#FCFCFD}.remark-box p{margin:0;font-size:11px;font-weight:600}.remark-box span{display:block;color:#9A9AA5;font-size:9px;margin-top:2px}
+.section-title{margin:18px 0 10px}.product-row{display:flex;gap:12px}.product-row img{width:60px;height:60px;border-radius:8px;object-fit:cover;background:#f1f1f5}.product-row h3{margin:0 0 7px;font-size:14px;font-weight:700}.sku{margin:0;background:#DDF0FF;color:#0069C9;border-radius:4px;padding:6px 8px;font-size:9px;font-weight:600;word-break:break-all}
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.price-grid span{color:#888894;font-size:9px}.price-grid b{display:block;color:var(--ink);font-size:14px}
+.barcode-box,.serial-box,.detail-box{border:1px solid var(--line);border-radius:7px;padding:11px;margin-top:10px}.barcode-box p,.serial-box p,.detail-box h3{margin:0 0 10px;font-size:11px;font-weight:700}
+code{display:block;color:#003D8F;font-size:9px;font-weight:700;word-break:break-all}.qr{width:126px;height:126px;border:1px solid #8BCBFF;border-radius:5px;margin:0 auto 8px;display:grid;place-items:center;font-size:60px;color:#111;overflow:hidden;background:#fff}.qr img{width:100%;height:100%;object-fit:contain}
+.bill-card p,.detail-box p{display:flex;justify-content:space-between;gap:12px;margin:8px 0;font-size:11px}.bill-card p span,.detail-box span{color:#90909C}.detail-box b{text-align:right;word-break:break-word}.grand{margin-top:16px;border-top:1px solid #D8D8E2;background:#F0F0F5;border-radius:8px;padding:12px;display:flex;justify-content:space-between;font-weight:700}
+.bill-managed{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}.bill-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.bill-edit,.bill-delete{height:38px;border-radius:8px;background:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px}.bill-edit{border:1px solid var(--navy);color:var(--navy)}.bill-delete{border:1px solid #FF4D4F;color:#FF4D4F}.bill-delete:hover{background:#FFF1F1}
+.action-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.outline-btn,.gradient-btn,.full-gradient{height:39px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px}.outline-btn{border:1px solid var(--navy);color:var(--navy);background:#fff}.gradient-btn,.full-gradient{border:0;color:#fff;background:linear-gradient(135deg,var(--navy),var(--indigo))}
+.status-pill{background:var(--blue-soft);border-radius:999px;min-height:48px;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 14px;margin-bottom:12px}.status-pill b{display:block;color:#0062B9;font-size:11px}.status-pill span{font-size:9px;color:#0062B9}.status-pill a,.status-pill button{border:0;background:transparent;color:#0055A6;font-size:10px;text-decoration:none;white-space:nowrap;padding:0}
+.detail-box a{display:block;color:#0069C9;font-size:9px;word-break:break-all}.next-step{color:#72727C;font-size:11px;margin:16px 0 9px}.full-gradient{width:100%;margin-bottom:9px}.empty-state{background:#fff;border:1px solid var(--line);border-radius:12px;padding:22px;text-align:center;color:#777;font-size:12px}
+.delivered-state{background:var(--green);cursor:default}.delivered-state:disabled{opacity:1;color:#fff}.timeline-modal{position:fixed;inset:0;z-index:300;background:rgba(13,12,43,.34);display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;transition:opacity .18s ease,visibility .18s ease}.timeline-modal.open{opacity:1;visibility:visible}.timeline-panel{width:min(100%,390px);background:#fff;border-radius:18px 18px 0 0;padding:18px 20px 26px;box-shadow:0 -10px 40px rgba(13,12,43,.18);transform:translateY(24px);transition:transform .2s ease}.timeline-modal.open .timeline-panel{transform:translateY(0)}.timeline-handle{width:34px;height:4px;background:#D8D8E1;border-radius:99px;margin:0 auto 16px}.timeline-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px}.timeline-header h2{font-size:16px;margin:0;font-weight:700}.timeline-close{width:30px;height:30px;border:0;border-radius:8px;background:#F4F3FB;color:var(--ink);display:grid;place-items:center}.timeline-summary{font-size:11px;color:var(--muted);margin:0 0 17px}.timeline-list{display:grid}.timeline-step{position:relative;display:grid;grid-template-columns:26px 1fr;gap:12px;padding-bottom:18px}.timeline-step:last-child{padding-bottom:0}.timeline-step:not(:last-child)::after{content:"";position:absolute;top:27px;bottom:3px;left:12px;width:1px;background:#DFDEEC}.timeline-step.complete:not(:last-child)::after{background:#BFC1DC}.timeline-dot{z-index:1;width:24px;height:24px;border-radius:50%;border:1px solid #D8D8E2;background:#F4F4F7;color:#A5A5B0;display:grid;place-items:center;font-size:11px}.timeline-step.complete .timeline-dot{border-color:var(--navy);background:var(--navy);color:#fff}.timeline-step.current .timeline-dot{box-shadow:0 0 0 3px rgba(27,23,93,.12)}.timeline-copy b{display:block;font-size:12px;font-weight:600;margin:2px 0 3px;color:var(--ink)}.timeline-copy span{font-size:10px;color:#9A9AA5}.timeline-step.pending .timeline-copy b{color:#ADADB5}.timeline-loader{padding:24px 0;text-align:center;color:var(--muted);font-size:12px}
+.bill-modal{position:fixed;inset:0;z-index:310;background:rgba(14,18,68,.53);display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;visibility:hidden;transition:opacity .18s ease,visibility .18s ease}.bill-modal.open{opacity:1;visibility:visible}.bill-panel{width:min(100%,400px);max-height:calc(100vh - 30px);overflow-y:auto;background:#fff;border-radius:19px;padding:22px 20px 18px;box-shadow:0 18px 42px rgba(14,18,68,.23);transform:translateY(12px);transition:transform .2s ease}.bill-modal.open .bill-panel{transform:translateY(0)}.bill-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:17px}.bill-header h2{font-size:17px;font-weight:700;margin:0;color:var(--navy)}.bill-close{border:0;background:transparent;color:#8D8C95;font-size:18px;width:28px;height:28px;display:grid;place-items:center}.bill-total{height:51px;border:1px solid #CFCDE6;border-radius:10px;background:#FCFCFE;display:flex;align-items:center;justify-content:space-between;padding:0 13px;margin-bottom:16px;font-size:12px;font-weight:600}.bill-total strong{font-size:13px;color:var(--navy)}.bill-label{margin:0 0 8px;color:#77758C;font-size:9px;font-weight:700;text-transform:uppercase}.pay-options{display:grid;gap:7px;margin-bottom:16px}.pay-option{height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px;display:flex;align-items:center;gap:12px;color:#4B4A58;font-size:11px;font-weight:500;cursor:pointer}.pay-option i{font-size:16px;color:#A4A3AB}.pay-option input{position:absolute;opacity:0}.pay-option.selected{border-color:var(--navy);color:var(--navy);font-weight:600}.pay-option.selected i{color:var(--navy)}.pay-check{margin-left:auto;color:var(--navy);font-size:15px;display:none}.pay-option.selected .pay-check{display:block}.bill-field{position:relative;margin-bottom:16px}.bill-field i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--navy);font-size:14px}.bill-input{width:100%;height:48px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:0 13px 0 43px;font-size:12px;outline:none}.bill-input:focus{border-color:var(--indigo)}.status-options{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.status-option{height:43px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:11px;font-weight:600;color:#3E3D4A}.status-option.selected{background:#FF9700;border-color:#FF9700;color:#fff}.payment-note{min-height:40px;border:1px solid #FFBE52;border-radius:9px;background:#FFF9EC;color:#EF8B00;font-size:10px;display:flex;align-items:center;gap:9px;padding:9px 12px;margin-bottom:15px}.payment-note i{font-size:13px}.partial-field{display:none}.partial-field.visible{display:block}.bill-submit{height:48px;width:100%;border:0;border-radius:11px;background:linear-gradient(135deg,var(--navy),#5348DF);color:#fff;font-size:12px;font-weight:600;box-shadow:0 7px 16px rgba(27,23,93,.24)}.bill-error{display:none;color:#D93C43;font-size:11px;margin:-7px 0 12px}.bill-error.show{display:block}
+.workflow-modal{position:fixed;inset:0;z-index:320;background:rgba(14,18,68,.55);display:flex;align-items:flex-end;justify-content:center;padding:0;opacity:0;visibility:hidden;transition:.18s}.workflow-modal.open{opacity:1;visibility:visible}.workflow-panel{width:min(100%,410px);max-height:96vh;overflow:auto;background:#fff;border-radius:22px 22px 0 0;padding:20px 16px 22px}.workflow-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.workflow-title h2{font-size:15px;margin:0}.workflow-title small{display:block;color:var(--muted);font-size:9px;font-weight:400}.workflow-title button{border:0;background:#F2F1FA;color:var(--ink);width:31px;height:31px;border-radius:8px}.form-caption{font-size:10px;font-weight:600;margin:14px 0 8px;color:var(--ink)}.workflow-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.workflow-grid .wide{grid-column:1/-1}.workflow-field{width:100%;height:47px;border:1px solid var(--line);border-radius:11px;background:#FBFBFD;padding:0 12px;font-size:11px;color:var(--ink);outline:none}.workflow-field:focus{border-color:var(--indigo)}textarea.workflow-field{height:72px;padding:12px;resize:vertical}.uploader{width:86px;height:86px;border:1px solid #D4D0F1;background:#F7F6FF;border-radius:6px;display:grid;place-items:center;text-align:center;color:var(--navy);cursor:pointer;font-size:9px}.uploader i{display:block;font-size:23px}.uploader input{display:none}.workflow-error{min-height:18px;font-size:10px;color:#D93C43;margin:9px 0 0}.workflow-submit{margin-top:13px;width:100%;height:47px;border:0;border-radius:10px;background:linear-gradient(135deg,var(--navy),#544ADE);color:#fff;font-size:11px;font-weight:600}.courier-line{display:grid;grid-template-columns:1fr 45px;gap:8px}.plus-button{border:0;border-radius:10px;background:var(--navy);color:#fff;font-size:18px}.mediator-row{display:grid;grid-template-columns:1fr 34px;gap:8px;margin-bottom:8px}.remove-mediator{border:0;border-radius:8px;background:#FFF0F0;color:#FF5353}.cancel-order{background:#fff;border:1px solid #F04444;color:#F04444}.neutral-action{border:1px solid var(--line);background:#F7F7F9;color:#999;box-shadow:none}.status-pill.in-process{background:#FFF0C8}.status-pill.in-process b,.status-pill.in-process span{color:#986B00}.status-pill.packed{background:#DDF7FA}.status-pill.packed b,.status-pill.packed span{color:#137486}.status-pill.delivered,.status-pill.received{background:#DDF3E5}.status-pill.delivered b,.status-pill.delivered span,.status-pill.received b,.status-pill.received span{color:#19733D}.status-pill.returned{background:#FFF0E0}.status-pill.returned b,.status-pill.returned span{color:#975518}
+.return-hidden{display:none}.return-note{font-size:10px;color:var(--muted);margin:-7px 0 12px}.return-section{border-top:1px solid var(--line);padding-top:2px;margin-top:4px}.return-file{padding:12px;height:auto;min-height:47px}
+.shipment-form{display:grid;gap:14px}.shipment-field{display:grid;gap:7px}.shipment-label{font-size:11px;font-weight:700;color:#565462}.input-shell{height:48px;border:1px solid var(--line);border-radius:12px;background:#FCFCFE;display:flex;align-items:center;gap:11px;padding:0 12px}.input-shell i{color:var(--navy);font-size:15px;flex-shrink:0}.input-shell .workflow-field{height:100%;border:0;background:transparent;padding:0;font-size:12px;min-width:0}.input-shell .workflow-field:focus{border:0;box-shadow:none}.shipment-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.shipment-url,.shipment-notes{grid-column:1/-1}.shipment-notes .input-shell{height:110px;align-items:flex-start;padding-top:15px}.shipment-notes textarea.workflow-field{height:90px;padding-top:0;resize:none}.shipment-partner-row{display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:10px}.shipment-plus{width:48px;height:48px;border:0;border-radius:11px;background:var(--navy);color:#fff;font-size:22px;display:grid;place-items:center}.workflow-field:disabled{color:#A0A0AA}.confirm-shipment{margin-top:10px;height:50px;border-radius:12px;box-shadow:0 9px 20px rgba(27,23,93,.25)}
+.courier-panel{width:min(100%,420px);border-radius:16px;padding:22px 18px}.courier-panel .workflow-title{margin-bottom:14px}.courier-panel .workflow-title h2{font-size:17px;color:var(--navy)}.courier-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}.courier-cancel,.courier-create{height:42px;border-radius:10px;font-size:12px;font-weight:700}.courier-cancel{border:1px solid #CFCDE6;background:#fff;color:var(--navy)}.courier-create{border:0;background:var(--navy);color:#fff}.mediator-head{display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px}.mediator-head .form-caption{margin:0}.mini-add{height:30px;border:0;border-radius:8px;background:#F0EFF7;color:var(--navy);font-size:11px;font-weight:700;padding:0 10px}.mediator-row{grid-template-columns:1fr 34px}.mediator-row .input-shell{height:42px}.remove-mediator{width:34px;height:34px;align-self:center;border:0;border-radius:50%;background:#FFF0F0;color:#FF5353}
+@media(min-width:900px){.timeline-modal{align-items:center;padding-left:80px}.timeline-panel{width:370px;border-radius:18px;padding:18px 22px 24px;transform:translateY(10px)}.timeline-handle{display:none}.timeline-header{margin-bottom:7px}.timeline-header h2{font-size:17px}.workflow-modal{align-items:center;padding-left:80px}.workflow-panel{border-radius:18px;max-height:calc(100vh - 34px);padding:22px 20px}.shipment-panel{width:min(760px,calc(100vw - 150px));padding:27px 30px 25px}.shipment-panel .workflow-title{margin-bottom:20px}.shipment-panel .workflow-title h2{font-size:21px}.shipment-panel .shipment-partners{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;margin-bottom:4px}.shipment-panel .form-caption{font-size:11px;margin-top:13px}.shipment-panel .workflow-field{height:50px;font-size:12px}.shipment-panel textarea.workflow-field{height:92px}.shipment-panel .workflow-grid{gap:12px 18px}.shipment-panel .workflow-submit{width:250px;display:block;margin:20px auto 0;height:50px;font-size:12px}}
+@media(min-width:900px){.return-panel{width:min(700px,calc(100vw - 150px));padding:25px 28px}.return-panel .workflow-title h2{font-size:20px}.return-panel .workflow-grid{gap:12px 16px}.return-panel .workflow-field{height:49px;font-size:12px}.return-panel textarea.workflow-field{height:82px}.return-panel .workflow-submit{width:265px;margin:20px auto 0;display:block}}
+@media(min-width:900px){body{background:var(--surface);overflow-x:hidden}.desktop-sidebar{width:80px;background:var(--navy);display:flex;flex-direction:column;align-items:center;padding:22px 0 16px;gap:4px;position:fixed;inset:0 auto 0 0;z-index:100;box-shadow:4px 0 30px rgba(27,23,93,.18)}.sidebar-logo{width:42px;height:42px;background:#fff;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:var(--navy);margin-bottom:14px;text-decoration:none;box-shadow:0 4px 16px rgba(0,0,0,.2)}.sidebar-label{font-size:8px;font-weight:600;letter-spacing:.1em;color:rgba(255,255,255,.28);text-transform:uppercase;margin:8px 0 4px}.side-link{width:56px;height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:14px;color:rgba(255,255,255,.42);font-size:9px;font-weight:500;gap:4px;text-decoration:none;transition:all .2s}.side-link i{font-size:18px}.side-link:hover{background:rgba(255,255,255,.1);color:#fff}.side-link.active{background:rgba(255,255,255,.18);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}.side-spacer{flex:1}.phone-shell{width:auto;min-height:100vh;margin:0 0 0 80px;background:var(--surface);padding:0 30px 34px;border-radius:0;box-shadow:none;overflow:visible}.details-topbar{height:64px;margin:0 -30px 18px;padding:0 30px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50;box-shadow:0 1px 0 rgba(27,23,93,.035)}.back-btn{width:38px;height:38px;border-radius:12px}.bill-btn{height:38px;border-radius:12px;font-size:12px;padding:0 17px;box-shadow:0 7px 20px rgba(27,23,93,.2)}#detailRoot{display:grid;grid-template-columns:minmax(0,1fr) 352px;grid-template-areas:"head head" "summary summary" "left right";gap:16px;align-items:start;max-width:1160px;margin:0 auto}.page-head{grid-area:head;margin:0}.page-head h1{font-size:25px;line-height:1.1;margin:0}.page-head p{font-size:12px;margin-top:4px}.summary-card{grid-area:summary;min-height:88px;border-radius:14px;margin:0;grid-template-columns:1fr 1.35fr 1fr;box-shadow:0 8px 24px rgba(27,23,93,.12)}.summary-card div{gap:3px}.summary-card strong{font-size:18px}.summary-card span{font-size:11px}.left-stack{grid-area:left;display:grid;gap:14px;min-width:0}.right-stack{grid-area:right;display:grid;gap:14px;align-self:start;position:sticky;top:82px}.card-box{border-radius:14px;padding:16px;margin:0;border-color:#DEDCF1;box-shadow:0 1px 4px rgba(0,0,0,.03),0 6px 18px rgba(27,23,93,.04)}.card-box h2{font-size:13px;margin-bottom:11px}.info-card p{font-size:12px;margin-bottom:6px;line-height:1.42}.remark-list{gap:8px}.remark-box{padding:10px;border-radius:10px;min-height:auto}.remark-box p{font-size:12px;line-height:1.35}.remark-box span{font-size:10px}.section-title{font-size:16px;margin:0}.item-card .product-row{gap:13px;align-items:center}.item-card .product-row img{width:68px;height:68px;border-radius:10px}.item-card .product-row h3{font-size:16px;line-height:1.25;margin-bottom:7px}.sku{font-size:10px;padding:6px 8px}.price-grid{gap:10px;margin:14px 0}.price-grid span{font-size:10px}.price-grid b{font-size:15px;margin-top:3px}.barcode-box,.serial-box,.detail-box{margin-top:11px;padding:12px;border-radius:10px}.barcode-box p,.serial-box p,.detail-box h3{font-size:12px;margin-bottom:9px}code{font-size:10px;line-height:1.4}.qr{width:142px;height:142px;border-radius:8px}.bill-card p,.detail-box p{font-size:12px;margin:8px 0;line-height:1.35}.grand{padding:12px;border-radius:10px;margin-top:11px}.action-row{gap:9px}.outline-btn,.gradient-btn,.full-gradient{height:39px;font-size:12px;border-radius:9px}.status-pill{border-radius:14px;min-height:54px;padding:10px 12px;margin-bottom:11px}.status-pill b{font-size:12px}.status-pill span{font-size:10px}.detail-box a{font-size:10px}.next-step{font-size:11px;margin:13px 0 8px}.empty-state{grid-column:1/-1;min-height:118px;display:flex;align-items:center;justify-content:center;border-radius:14px;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,.03),0 6px 18px rgba(27,23,93,.04)}}@media(max-width:699px){body{background:#FAFAFA}.phone-shell{margin:0;border-radius:0;box-shadow:none}}
+/* responsive refinement */
+@media(max-width:899px){
+body{background:var(--soft)}
+.phone-shell{width:100%;max-width:760px;min-height:100vh;margin:0 auto;background:var(--soft);padding:0 20px 28px;border-radius:0;box-shadow:none;overflow:visible}
+.details-topbar{height:64px;margin:0 -20px 16px;padding:0 20px;position:sticky;top:0;z-index:40;background:#fff;border-bottom:1px solid var(--line)}
+#detailRoot{display:block}
+.page-head{margin:0 0 14px}.page-head h1{font-size:22px}.page-head p{font-size:11px;margin-top:4px}
+.summary-card{margin-bottom:14px;border-radius:12px;min-height:88px}
+.card-box{margin-bottom:14px;border-radius:12px;padding:14px}
+.section-title{margin:16px 0 10px;font-size:18px}
+.item-card .product-row{align-items:center}
+.item-card .product-row div{min-width:0}.product-row h3{line-height:1.32;overflow-wrap:anywhere}
+.sku{display:inline-block;max-width:100%;overflow-wrap:anywhere}
+.barcode-box,.serial-box,.detail-box{overflow:hidden}
+.status-pill{gap:8px}.status-pill div{min-width:0}.status-pill button{flex-shrink:0}
+.detail-box p{gap:10px}.detail-box b{max-width:60%}
+.action-row{gap:8px}
+.timeline-panel{max-height:min(82vh,620px);overflow-y:auto}
+}
+@media(max-width:479px){
+.phone-shell{padding:0 14px 22px}.details-topbar{height:60px;margin:0 -14px 14px;padding:0 14px}
+.back-btn{width:36px;height:36px}.bill-btn{height:36px;padding:0 12px;font-size:11px}
+.page-head h1{font-size:20px}
+.summary-card{min-height:80px;grid-template-columns:.75fr 1.3fr 1fr}.summary-card strong{font-size:14px}.summary-card span{font-size:9px}
+.card-box{padding:12px;margin-bottom:12px}.card-box h2{margin-bottom:11px}
+.product-row img{width:54px;height:54px}.product-row h3{font-size:13px}
+.price-grid{gap:5px;margin:12px 0}.price-grid b{font-size:13px}
+.qr{width:118px;height:118px}
+.status-pill{padding:8px 10px;border-radius:12px}.status-pill b{font-size:11px}.status-pill button{font-size:9px}
+.action-row{grid-template-columns:1fr 1fr}.outline-btn,.gradient-btn,.full-gradient{font-size:11px;height:38px}
+.timeline-panel{padding:16px 18px 22px}
+.bill-modal{padding:12px;align-items:center}.bill-panel{width:100%;border-radius:17px;padding:19px 16px 15px;max-height:calc(100vh - 24px)}.bill-header{margin-bottom:14px}.bill-total{margin-bottom:14px}.pay-options{margin-bottom:14px}.bill-field{margin-bottom:14px}
+}
+@media(min-width:480px) and (max-width:899px){
+.phone-shell{padding:0 24px 34px}.details-topbar{margin:0 -24px 20px;padding:0 24px}
+.page-head h1{font-size:25px}.summary-card{min-height:94px}
+.card-box{padding:18px;margin-bottom:16px}.card-box h2{font-size:14px}
+.product-row img{width:72px;height:72px}.product-row h3{font-size:16px}
+.price-grid span{font-size:11px}.price-grid b{font-size:16px}
+.qr{width:154px;height:154px}
+}
+</style>
+<link rel="stylesheet" href="/static/css/mobile-responsive.css">
+</head>
+<body>
+<nav class="desktop-sidebar">
+    <a href="/api/home" class="sidebar-logo">OS</a>
+    <span class="sidebar-label">Main</span>
+    <a href="/api/home" class="side-link"><i class="bi bi-speedometer2"></i><span>Dash</span></a>
+    <a href="/dashboard/" class="side-link"><i class="bi bi-info-circle"></i><span>Main Info</span></a>
+    <a href="/api/inventory-page/" class="side-link"><i class="bi bi-box"></i><span>inventory</span></a>
+    <a href="/billing/" class="side-link"><i class="bi bi-receipt"></i><span>Billing</span></a>
+    <a href="/api/purchase-page/" class="side-link"><i class="bi bi-bag"></i><span>Purchase</span></a>
+    <a href="/api/items/" class="side-link"><i class="bi bi-grid-1x2"></i><span>Items</span></a>
+    <a href="/api/vendors-page/" class="side-link"><i class="bi bi-people"></i><span>Vendors</span></a>
+    <a href="/api/orders-page/" class="side-link active"><i class="bi bi-truck"></i><span>Orders</span></a>
+    <div class="side-spacer"></div>
+    <a href="/settings/" class="side-link"><i class="bi bi-gear"></i><span>Settings</span></a>
+    <a href="/logout/" class="side-link"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
+</nav><main class="phone-shell">
+<header class="details-topbar">
+<a class="back-btn" href="/api/orders-page/"><i class="bi bi-arrow-left"></i></a>
+<button class="bill-btn" id="createBillLink" type="button" onclick="openBillModal()"><i class="bi bi-receipt"></i> Create Bill</button>
+</header>
+
+<div id="detailRoot">
+<div class="empty-state">Loading order details...</div>
+</div>
+</main>
+
+<div class="timeline-modal" id="timelineModal" aria-hidden="true" onclick="if(event.target===this) closeTimeline()">
+    <section class="timeline-panel" role="dialog" aria-modal="true" aria-labelledby="timelineTitle">
+        <div class="timeline-handle"></div>
+        <div class="timeline-header">
+            <h2 id="timelineTitle">Order Timeline</h2>
+            <button class="timeline-close" type="button" onclick="closeTimeline()" aria-label="Close timeline"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <p class="timeline-summary" id="timelineSummary"></p>
+        <div id="timelineList" class="timeline-list"><div class="timeline-loader">Loading timeline...</div></div>
+    </section>
+</div>
+<div class="bill-modal" id="billModal" aria-hidden="true" onclick="if(event.target===this) closeBillModal()">
+    <section class="bill-panel" role="dialog" aria-modal="true" aria-labelledby="billTitle">
+        <form id="billForm">
+            <header class="bill-header">
+                <h2 id="billTitle">Create Bill</h2>
+                <button class="bill-close" type="button" onclick="closeBillModal()" aria-label="Close create bill"><i class="bi bi-x-lg"></i></button>
+            </header>
+            <div class="bill-total"><span>Order Total:</span><strong id="billOrderTotal"></strong></div>
+
+            <p class="bill-label">Payment Method</p>
+            <div class="pay-options" id="paymentMethods">
+                <label class="pay-option selected">
+                    <input type="radio" name="payment_method" value="NET_BANKING" checked>
+                    <i class="bi bi-bank"></i><span>Net Banking</span><i class="bi bi-check-circle-fill pay-check"></i>
+                </label>
+                <label class="pay-option">
+                    <input type="radio" name="payment_method" value="UPI">
+                    <i class="bi bi-qr-code"></i><span>UPI Transfer</span><i class="bi bi-check-circle-fill pay-check"></i>
+                </label>
+                <label class="pay-option">
+                    <input type="radio" name="payment_method" value="CASH">
+                    <i class="bi bi-cash-stack"></i><span>Cash Payment</span><i class="bi bi-check-circle-fill pay-check"></i>
+                </label>
+            </div>
+
+            <p class="bill-label">Transaction Date</p>
+            <div class="bill-field">
+                <i class="bi bi-calendar3"></i>
+                <input class="bill-input" id="billPaymentDate" type="date" required>
+            </div>
+
+            <p class="bill-label">Payment Status</p>
+            <div class="status-options" id="paymentStatuses">
+                <button class="status-option" data-status="PAID" type="button">Paid</button>
+                <button class="status-option" data-status="PARTIAL" type="button">Partial</button>
+                <button class="status-option selected" data-status="PENDING" type="button">Unpaid</button>
+            </div>
+            <div class="bill-field partial-field" id="partialField">
+                <i class="bi bi-currency-rupee"></i>
+                <input class="bill-input" id="billPartialAmount" type="number" min="0.01" step="0.01" placeholder="Amount Received">
+            </div>
+            <div class="payment-note" id="paymentNote"><i class="bi bi-info-circle"></i><span>No payment received yet (&#8377;0.00)</span></div>
+
+            <div class="bill-field">
+                <i class="bi bi-receipt"></i>
+                <input class="bill-input" id="billTransactionId" type="text" placeholder="Transaction ID (Optional)">
+            </div>
+            <p class="bill-error" id="billError"></p>
+            <button class="bill-submit" id="billSubmit" type="submit">Generate Invoice</button>
+        </form>
+    </section>
+</div>
+<div class="workflow-modal" id="packModal" aria-hidden="true" onclick="if(event.target===this) closeWorkflow('packModal')">
+    <form class="workflow-panel" id="packForm">
+        <div class="workflow-title"><h2><i class="bi bi-box-seam"></i> Pack the Order <small id="packOrderNo"></small></h2><button type="button" onclick="closeWorkflow('packModal')"><i class="bi bi-x-lg"></i></button></div>
+        <p class="form-caption"><i class="bi bi-rulers"></i> Dimensions</p>
+        <div class="workflow-grid">
+            <input class="workflow-field" name="height" placeholder="Height (cm)" required>
+            <input class="workflow-field" name="width" placeholder="Width (cm)" required>
+            <input class="workflow-field wide" name="length" placeholder="Length (cm)" required>
+        </div>
+        <p class="form-caption"><i class="bi bi-box2"></i> Weight Details</p>
+        <div class="workflow-grid">
+            <input class="workflow-field wide" name="dead_weight" placeholder="Dead Weight" required>
+            <input class="workflow-field wide" name="vol_weight" placeholder="Volumetric Weight" required>
+            <input class="workflow-field wide" name="billed_weight" placeholder="Billed Weight" required>
+        </div>
+        <p class="form-caption"><i class="bi bi-card-image"></i> Product Images</p>
+        <label class="uploader"><input id="packageImages" type="file" accept="image/*" multiple><span><i class="bi bi-camera"></i><b id="imageCount">0/6</b></span></label>
+        <p class="workflow-error" id="packError"></p>
+        <button class="workflow-submit" type="submit"><i class="bi bi-download"></i> Save Package</button>
+    </form>
+</div>
+<div class="workflow-modal" id="shipmentModal" aria-hidden="true" onclick="if(event.target===this) closeWorkflow('shipmentModal')">
+    <form class="workflow-panel shipment-panel" id="shipmentForm">
+        <div class="workflow-title"><h2>Create Shipment</h2><button type="button" onclick="closeWorkflow('shipmentModal')"><i class="bi bi-x-lg"></i></button></div>
+        <div class="shipment-form">
+            <div class="shipment-field">
+                <label class="shipment-label">Courier Partner</label>
+                <div class="shipment-partner-row">
+                    <div class="input-shell"><i class="bi bi-truck"></i><select class="workflow-field" id="courierPartner" name="courier_partner" required></select></div>
+                    <button class="shipment-plus" type="button" onclick="openCourierModal()">+</button>
+                </div>
+            </div>
+            <div class="shipment-field">
+                <label class="shipment-label">Mediator Partner</label>
+                <div class="input-shell"><i class="bi bi-handshake"></i><select class="workflow-field" id="mediatorPartner" name="mediator" disabled><option value="">Select courier first</option></select></div>
+            </div>
+            <div class="shipment-two">
+                <div class="shipment-field">
+                    <label class="shipment-label">Tracking ID</label>
+                    <div class="input-shell"><i class="bi bi-qr-code-scan"></i><input class="workflow-field" name="tracking_id" placeholder="Enter ID" required></div>
+                </div>
+                <div class="shipment-field">
+                    <label class="shipment-label">Shipping Date</label>
+                    <div class="input-shell"><input class="workflow-field" name="shipping_date" type="date" required></div>
+                </div>
+                <div class="shipment-field shipment-url">
+                    <label class="shipment-label">Tracking / Reference URL</label>
+                    <div class="input-shell"><i class="bi bi-link-45deg"></i><input class="workflow-field" name="tracking_url" placeholder="https://tracking-link.com"></div>
+                </div>
+                <div class="shipment-field">
+                    <label class="shipment-label">Shipping Expense</label>
+                    <div class="input-shell"><i class="bi bi-currency-rupee"></i><input class="workflow-field" name="shipping_expense" type="number" min="0" step="0.01" placeholder="Amount"></div>
+                </div>
+                <div class="shipment-field">
+                    <label class="shipment-label">Other Expense</label>
+                    <div class="input-shell"><i class="bi bi-credit-card-2-front"></i><input class="workflow-field" name="other_expense" type="number" min="0" step="0.01" placeholder="Amount"></div>
+                </div>
+                <div class="shipment-field shipment-notes">
+                    <label class="shipment-label">Notes / Remarks</label>
+                    <div class="input-shell"><i class="bi bi-file-earmark-plus"></i><textarea class="workflow-field" name="notes" placeholder="Write details here..."></textarea></div>
+                </div>
+            </div>
+        </div>
+        <p class="workflow-error" id="shipmentError"></p>
+        <button class="workflow-submit confirm-shipment" type="submit">Confirm Shipment</button>
+    </form>
+</div>
+<div class="workflow-modal" id="courierModal" aria-hidden="true" onclick="if(event.target===this) closeWorkflow('courierModal')">
+    <form class="workflow-panel courier-panel" id="courierForm">
+        <div class="workflow-title"><h2>Add Courier Partner</h2><button type="button" onclick="closeWorkflow('courierModal')"><i class="bi bi-x-lg"></i></button></div>
+        <div class="shipment-field">
+            <label class="shipment-label">Courier Name</label>
+            <div class="input-shell"><i class="bi bi-truck"></i><input class="workflow-field" name="title" placeholder="e.g. Delhivery" required></div>
+        </div>
+        <div class="mediator-head"><p class="form-caption">Mediators</p><button type="button" class="mini-add" onclick="addMediator()">+ Add Mediator</button></div>
+        <div id="mediatorFields"></div>
+        <p class="workflow-error" id="courierError"></p>
+        <div class="courier-actions"><button class="courier-cancel" type="button" onclick="closeWorkflow('courierModal')">Cancel</button><button class="courier-create" type="submit">Create</button></div>
+    </form>
+</div>
+<div class="workflow-modal" id="returnModal" aria-hidden="true" onclick="if(event.target===this) closeWorkflow('returnModal')">
+    <form class="workflow-panel return-panel" id="returnForm">
+        <div class="workflow-title"><h2 id="returnTitle">Courier Return</h2><button type="button" onclick="closeWorkflow('returnModal')"><i class="bi bi-x-lg"></i></button></div>
+        <p class="return-note" id="returnModeNote">Initiate a return for an ordered product.</p>
+        <div id="returnCreateFields">
+            <p class="form-caption">Product</p>
+            <select class="workflow-field" id="returnProduct" name="product_id"></select>
+            <div class="workflow-grid" style="margin-top:12px">
+                <input class="workflow-field" id="returnQuantity" name="quantity" type="number" min="1" placeholder="Quantity">
+                <select class="workflow-field" id="returnCondition" name="condition"></select>
+            </div>
+        </div>
+        <div class="return-section return-hidden" id="returnProcessFields">
+            <p class="form-caption">Claim Status</p>
+            <select class="workflow-field" id="returnClaimStatus" onchange="toggleReturnClaimFields()">
+                <option value="NOT_CLAIMED">Not Claimed</option>
+                <option value="CLAIMED">Claimed</option>
+            </select>
+            <div id="returnStatusFields" style="margin-top:12px">
+                <p class="form-caption">Approval Status</p>
+                <select class="workflow-field" id="returnStatus" onchange="toggleReturnApprovalFields()">
+                    <option value="APPROVED">Approved</option>
+                    <option value="NOT_APPROVED">Not Approved</option>
+                </select>
+            </div>
+            <div id="returnApprovalFields">
+                <div class="workflow-grid" style="margin-top:12px">
+                    <input class="workflow-field" id="returnAmount" type="number" min="0" step="0.01" placeholder="Return Amount">
+                    <input class="workflow-field" id="returnCharges" type="number" min="0" step="0.01" placeholder="Return Charges">
+                    <input class="workflow-field wide" id="returnReceiveDate" type="date">
+                    <select class="workflow-field wide" id="returnReason">
+                        <option value="">Select Return Reason</option>
+                        <option value="AGENT_ERROR">Agent Error</option>
+                        <option value="LACK_OF_STOCK">Lack of Stock</option>
+                        <option value="CUSTOMER_ERROR">Customer Error</option>
+                    </select>
+                    <textarea class="workflow-field wide" id="returnReasonText" placeholder="Optional reason details"></textarea>
+                    <label class="wide">
+                        <span class="form-caption">Return Photo</span>
+                        <input class="workflow-field return-file" id="returnPhoto" type="file" accept="image/*">
+                    </label>
+                    <label class="wide">
+                        <span class="form-caption">Return Video</span>
+                        <input class="workflow-field return-file" id="returnVideo" type="file" accept="video/*">
+                    </label>
+                </div>
+            </div>
+            <p class="form-caption">Remarks</p>
+            <textarea class="workflow-field" id="returnRemarks" placeholder="Write return remarks..."></textarea>
+        </div>
+        <p class="workflow-error" id="returnError"></p>
+        <button class="workflow-submit" id="returnSubmit" type="submit">Confirm Courier Return</button>
+    </form>
+</div>
+<div class="workflow-modal" id="remarkModal" aria-hidden="true" onclick="if(event.target===this) closeWorkflow('remarkModal')">
+    <form class="workflow-panel" id="remarkForm">
+        <div class="workflow-title"><h2><i class="bi bi-plus-square"></i> Add Remark</h2><button type="button" onclick="closeWorkflow('remarkModal')"><i class="bi bi-x-lg"></i></button></div>
+        <textarea class="workflow-field" id="remarkText" placeholder="Enter remark..." required style="height:110px"></textarea>
+        <p class="workflow-error" id="remarkError"></p>
+        <button class="workflow-submit" id="remarkSubmit" type="submit"><i class="bi bi-check2-circle"></i> Submit Remark</button>
+    </form>
+</div>
+<script>
+const API_BASE=window.API_BASE||(location.protocol==="file:"?"http://127.0.0.1:8000":"");
+const root=document.getElementById("detailRoot");
+const params=new URLSearchParams(location.search);
+const orderId=params.get("id")||params.get("order_id");
+
+let currentOrder = null;
+const timelineModal = document.getElementById("timelineModal");
+const timelineSummary = document.getElementById("timelineSummary");
+const timelineList = document.getElementById("timelineList");
+const billModal = document.getElementById("billModal");
+const billForm = document.getElementById("billForm");
+let billMode = "create";
+let courierPartners = [];
+let returnType = "courier";
+let returnMode = "create";
+let activeReturnId = null;
+const API_TOKEN_KEY="stockos_api_token";
+async function ensureToken(){
+let token=localStorage.getItem(API_TOKEN_KEY);
+if(token)return token;
+const res=await fetch(`${API_BASE}/api/login/`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({otp:"000000"})});
+const data=await res.json();
+if(!res.ok||!data.token)throw new Error(data.error||"API login failed.");
+localStorage.setItem(API_TOKEN_KEY,data.token);
+return data.token;
+}
+async function apiFetch(url,options={},retry=true){
+const token=await ensureToken();
+const requestHeaders=new Headers(options.headers||{});
+requestHeaders.set("Authorization",`Bearer ${token}`);
+if(!(options.body instanceof FormData)&&!requestHeaders.has("Content-Type"))requestHeaders.set("Content-Type","application/json");
+const res=await fetch(url,{...options,headers:requestHeaders});
+if(res.status===401&&retry){localStorage.removeItem(API_TOKEN_KEY);return apiFetch(url,options,false);}
+return res;
+}
+function appUrl(path){return location.protocol==="file:"?`${API_BASE}${path}`:path}
+function money(v){return `&#8377;${Number(v||0).toFixed(2)}`}
+function orderDate(o){return o.date||(o.created_at?String(o.created_at).slice(0,10):"")}
+function items(o){return Array.isArray(o.items)?o.items:[]}
+function itemName(i){return i.name||i.product_name||i.product?.name||""}
+function itemSku(i){return i.sku||i.product_sku||i.product?.sku||""}
+function itemPrice(i){return i.unit_price||i.price||0}
+function itemQty(i){return i.quantity||i.ordered_quantity||0}
+function itemSubtotal(i){return i.subtotal||i.total_price||(Number(itemPrice(i))*Number(itemQty(i)))}
+const PRODUCT_PLACEHOLDER="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='12' fill='%23f1f1f5'/%3E%3Cpath d='M38 44h44v35H38z' fill='none' stroke='%231b175d' stroke-width='3'/%3E%3Cpath d='M38 53l22 14 22-14M60 67v12' fill='none' stroke='%231b175d' stroke-width='3'/%3E%3C/svg%3E";
+function itemImage(i){return i.image||i.product_image||PRODUCT_PLACEHOLDER}
+function apiErrorMessage(data,fallback){
+if(data?.message)return data.message;
+if(typeof data?.detail==="string")return data.detail;
+if(data&&typeof data==="object"){
+const fields=Object.entries(data).map(([field,value])=>`${field.replaceAll("_"," ")}: ${Array.isArray(value)?value.join(", "):value}`).join(" | ");
+if(fields)return fields;
+}
+return fallback;
+}
+
+function statusCode(order){return Number(order?.latest_status?.status||order?.order_status||0)}
+function statusLabel(order){
+const code=statusCode(order);
+if(code===1)return "In Process";
+return order.status||order.latest_status?.label||"";
+}
+function canPackOrder(order){
+const label=String(order?.latest_status?.label||order?.status||"").trim().toLowerCase();
+return statusCode(order)===1 && !["cancelled","packed","in transit","delivered","courier return","customer return","returned"].includes(label);
+}
+function isDelivered(order){return statusCode(order)===4||String(order?.status||"").toLowerCase()==="delivered"}
+function isReturned(code){return [8,9].includes(Number(code))}
+function escapeHTML(value){
+return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+}
+function timelineDate(value){
+if(!value)return "";
+const d=new Date(value);
+if(Number.isNaN(d.getTime()))return String(value);
+return d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+}
+function timelineStatusMeta(status,json={}){
+const code=Number(status);
+const message=String(json?.message||"").toLowerCase();
+const labels={
+1:"Order Created",
+2:"Packed",
+3:"In Transit",
+4:"Delivered",
+5:"Cancelled",
+6:"Courier Return",
+7:"Customer Return",
+8:"Return Received",
+9:"Return Received"
+};
+const icons={
+1:"bi-plus-circle",
+2:"bi-box-seam",
+3:"bi-truck",
+4:"bi-check-circle",
+5:"bi-x-circle",
+6:"bi-arrow-counterclockwise",
+7:"bi-arrow-return-left",
+8:"bi-check2-circle",
+9:"bi-check2-circle"
+};
+return {label:labels[code]||`Status ${code||""}`,icon:icons[code]||"bi-clock-history"};
+}
+function timelineHTML(order,history){
+let logs=(Array.isArray(history)?history:[]).slice().sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
+if(!logs.some(entry=>Number(entry.status)===1)){
+logs.unshift({status:1,created_at:order.created_at||order.date,json:{message:"Order created"}});
+}
+if(!logs.length){
+timelineSummary.textContent="No timeline found";
+return `<div class="timeline-loader">No timeline found.</div>`;
+}
+const byStatus=new Map();
+logs.forEach(entry=>byStatus.set(Number(entry.status),entry));
+const logFor=code=>byStatus.get(code);
+const returnReceivedLog=logFor(8)||logFor(9);
+const has=code=>byStatus.has(code);
+const deliveredLog=logFor(4)||(has(7)?{status:4,created_at:logFor(7)?.created_at,json:{message:"Delivered before customer return"}}:null);
+const steps=[];
+function pushStep(code,{show=false,log=null,label=null}={}){
+const entry=log||logFor(code);
+if(!entry&&!show)return;
+const meta=timelineStatusMeta(code,entry?.json||{});
+const message=entry?.json?.message&&String(entry.json.message).trim()?` • ${escapeHTML(entry.json.message)}`:"";
+steps.push({
+done:Boolean(entry),
+label:label||meta.label,
+icon:meta.icon,
+note:entry?`${timelineDate(entry.created_at)||"Time not recorded"}${message}`:"Pending"
+});
+}
+pushStep(1,{show:true});
+pushStep(2,{show:has(1)||has(2)||has(3)||has(4)||has(6)||has(7)||Boolean(returnReceivedLog)});
+pushStep(3,{show:has(2)||has(3)||has(4)||has(6)||has(7)||Boolean(returnReceivedLog)});
+if(has(6)&&!has(7)){
+pushStep(6,{show:true});
+pushStep(8,{show:true,log:returnReceivedLog,label:"Return Received"});
+}else if(has(4)||has(7)||returnReceivedLog){
+pushStep(4,{show:true,log:deliveredLog});
+pushStep(7,{show:has(4)||has(7)||Boolean(returnReceivedLog)});
+pushStep(8,{show:has(7)||Boolean(returnReceivedLog),log:returnReceivedLog,label:"Return Received"});
+}else if(has(3)){
+pushStep(4,{show:true});
+}
+const completed=steps.filter(step=>step.done).length;
+timelineSummary.textContent=`${completed} of ${steps.length} steps completed`;
+let lastDoneIndex=-1;
+steps.forEach((step,index)=>{if(step.done)lastDoneIndex=index;});
+return steps.map((step,index)=>{
+const state=step.done?`complete${index===lastDoneIndex?" current":""}`:"pending";
+return `<div class="timeline-step ${state}"><div class="timeline-dot"><i class="bi ${step.icon}"></i></div><div class="timeline-copy"><b>${escapeHTML(step.label)}</b><span>${step.note}</span></div></div>`;
+}).join("");
+}
+function closeTimeline(){timelineModal.classList.remove("open");timelineModal.setAttribute("aria-hidden","true")}
+async function openTimeline(){
+if(!currentOrder)return;
+timelineModal.classList.add("open");timelineModal.setAttribute("aria-hidden","false");
+timelineSummary.textContent="Loading progress...";timelineList.innerHTML=`<div class="timeline-loader">Loading timeline...</div>`;
+try{
+const id=currentOrder.id||currentOrder.order_id;
+const res=await apiFetch(`${API_BASE}/api/order-status/?order_id=${id}`);
+const data=res.ok?await res.json():{data:[]};
+timelineList.innerHTML=timelineHTML(currentOrder,data.data||[]);
+}catch(error){timelineList.innerHTML=timelineHTML(currentOrder,[])}
+}
+function billRemaining(){
+const total=Number(currentOrder?.total_amount||0);
+const paid=Number(currentOrder?.paid_amount||0);
+return Number(currentOrder?.remaining_amount ?? Math.max(total-paid,0));
+}
+function billGenerated(order=currentOrder){
+return Boolean(order?.bill_generated||order?.payment_date||order?.payment_method||order?.transaction_id||Number(order?.paid_amount||0)>0);
+}
+function selectBillStatus(status){
+document.querySelectorAll(".status-option").forEach(button=>button.classList.toggle("selected",button.dataset.status===status));
+const partial=document.getElementById("partialField");
+const note=document.getElementById("paymentNote").querySelector("span");
+const total=Number(currentOrder?.total_amount||0);
+partial.classList.toggle("visible",status==="PARTIAL");
+document.getElementById("billPartialAmount").required=status==="PARTIAL";
+if(status==="PAID")note.innerHTML=`Full payment will be recorded (&#8377;${total.toFixed(2)})`;
+else if(status==="PARTIAL")note.innerHTML=`Enter payment amount below &#8377;${total.toFixed(2)}`;
+else note.innerHTML=`No payment received yet (&#8377;0.00)`;
+document.getElementById("billError").classList.remove("show");
+}
+function openBillModal(mode="create"){
+if(!currentOrder)return;
+if(mode==="create"&&billGenerated())return;
+billMode=mode;
+billForm.reset();
+const defaultMethod=currentOrder.payment_method||"NET_BANKING";
+const payment=document.querySelector(`input[name="payment_method"][value="${defaultMethod}"]`)||document.querySelector('input[name="payment_method"][value="NET_BANKING"]');
+payment.checked=true;
+document.querySelectorAll(".pay-option").forEach(label=>label.classList.toggle("selected",label.contains(payment)));
+document.getElementById("billOrderTotal").innerHTML=money(currentOrder.total_amount||0);
+document.getElementById("billTitle").textContent=mode==="edit"?"Edit Bill":"Create Bill";
+document.getElementById("billSubmit").textContent=mode==="edit"?"Update Bill":"Generate Invoice";
+document.getElementById("billPaymentDate").value=mode==="edit"&&currentOrder.payment_date?String(currentOrder.payment_date).slice(0,10):new Date().toISOString().slice(0,10);
+document.getElementById("billTransactionId").value=currentOrder.transaction_id||"";
+selectBillStatus(currentOrder.paid_status==="PAID"?"PAID":currentOrder.paid_status==="PARTIAL"?"PARTIAL":"PENDING");
+if(mode==="edit"&&currentOrder.paid_status==="PARTIAL")document.getElementById("billPartialAmount").value=Number(currentOrder.paid_amount||0).toFixed(2);
+billModal.classList.add("open");
+billModal.setAttribute("aria-hidden","false");
+}
+function closeBillModal(){billModal.classList.remove("open");billModal.setAttribute("aria-hidden","true")}
+document.getElementById("paymentMethods").addEventListener("change",event=>{
+if(event.target.name!=="payment_method")return;
+document.querySelectorAll(".pay-option").forEach(label=>label.classList.toggle("selected",label.contains(event.target)));
+});
+document.getElementById("paymentStatuses").addEventListener("click",event=>{
+const button=event.target.closest(".status-option");
+if(button)selectBillStatus(button.dataset.status);
+});
+billForm.addEventListener("submit",async event=>{
+event.preventDefault();
+if(!currentOrder)return;
+const selectedStatus=document.querySelector(".status-option.selected")?.dataset.status||"PENDING";
+const total=Number(currentOrder.total_amount||0);
+let amount=0;
+if(selectedStatus==="PAID")amount=total;
+if(selectedStatus==="PARTIAL"){
+amount=Number(document.getElementById("billPartialAmount").value||0);
+if(amount<=0||amount>=total){
+const error=document.getElementById("billError");
+error.textContent="Partial payment amount order total se kam hona chahiye.";
+error.classList.add("show");
+return;
+}
+}
+const submit=document.getElementById("billSubmit");
+const idleText=billMode==="edit"?"Update Bill":"Generate Invoice";
+submit.disabled=true;submit.textContent=billMode==="edit"?"Updating...":"Generating...";
+try{
+const id=currentOrder.id||currentOrder.order_id;
+const response=await apiFetch(`${API_BASE}/api/order-bills-perticuler/${id}/`,{
+method:billMode==="edit"?"PUT":"POST",body:JSON.stringify({
+amount:amount,
+payment_method:document.querySelector('input[name="payment_method"]:checked').value,
+transaction_id:document.getElementById("billTransactionId").value.trim(),
+payment_date:document.getElementById("billPaymentDate").value
+})
+});
+const data=await response.json();
+if(!response.ok)throw new Error(data.error||data.detail||"Invoice could not be generated.");
+closeBillModal();
+await loadOrder();
+}catch(error){
+const message=document.getElementById("billError");
+message.textContent=error.message;
+message.classList.add("show");
+}finally{
+submit.disabled=false;submit.textContent=idleText;
+}
+});
+document.getElementById("remarkForm").addEventListener("submit",async event=>{
+event.preventDefault();
+if(!currentOrder)return;
+const error=document.getElementById("remarkError");
+const button=document.getElementById("remarkSubmit");
+const remark=document.getElementById("remarkText").value.trim();
+error.textContent="";
+if(!remark){error.textContent="Remark is required.";return;}
+button.disabled=true;
+button.innerHTML='<i class="bi bi-hourglass-split"></i> Saving...';
+try{
+const id=currentOrder.id||currentOrder.order_id;
+const response=await apiFetch(`${API_BASE}/api/orders/${id}/add-remark/`,{
+method:"POST",
+body:JSON.stringify({remark})
+});
+const data=await response.json();
+if(!response.ok)throw new Error(apiErrorMessage(data,"Remark could not be added."));
+closeWorkflow("remarkModal");
+await loadOrder();
+}catch(err){
+error.textContent=err.message;
+}finally{
+button.disabled=false;
+button.innerHTML='<i class="bi bi-check2-circle"></i> Submit Remark';
+}
+});
+async function deleteBill(){
+if(!currentOrder||!billGenerated()||!confirm("Delete this bill? Payment details will be cleared."))return;
+const id=currentOrder.id||currentOrder.order_id;
+try{
+const response=await apiFetch(`${API_BASE}/api/order-bills-perticuler/${id}/`,{method:"DELETE"});
+const data=await response.json();
+if(!response.ok)throw new Error(data.error||"Bill could not be deleted.");
+await loadOrder();
+}catch(error){alert(error.message);}
+}
+document.addEventListener("keydown",event=>{if(event.key==="Escape"){closeTimeline();closeBillModal();["packModal","shipmentModal","courierModal","returnModal","remarkModal"].forEach(closeWorkflow);}});
+function remarksHTML(order){
+const remarks=Array.isArray(order.remarks)?order.remarks:[];
+if(!remarks.length){
+return `<div class="remark-box"><i class="bi bi-card-text"></i><div><p>No remarks</p><span>${escapeHTML(order.remark_date||"")}</span></div></div>`;
+}
+return remarks.map(r=>`
+<div class="remark-box">
+<i class="bi bi-card-text"></i>
+<div><p>${escapeHTML(r.remark||"")}</p><span>${escapeHTML(r.created_at||"")}</span></div>
+</div>`).join("");
+}
+
+function openRemarkModal(){
+if(!currentOrder)return;
+document.getElementById("remarkForm").reset();
+document.getElementById("remarkError").textContent="";
+document.getElementById("remarkModal").classList.add("open");
+document.getElementById("remarkModal").setAttribute("aria-hidden","false");
+setTimeout(()=>document.getElementById("remarkText").focus(),60);
+}
+
+function serialHTML(item){
+const sku=itemSku(item);
+const serials=Array.isArray(item.serials)&&item.serials.length?item.serials:[{serial_number:item.serial||`${sku}-00014`,barcode_image:""}];
+return serials.map(s=>`
+<div class="serial-box">
+<p><i class="bi bi-qr-code"></i> Serial QR</p>
+<div class="qr">
+  ${(s.qr_image || s.barcode_image)
+    ? `<img src="${s.qr_image || s.barcode_image}" alt="Serial QR code">`
+    : `<i class="bi bi-qr-code"></i>`}
+</div>
+<code>${s.serial_number||s.qr_value||""}</code>
+</div>`).join("");
+}
+
+function itemHTML(item){
+const sku=itemSku(item);
+return `
+<section class="card-box item-card">
+<div class="product-row">
+<img src="${itemImage(item)}" alt="Product">
+<div><h3>${itemName(item)}</h3><p class="sku">SKU: ${sku}</p></div>
+</div>
+
+<div class="price-grid">
+<span>Quantity<b>${itemQty(item)}</b></span>
+<span>Unit Price<b>${money(itemPrice(item))}</b></span>
+<span>Subtotal<b>${money(itemSubtotal(item))}</b></span>
+</div>
+
+<div class="barcode-box">
+<p><i class="bi bi-upc-scan"></i> Product Barcode</p>
+<code>${item.product_barcode||sku}</code>
+</div>
+
+${serialHTML(item)}
+</section>`;
+}
+
+function statusClass(order){
+return String(order.status||"").toLowerCase().replaceAll(" ","-").replaceAll("_","-");
+}
+function packageHTML(order){
+if(statusCode(order)<2||statusCode(order)===5)return "";
+const pkg=order.package||{};
+const rows=[
+["Height",pkg.height],
+["Width",pkg.width],
+["Length",pkg.length],
+["Dead Weight",pkg.dead_weight],
+["Vol. Weight",pkg.vol_weight],
+["Billed Weight",pkg.billed_weight]
+];
+const hasPackage=rows.some(([,value])=>value!==undefined&&value!==null&&String(value).trim()!=="");
+return `<div class="detail-box">
+<h3><i class="bi bi-box-seam"></i> Package Details</h3>
+${hasPackage
+?rows.map(([label,value])=>`<p><span>${label}</span><b>${value||"-"}</b></p>`).join("")
+:`<p><span>Package data</span><b>Not saved</b></p>`}
+</div>`;
+}
+function shipmentHTML(order){
+if(statusCode(order)<3||statusCode(order)===5)return "";
+return `<div class="detail-box">
+<h3><i class="bi bi-truck"></i> Shipment Details</h3>
+<p><span>Courier</span><b>${order.shipment?.courier||""}</b></p>
+<p><span>Mediator</span><b>${order.shipment?.mediator||""}</b></p>
+<p><span>Tracking ID</span><b>${order.shipment?.tracking_id||""}</b></p>
+<p><span>Ship Date</span><b>${order.shipment?.ship_date||""}</b></p>
+<p><span>Shipping Exp.</span><b>${money(order.shipment?.shipping_expense||0)}</b></p>
+${order.shipment?.tracking_url?`<a href="${order.shipment.tracking_url}" target="_blank" rel="noopener">${order.shipment.tracking_url}</a>`:""}
+</div>`;
+}
+function returnDetailsHTML(order){
+const record=order.return_record;
+if(!record)return "";
+const customer=order.return_type==="customer";
+const status=String(record.return_status||"IN_PROGRESS").replaceAll("_"," ");
+const amount=customer?record.refund_amount:record.return_amount;
+return `<div class="detail-box">
+<h3><i class="bi bi-arrow-return-left"></i> ${customer?"Customer":"Courier"} Return Details</h3>
+<p><span>Quantity</span><b>${record.quantity||""}</b></p>
+<p><span>Condition</span><b>${String(record.condition||"").replaceAll("_"," ")}</b></p>
+<p><span>Return Status</span><b>${status}</b></p>
+${amount!==null&&amount!==undefined?`<p><span>${customer?"Refund":"Return"} Amount</span><b>${money(amount)}</b></p>`:""}
+${record.return_charges!==null&&record.return_charges!==undefined?`<p><span>Return Charges</span><b>${money(record.return_charges)}</b></p>`:""}
+${record.return_receive_date?`<p><span>Receive Date</span><b>${record.return_receive_date}</b></p>`:""}
+${record.return_reason?`<p><span>Reason</span><b>${String(record.return_reason).replaceAll("_"," ")}</b></p>`:""}
+${record.remarks?`<p><span>Remarks</span><b>${record.remarks}</b></p>`:""}
+</div>`;
+}
+function actionsHTML(order,id){
+const code=statusCode(order);
+if(code===1&&canPackOrder(order))return `<p class="next-step">Next Step</p><button class="full-gradient" type="button" onclick="openPackModal()"><i class="bi bi-box-seam"></i> Pack the Order</button><button class="full-gradient cancel-order" type="button" onclick="cancelOrder(${id})"><i class="bi bi-x-circle"></i> Cancel Order</button>`;
+if(code===2)return `<p class="next-step">Next Step</p><button class="full-gradient" type="button" onclick="openShipmentModal()"><i class="bi bi-truck"></i> Create Shipment</button><button class="full-gradient cancel-order" type="button" onclick="cancelOrder(${id})"><i class="bi bi-x-circle"></i> Cancel Order</button>`;
+if(code===3)return `<p class="next-step">Next Step</p><button class="full-gradient delivery-action" type="button" onclick="markDelivered(${id})"><i class="bi bi-check-circle"></i> Mark as Delivered</button><button class="full-gradient" type="button" onclick="openReturnModal('courier')">Courier Return</button>`;
+if(code===6)return `<p class="next-step">Next Step</p><button class="full-gradient return-received-action" type="button" onclick="markReturnReceived('courier')"><i class="bi bi-clipboard-check"></i> Return Received</button>`;
+if(code===7)return `<p class="next-step">Next Step</p><button class="full-gradient return-received-action" type="button" onclick="markReturnReceived('customer')"><i class="bi bi-clipboard-check"></i> Return Received</button>`;
+if(code===8)return `<p class="next-step">Next Step</p><button class="full-gradient neutral-action" type="button" disabled><i class="bi bi-check-circle"></i> No further action required</button>`;
+if(code===4)return `<p class="next-step">Next Step</p><button class="full-gradient" type="button" onclick="openReturnModal('customer')"><i class="bi bi-arrow-return-left"></i> Customer Return</button>`;
+if(code===9)return `<p class="next-step">Next Step</p><button class="full-gradient neutral-action" type="button" disabled><i class="bi bi-check-circle"></i> No further action required</button>`;
+return "";
+}
+
+function render(order){
+const id=order.id||order.order_id;
+const orderItems=items(order);
+const totalItems=order.total_items||orderItems.reduce((s,i)=>s+Number(itemQty(i)),0);
+const bill=order.bill_breakdown||{};
+const itemsTotal=Number(bill.items_total??orderItems.reduce((s,i)=>s+Number(itemSubtotal(i)),0));
+const productTax=Number(bill.product_tax??0);
+const packageExpense=Number(bill.package_expence??order.package_expence??0);
+const buyerShipping=Number(bill.buyer_shipment_charger??order.buyer_shipment_charger??0);
+const buyerTax=Number(bill.buyer_tax_amount??order.buyer_tax_amount??0);
+const calculatedTotal=Number(bill.calculated_total??(itemsTotal+productTax+packageExpense+buyerShipping+buyerTax));
+const otherAdjustment=Number(bill.other_adjustment??0);
+const printedAmount=Number(bill.printed_amount??bill.grand_total??order.total_amount??calculatedTotal);
+const grandTotal=printedAmount;
+const hasBill=billGenerated(order);
+currentOrder=order;
+
+root.innerHTML=`
+<section class="page-head">
+<h1>Order Details</h1>
+<p>Order #${id} &bull; ${orderDate(order)}</p>
+</section>
+
+<section class="summary-card">
+<div><i class="bi bi-bag-fill"></i><strong>${totalItems}</strong><span>Total Items</span></div>
+<div><i class="bi bi-shop"></i><strong>${order.channel||order.channel_name||""}</strong><span>Channel</span></div>
+<div><i class="bi bi-currency-rupee"></i><strong>${money(grandTotal)}</strong><span>Total</span></div>
+</section>
+
+<div class="left-stack">
+<section class="card-box info-card">
+<h2>Customer Info</h2>
+<p><b>Name:</b> ${order.customer_name||""}</p>
+<p><b>Mobile:</b> ${order.mobile||order.customer_mobile||""}</p>
+<p><b>Email:</b> ${order.email||order.customer_email||""}</p>
+<p><b>Channel ID:</b> ${order.channel_id||order.channel_order_id||""}</p>
+</section>
+
+<section class="card-box remarks-card">
+<div class="card-head">
+<h2>Remarks</h2>
+<a href="#" onclick="event.preventDefault();openRemarkModal()"><i class="bi bi-plus-square"></i> Add Remark</a>
+</div>
+<div class="remark-list">${remarksHTML(order)}</div>
+</section>
+
+<h2 class="section-title">Ordered Items</h2>
+${orderItems.length?orderItems.map(itemHTML).join(""):`<div class="empty-state">No ordered items found.</div>`}
+</div>
+
+<div class="right-stack">
+<section class="card-box bill-card">
+<h2><i class="bi bi-receipt"></i> Bill Breakdown</h2>
+<p><span>Items Total</span><b>${money(itemsTotal)}</b></p>
+<p><span>Product GST / Tax (${Number(bill.product_tax_percent??5).toFixed(2)}%)</span><b>${money(productTax)}</b></p>
+<p><span>Package Expense</span><b>${money(packageExpense)}</b></p>
+<p><span>Buyer Shipping</span><b>${money(buyerShipping)}</b></p>
+<p><span>Buyer Tax Amount</span><b>${money(buyerTax)}</b></p>
+<p><span>Calculated Total</span><b>${money(calculatedTotal)}</b></p>
+<p><span>Other / Adjustment</span><b>${money(otherAdjustment)}</b></p>
+<div class="grand"><span>&#8377; Grand Total / Printed Amount</span><b>${money(grandTotal)}</b></div>
+${hasBill?`<div class="bill-managed">
+<p><span>Paid Amount</span><b>${money(order.paid_amount||0)}</b></p>
+<p><span>Remaining</span><b>${money(order.remaining_amount||0)}</b></p>
+<div class="bill-actions">
+<button class="bill-edit" type="button" onclick="openBillModal('edit')"><i class="bi bi-pencil-square"></i> Edit Bill</button>
+<button class="bill-delete" type="button" onclick="deleteBill()"><i class="bi bi-trash"></i> Delete Bill</button>
+</div>
+</div>`:""}
+</section>
+
+<section class="card-box serial-actions">
+<h2><i class="bi bi-qr-code"></i> Serial QR Codes</h2>
+<div class="action-row">
+<button class="outline-btn" type="button" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+<a class="gradient-btn" href="${API_BASE}/api/orders/${id}/serial-barcodes/pdf/" target="_blank" rel="noopener"><i class="bi bi-download"></i> Download PDF</a>
+</div>
+</section>
+
+<section class="card-box status-card">
+<h2><i class="bi bi-truck"></i> Order Status</h2>
+
+<div class="status-pill ${statusClass(order)}">
+<div><i class="bi bi-truck"></i><b>${statusLabel(order)}</b><span>${timelineDate(order.status_timestamp)||order.status_date||""}</span></div>
+<button type="button" onclick="openTimeline()"><i class="bi bi-clock-history"></i> View Log</button>
+</div>
+
+${packageHTML(order)}
+${shipmentHTML(order)}
+${returnDetailsHTML(order)}
+${actionsHTML(order,id)}
+</section>
+</div>`;
+
+const billButton=document.getElementById("createBillLink");
+billButton.disabled=hasBill;
+billButton.classList.toggle("generated",hasBill);
+billButton.innerHTML=hasBill?'<i class="bi bi-check-circle-fill"></i> Bill Created':'<i class="bi bi-receipt"></i> Create Bill';
+}
+
+function closeWorkflow(id){
+const modal=document.getElementById(id);
+modal.classList.remove("open");
+modal.setAttribute("aria-hidden","true");
+}
+function openPackModal(){
+document.getElementById("packForm").reset();
+document.getElementById("imageCount").textContent="0/6";
+document.getElementById("packError").textContent="";
+document.getElementById("packOrderNo").textContent=`Order #${currentOrder.id}`;
+document.getElementById("packModal").classList.add("open");
+document.getElementById("packModal").setAttribute("aria-hidden","false");
+}
+async function uploadPackageImage(file){
+const data=new FormData();
+data.append("image",file);
+const res=await apiFetch(`${API_BASE}/api/upload-image/`,{method:"POST",body:data});
+const response=await res.json();
+if(!res.ok)throw new Error(response.error||"Image upload failed.");
+return response.path;
+}
+document.getElementById("packageImages").addEventListener("change",event=>{
+const count=event.target.files.length;
+if(count>6){event.target.value="";document.getElementById("packError").textContent="Maximum 6 product images upload kar sakte hain.";return;}
+document.getElementById("packError").textContent="";
+document.getElementById("imageCount").textContent=`${count}/6`;
+});
+document.getElementById("packForm").addEventListener("submit",async event=>{
+event.preventDefault();
+const error=document.getElementById("packError");
+const button=event.target.querySelector(".workflow-submit");
+error.textContent="";button.disabled=true;button.textContent="Saving...";
+try{
+const form=new FormData(event.target);
+const files=document.getElementById("packageImages").files;
+let uploaded="";
+if(files.length)uploaded=await uploadPackageImage(files[0]);
+const payload=Object.fromEntries(form.entries());
+if(uploaded)payload.product_image=uploaded;
+const res=await apiFetch(`${API_BASE}/api/order-ui-pack/${currentOrder.id}/`,{method:"POST",body:JSON.stringify(payload)});
+const data=await res.json();
+if(!res.ok)throw new Error(data.message||"Package could not be saved.");
+closeWorkflow("packModal");await loadOrder();
+}catch(e){error.textContent=e.message}
+finally{button.disabled=false;button.innerHTML='<i class="bi bi-download"></i> Save Package';}
+});
+async function loadCourierPartners(selected=""){
+const res=await apiFetch(`${API_BASE}/api/courier/list/`);
+const data=await res.json();
+courierPartners=Array.isArray(data)?data:(data.data||[]);
+const select=document.getElementById("courierPartner");
+select.innerHTML='<option value="">Select Courier</option>'+courierPartners.map(p=>`<option value="${p.id}">${p.title}</option>`).join("");
+if(selected)select.value=String(selected);
+else if(courierPartners.length)select.value=String(courierPartners[0].id);
+updateMediatorOptions();
+}
+function updateMediatorOptions(){
+const courier=courierPartners.find(p=>String(p.id)===String(document.getElementById("courierPartner").value));
+const options=(courier?.mediators||[]);
+const mediator=document.getElementById("mediatorPartner");
+mediator.disabled=!courier;
+mediator.innerHTML=courier
+?'<option value="">Select Mediator</option>'+options.map(m=>`<option value="${m.id}">${m.title}</option>`).join("")
+:'<option value="">Select courier first</option>';
+}
+document.getElementById("courierPartner").addEventListener("change",updateMediatorOptions);
+async function openShipmentModal(){
+document.getElementById("shipmentForm").reset();
+document.getElementById("shipmentError").textContent="";
+document.querySelector('#shipmentForm [name="shipping_date"]').value=new Date().toISOString().slice(0,10);
+try{await loadCourierPartners();document.getElementById("shipmentModal").classList.add("open");document.getElementById("shipmentModal").setAttribute("aria-hidden","false");}
+catch(e){alert("Courier partners load nahi ho paaye.");}
+}
+document.getElementById("shipmentForm").addEventListener("submit",async event=>{
+event.preventDefault();
+const error=document.getElementById("shipmentError"),button=event.target.querySelector(".workflow-submit");
+error.textContent="";button.disabled=true;button.textContent="Saving...";
+try{
+const payload=Object.fromEntries(new FormData(event.target).entries());
+if(!payload.mediator)delete payload.mediator;
+const res=await apiFetch(`${API_BASE}/api/order-ui-shipment/${currentOrder.id}/`,{method:"POST",body:JSON.stringify(payload)});
+const data=await res.json();
+if(!res.ok)throw new Error(apiErrorMessage(data,"Shipment could not be created."));
+closeWorkflow("shipmentModal");await loadOrder();
+}catch(e){error.textContent=e.message}
+finally{button.disabled=false;button.textContent="Confirm Shipment";}
+});
+function addMediator(value=""){
+const row=document.createElement("div");
+row.className="mediator-row";
+row.innerHTML=`<div class="input-shell"><i class="bi bi-handshake"></i><input class="workflow-field" name="mediator_title" value="${value}" placeholder="Mediator Name" required></div><button class="remove-mediator" type="button" onclick="this.parentElement.remove()"><i class="bi bi-dash-circle"></i></button>`;
+document.getElementById("mediatorFields").appendChild(row);
+}
+function openCourierModal(){
+document.getElementById("courierForm").reset();
+document.getElementById("mediatorFields").innerHTML="";
+document.getElementById("courierError").textContent="";
+addMediator();addMediator();
+document.getElementById("courierModal").classList.add("open");
+document.getElementById("courierModal").setAttribute("aria-hidden","false");
+}
+document.getElementById("courierForm").addEventListener("submit",async event=>{
+event.preventDefault();
+const error=document.getElementById("courierError"),button=event.target.querySelector(".courier-create");
+error.textContent="";
+if(button){button.disabled=true;button.textContent="Creating...";}
+try{
+const titles=[...event.target.querySelectorAll('[name="mediator_title"]')].map(input=>input.value.trim()).filter(Boolean);
+const payload={title:event.target.title.value.trim(),mediators:titles.map(title=>({title}))};
+const res=await apiFetch(`${API_BASE}/api/courier/create/`,{method:"POST",body:JSON.stringify(payload)});
+const data=await res.json();
+if(!res.ok)throw new Error(apiErrorMessage(data,"Courier partner could not be created."));
+closeWorkflow("courierModal");await loadCourierPartners(data.data.id);
+}catch(e){error.textContent=e.message}
+finally{if(button){button.disabled=false;button.textContent="Create";}}
+});
+async function cancelOrder(id){
+if(!confirm("Cancel this order?"))return;
+const res=await apiFetch(`${API_BASE}/api/order-ui-cancel/${id}/`,{method:"POST"});
+const data=await res.json();
+if(!res.ok){alert(data.message||"Order cancel failed.");return;}
+await loadOrder();
+}
+function showReturnModal(){
+document.getElementById("returnModal").classList.add("open");
+document.getElementById("returnModal").setAttribute("aria-hidden","false");
+}
+function setupReturnModal(type,mode){
+returnType=type;
+returnMode=mode;
+activeReturnId=null;
+const customer=type==="customer";
+const processing=mode==="process";
+document.getElementById("returnForm").reset();
+document.getElementById("returnTitle").textContent=`${customer?"Customer":"Courier"} Return${processing?" Processing":""}`;
+document.getElementById("returnModeNote").textContent=processing
+?"Update status and enter settlement details required by the return API."
+:"Initiate a return for an ordered product.";
+document.getElementById("returnCreateFields").classList.toggle("return-hidden",processing);
+document.getElementById("returnProcessFields").classList.remove("return-hidden");
+document.getElementById("returnProduct").required=!processing;
+document.getElementById("returnQuantity").required=!processing;
+document.getElementById("returnCondition").required=!processing;
+document.getElementById("returnCondition").innerHTML=customer
+?'<option value="SAFE">Safe</option><option value="DAMAGED">Damaged</option><option value="LOST">Lost</option>'
+:'<option value="SAFE">Safe</option><option value="DAMAGED">Damaged</option>';
+document.getElementById("returnReason").innerHTML=customer
+?'<option value="">Select Return Reason</option><option value="AGENT_ERROR">Agent Error</option><option value="LACK_OF_STOCK">Lack of Stock</option><option value="CUSTOMER_ERROR">Customer Error</option>'
+:'<option value="">Select Return Reason</option><option value="AGENT_ERROR">Agent Error</option><option value="LACK_OF_STOCK">Lack of Stock</option>';
+document.getElementById("returnAmount").placeholder=customer?"Refund Amount":"Return Amount";
+document.getElementById("returnSubmit").textContent=processing?`Update ${customer?"Customer":"Courier"} Return`:`Confirm ${customer?"Customer":"Courier"} Return`;
+document.getElementById("returnError").textContent="";
+document.getElementById("returnClaimStatus").value=processing?"CLAIMED":"NOT_CLAIMED";
+document.getElementById("returnStatus").value="APPROVED";
+if(processing){
+toggleReturnClaimFields();
+}else{
+const productItems=items(currentOrder);
+document.getElementById("returnProduct").innerHTML=productItems.map(item=>`<option value="${item.product_id}" data-qty="${itemQty(item)}">${itemName(item)}</option>`).join("");
+document.getElementById("returnQuantity").value=productItems[0]?itemQty(productItems[0]):1;
+toggleReturnClaimFields();
+}
+}
+function openReturnModal(type){
+setupReturnModal(type,"create");
+showReturnModal();
+}
+function toggleReturnClaimFields(){
+const claimed=document.getElementById("returnClaimStatus").value==="CLAIMED";
+document.getElementById("returnStatusFields").classList.toggle("return-hidden",!claimed);
+if(!claimed)document.getElementById("returnStatus").value="NOT_APPROVED";
+toggleReturnApprovalFields();
+}
+function toggleReturnApprovalFields(){
+const claimed=document.getElementById("returnClaimStatus").value==="CLAIMED";
+const approved=claimed&&document.getElementById("returnStatus").value==="APPROVED";
+document.getElementById("returnApprovalFields").classList.toggle("return-hidden",!approved);
+["returnAmount","returnCharges","returnReceiveDate","returnReason","returnPhoto","returnVideo"].forEach(id=>{
+document.getElementById(id).required=approved;
+});
+document.getElementById("returnReasonText").required=false;
+document.getElementById("returnRemarks").required=!claimed&&returnMode==="process";
+}
+async function openReturnProcessModal(type){
+setupReturnModal(type,"process");
+showReturnModal();
+const error=document.getElementById("returnError"),button=document.getElementById("returnSubmit");
+error.textContent="Loading return details...";
+button.disabled=true;
+try{
+const endpoint=type==="customer"?"/api/customer-return-list/":"/api/courier-return-list/";
+const res=await apiFetch(`${API_BASE}${endpoint}?order_id=${currentOrder.id}`);
+const data=await res.json();
+if(!res.ok)throw new Error(data.message||"Return details could not be loaded.");
+const records=Array.isArray(data)?data:(data.data||[]);
+const record=records[0];
+if(!record)throw new Error("Is order ke liye return request nahi mili.");
+activeReturnId=record.id;
+document.getElementById("returnRemarks").value=record.remarks||"";
+document.getElementById("returnAmount").value=(type==="customer"?record.refund_amount:record.return_amount)||"";
+document.getElementById("returnCharges").value=record.return_charges||"";
+document.getElementById("returnReceiveDate").value=record.return_receive_date||"";
+document.getElementById("returnReason").value=record.return_reason||"";
+document.getElementById("returnReasonText").value="";
+error.textContent="";
+}catch(e){error.textContent=e.message}
+finally{button.disabled=!activeReturnId;}
+}
+async function markReturnReceived(type){
+const btn=document.querySelector(".return-received-action");
+if(btn){btn.disabled=true;btn.innerHTML='<i class="bi bi-hourglass-split"></i> Updating...';}
+try{
+const listEndpoint=type==="customer"?"/api/customer-return-list/":"/api/courier-return-list/";
+const listRes=await apiFetch(`${API_BASE}${listEndpoint}?order_id=${currentOrder.id}`);
+const listData=await listRes.json();
+if(!listRes.ok)throw new Error(apiErrorMessage(listData,"Return details could not be loaded."));
+const records=Array.isArray(listData)?listData:(listData.data||[]);
+const record=records[0];
+if(!record)throw new Error("Is order ke liye return request nahi mili.");
+const endpoint=type==="customer"?`/api/customer-return-update/${record.id}/`:`/api/courier-return-update/${record.id}/`;
+const payload=new FormData();
+payload.append("return_status","RECEIVED");
+const res=await apiFetch(`${API_BASE}${endpoint}`,{method:"PATCH",body:payload});
+const data=await res.json();
+if(!res.ok)throw new Error(apiErrorMessage(data,"Return received mark nahi hua."));
+await loadOrder();
+if(timelineModal.classList.contains("open"))await openTimeline();
+}catch(e){
+if(btn){btn.disabled=false;btn.innerHTML='<i class="bi bi-clipboard-check"></i> Return Received';}
+alert(e.message||"Return received mark nahi hua.");
+}
+}
+document.getElementById("returnProduct").addEventListener("change",event=>{
+const option=event.target.options[event.target.selectedIndex];
+if(option)document.getElementById("returnQuantity").value=option.dataset.qty||1;
+});
+document.getElementById("returnForm").addEventListener("submit",async event=>{
+event.preventDefault();
+const error=document.getElementById("returnError"),button=document.getElementById("returnSubmit");
+error.textContent="";button.disabled=true;button.textContent="Saving...";
+try{
+let res;
+if(returnMode==="create"){
+const values=Object.fromEntries(new FormData(event.target).entries());
+const payload=new FormData();
+payload.append("order_id",currentOrder.id);
+payload.append("product_id",values.product_id);
+payload.append("quantity",values.quantity);
+payload.append("condition",values.condition);
+const claimStatus=document.getElementById("returnClaimStatus").value;
+payload.append("claim_status",claimStatus);
+if(claimStatus==="CLAIMED"){
+payload.append("claim",document.getElementById("returnStatus").value.toLowerCase().replace("_"," "));
+}
+const claimAmount=document.getElementById("returnAmount").value;
+const returnCharges=document.getElementById("returnCharges").value;
+const receiveDate=document.getElementById("returnReceiveDate").value;
+const reason=document.getElementById("returnReason").value;
+const reasonText=document.getElementById("returnReasonText").value.trim();
+const remarks=document.getElementById("returnRemarks").value.trim();
+if(claimAmount)payload.append("claim_amount",claimAmount);
+if(returnCharges)payload.append("return_charges",returnCharges);
+if(receiveDate)payload.append("return_recive_date",receiveDate);
+if(reason==="AGENT_ERROR")payload.append("agent_error",reasonText||"Agent error");
+if(reason==="LACK_OF_STOCK")payload.append("lack_of_stock",reasonText||"Lack of stock");
+if(returnType==="customer"&&reason==="CUSTOMER_ERROR")payload.append("customer_error",reasonText||"Customer error");
+if(remarks)payload.append("rmark",remarks);
+const mediaFile=document.getElementById("returnPhoto").files[0]||document.getElementById("returnVideo").files[0];
+if(mediaFile)payload.append("return_photo_video",mediaFile);
+const endpoint=returnType==="customer"?"/api/customer-return/":"/api/courier-return/";
+res=await apiFetch(`${API_BASE}${endpoint}`,{method:"POST",body:payload});
+}else{
+if(!activeReturnId)throw new Error("Return record load nahi hua.");
+const status=document.getElementById("returnStatus").value;
+const payload=new FormData();
+payload.append("return_status",status);
+const remarks=document.getElementById("returnRemarks").value.trim();
+if(remarks)payload.append("remarks",remarks);
+if(status==="APPROVED"){
+payload.append(returnType==="customer"?"refund_amount":"return_amount",document.getElementById("returnAmount").value);
+payload.append("return_charges",document.getElementById("returnCharges").value);
+payload.append("return_receive_date",document.getElementById("returnReceiveDate").value);
+payload.append("return_reason",document.getElementById("returnReason").value);
+payload.append("return_photo",document.getElementById("returnPhoto").files[0]);
+payload.append("return_video",document.getElementById("returnVideo").files[0]);
+}
+const endpoint=returnType==="customer"?`/api/customer-return-update/${activeReturnId}/`:`/api/courier-return-update/${activeReturnId}/`;
+res=await apiFetch(`${API_BASE}${endpoint}`,{method:"PATCH",body:payload});
+}
+const data=await res.json();
+if(!res.ok)throw new Error(data.message||data.detail||"Return could not be saved.");
+closeWorkflow("returnModal");await loadOrder();
+}catch(e){error.textContent=e.message}
+finally{button.disabled=false;button.textContent=returnMode==="process"?`Update ${returnType==="customer"?"Customer":"Courier"} Return`:`Confirm ${returnType==="customer"?"Customer":"Courier"} Return`;}
+});
+
+async function loadOrder(){
+if(!orderId){
+root.innerHTML=`<div class="empty-state">Order id missing. Open this page with ?id=ORDER_ID.</div>`;
+return;
+}
+try{
+const res=await apiFetch(`${API_BASE}/api/order-ui-detail/${orderId}/`);
+if(!res.ok)throw new Error();
+const order=await res.json();
+await loadReturnDetails(order);
+render(order);
+}catch(e){
+root.innerHTML=`<div class="empty-state">Could not load order details.</div>`;
+}
+}
+async function loadReturnDetails(order){
+const code=statusCode(order);
+if(![6,7,8,9].includes(code))return;
+const endpoints=code===6?["courier"]:code===7?["customer"]:["courier","customer"];
+const entries=await Promise.all(endpoints.map(async type=>{
+const path=type==="customer"?"/api/customer-return-list/":"/api/courier-return-list/";
+const res=await apiFetch(`${API_BASE}${path}?order_id=${order.id}`);
+if(!res.ok)return null;
+const data=await res.json();
+const record=(Array.isArray(data)?data:(data.data||[]))[0];
+return record?{type,record}:null;
+}));
+const available=entries.filter(Boolean).sort((a,b)=>String(b.record.received_at||"").localeCompare(String(a.record.received_at||"")));
+if(available.length){
+order.return_type=available[0].type;
+order.return_record=available[0].record;
+}
+}
+
+async function markDelivered(id){
+const btn=document.querySelector(".delivery-action");
+if(btn){btn.disabled=true;btn.innerHTML='<i class="bi bi-hourglass-split"></i> Updating...';}
+try{
+const res=await apiFetch(`${API_BASE}/api/order-ui-delivered/${id}/`,{method:"POST"});
+const payload=await res.json().catch(()=>({}));
+if(!res.ok)throw new Error(payload.message||payload.error||"Status update failed");
+await loadOrder();
+if(timelineModal.classList.contains("open"))await openTimeline();
+}catch(error){
+if(btn){btn.disabled=false;btn.innerHTML='<i class="bi bi-check-circle"></i> Mark as Delivered';}
+alert(error.message||"Status update failed.");
+}
+}
+loadOrder();
+</script>
+<script src="/static/js/mobile-sidebar.js"></script>
+</body>
+</html>

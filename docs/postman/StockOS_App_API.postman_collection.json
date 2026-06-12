@@ -1,0 +1,2701 @@
+{
+  "info": {
+    "_postman_id": "9b5df0c2-1d2e-4f6a-8f18-stockos-complete-app-api",
+    "name": "StockOS Complete App API",
+    "description": "Complete API collection for StockOS mobile app and app-backed dashboard flows. Default baseUrl uses current ngrok URL. Change baseUrl to http://127.0.0.1:8000 for local testing.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://ab5b-103-87-58-100.ngrok-free.app"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "username",
+      "value": "admin"
+    },
+    {
+      "key": "password",
+      "value": "admin"
+    },
+    {
+      "key": "otp",
+      "value": "000000"
+    },
+    {
+      "key": "orderId",
+      "value": "638"
+    },
+    {
+      "key": "orderStatusId",
+      "value": "1"
+    },
+    {
+      "key": "productId",
+      "value": "39"
+    },
+    {
+      "key": "variantId",
+      "value": "1"
+    },
+    {
+      "key": "vendorId",
+      "value": "1"
+    },
+    {
+      "key": "channelId",
+      "value": "1"
+    },
+    {
+      "key": "inventoryId",
+      "value": "1"
+    },
+    {
+      "key": "purchaseId",
+      "value": "1"
+    },
+    {
+      "key": "billId",
+      "value": "1"
+    },
+    {
+      "key": "courierReturnId",
+      "value": "24"
+    },
+    {
+      "key": "customerReturnId",
+      "value": "7"
+    },
+    {
+      "key": "courierPartnerId",
+      "value": "56"
+    },
+    {
+      "key": "mediatorId",
+      "value": "67"
+    },
+    {
+      "key": "barcode",
+      "value": "DMJ-CBTL6-MA-6-TE-16X12X24.5CM-CE-00013"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "OTP Login / Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/login/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"{{otp}}\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Admin Username Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/login-admin/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "login-admin"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Logout Session",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logout/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logout"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "App Read APIs",
+      "item": [
+        {
+          "name": "Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/app/dashboard/?start=2026-06-01&end=2026-06-30",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "app",
+                "dashboard"
+              ],
+              "query": [
+                {
+                  "key": "start",
+                  "value": "2026-06-01"
+                },
+                {
+                  "key": "end",
+                  "value": "2026-06-30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "App Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/app/products/?search=&low_stock=0&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "app",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "low_stock",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "App Low Stock Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/app/products/?low_stock=1&limit=50",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "app",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "low_stock",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "App Vendors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/app/vendors/?search=&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "app",
+                "vendors"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "App Purchases",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/app/purchases/?search=&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "app",
+                "purchases"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "App Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/app/orders/?status=ALL&search=&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "app",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ALL"
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "App Orders - In Transit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/app/orders/?status=IN_TRANSIT&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "app",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "IN_TRANSIT"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "App Order Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/app/orders/{{orderId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "app",
+                "orders",
+                "{{orderId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard Web API",
+      "item": [
+        {
+          "name": "Dashboard Data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard-data/?start=2026-06-01&end=2026-06-30",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "dashboard-data"
+              ],
+              "query": [
+                {
+                  "key": "start",
+                  "value": "2026-06-01"
+                },
+                {
+                  "key": "end",
+                  "value": "2026-06-30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Low Stock Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/low-stock-products/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "low-stock-products"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Product List Compact",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/product-list/?search=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "product-list"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Vendor Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vendor-dashboard/{{vendorId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "vendor-dashboard",
+                "{{vendorId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"channel\": \"{{channelId}}\",\n  \"channel_order_id\": \"APP-{{$timestamp}}\",\n  \"customer_name\": \"App Customer\",\n  \"customer_email\": \"customer@example.com\",\n  \"country_code\": \"+91\",\n  \"mobile\": \"9999999999\",\n  \"package_expence\": \"0.00\",\n  \"buyer_shipment_charger\": \"0.00\",\n  \"buyer_tax_amount\": \"0.00\",\n  \"remarks\": [\n    \"Created from app API\"\n  ],\n  \"items\": [\n    {\n      \"product\": \"{{productId}}\",\n      \"quantity\": 1,\n      \"unit_price\": \"100.00\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Order List CRUD",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Order Detail CRUD",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{orderId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{orderId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Order Remark",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{orderId}}/add-remark/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{orderId}}",
+                "add-remark"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remark\": \"Remark from app\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Sales By Channel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/sales_by_channel/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "sales_by_channel"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Product Sales Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/product_summary/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "product_summary"
+              ]
+            }
+          }
+        },
+        {
+          "name": "UI Order List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-ui-list/?status=ALL&search=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-ui-list"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ALL"
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "UI Order Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-ui-detail/{{orderId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-ui-detail",
+                "{{orderId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pack Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-ui-pack/{{orderId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-ui-pack",
+                "{{orderId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"height\": \"25\",\n  \"width\": \"29\",\n  \"length\": \"29\",\n  \"dead_weight\": \"4.900\",\n  \"vol_weight\": \"4.205\",\n  \"billed_weight\": \"4.900\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create / Update Shipment For Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-ui-shipment/{{orderId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-ui-shipment",
+                "{{orderId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courier_partner\": \"{{courierPartnerId}}\",\n  \"mediator\": \"{{mediatorId}}\",\n  \"tracking_id\": \"TRACK-{{$timestamp}}\",\n  \"shipping_date\": \"2026-06-08\",\n  \"tracking_url\": \"https://tracking.example.com/TRACK-{{$timestamp}}\",\n  \"shipping_expense\": \"230.68\",\n  \"other_expense\": \"0.00\",\n  \"notes\": \"Created from app\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Mark Delivered",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-ui-delivered/{{orderId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-ui-delivered",
+                "{{orderId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-ui-cancel/{{orderId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-ui-cancel",
+                "{{orderId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Soft Delete Order",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-ui-delete/{{orderId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-ui-delete",
+                "{{orderId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Serial QR PDF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-ui-serial-pdf/{{orderId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-ui-serial-pdf",
+                "{{orderId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Legacy Delivered",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{orderId}}/delivered/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{orderId}}",
+                "delivered"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Legacy Serial QR PDF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{orderId}}/serial-barcodes/pdf/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{orderId}}",
+                "serial-barcodes",
+                "pdf"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Order Status",
+      "item": [
+        {
+          "name": "Order Status History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-status/?order_id={{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-status"
+              ],
+              "query": [
+                {
+                  "key": "order_id",
+                  "value": "{{orderId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Order Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-status/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{orderId}}\",\n  \"status\": 3,\n  \"json\": {\n    \"message\": \"Status from app\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Order Status Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-status/{{orderStatusId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-status",
+                "{{orderStatusId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Order Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-status/{{orderStatusId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-status",
+                "{{orderStatusId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"json\": {\n    \"message\": \"Updated from app\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Order Status",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-status/{{orderStatusId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-status",
+                "{{orderStatusId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Courier / Shipment",
+      "item": [
+        {
+          "name": "Create Courier Partner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/courier/create/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courier",
+                "create"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ship Global\",\n  \"mediators\": [\n    {\n      \"name\": \"Flipkart\"\n    },\n    {\n      \"name\": \"Royal Mail\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Courier Partner List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courier/list/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courier",
+                "list"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Shipment - Direct Route",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/order/{{orderId}}/create-shipment/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order",
+                "{{orderId}}",
+                "create-shipment"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courier_partner\": \"{{courierPartnerId}}\",\n  \"mediator\": \"{{mediatorId}}\",\n  \"tracking_id\": \"TRACK-{{$timestamp}}\",\n  \"shipping_date\": \"2026-06-08\",\n  \"tracking_url\": \"https://tracking.example.com/TRACK-{{$timestamp}}\",\n  \"shipping_expense\": \"230.68\",\n  \"other_expense\": \"0.00\",\n  \"notes\": \"Created from direct app route\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Orders With Shipments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-with-shipments/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-with-shipments"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Courier Returns",
+      "item": [
+        {
+          "name": "Create Courier Return",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "text",
+                  "key": "order_id",
+                  "value": "{{orderId}}"
+                },
+                {
+                  "type": "text",
+                  "key": "product_id",
+                  "value": "{{productId}}"
+                },
+                {
+                  "type": "text",
+                  "key": "quantity",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "key": "condition",
+                  "value": "SAFE"
+                },
+                {
+                  "type": "text",
+                  "key": "return_status",
+                  "value": "IN_PROGRESS"
+                },
+                {
+                  "type": "text",
+                  "key": "claim_status",
+                  "value": "NOT_CLAIMED"
+                },
+                {
+                  "type": "text",
+                  "key": "remarks",
+                  "value": "Courier return from app"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/courier-return/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courier-return"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Courier Return List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courier-return-list/?order_id={{orderId}}&return_status=IN_PROGRESS",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courier-return-list"
+              ],
+              "query": [
+                {
+                  "key": "order_id",
+                  "value": "{{orderId}}"
+                },
+                {
+                  "key": "return_status",
+                  "value": "IN_PROGRESS"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Courier Return Received",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "text",
+                  "key": "return_status",
+                  "value": "RECEIVED"
+                },
+                {
+                  "type": "text",
+                  "key": "remarks",
+                  "value": "Received from app"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/courier-return-update/{{courierReturnId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courier-return-update",
+                "{{courierReturnId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Courier Return Approved",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "text",
+                  "key": "return_status",
+                  "value": "APPROVED"
+                },
+                {
+                  "type": "text",
+                  "key": "return_amount",
+                  "value": "500"
+                },
+                {
+                  "type": "text",
+                  "key": "return_charges",
+                  "value": "50"
+                },
+                {
+                  "type": "text",
+                  "key": "return_receive_date",
+                  "value": "2026-06-08"
+                },
+                {
+                  "type": "text",
+                  "key": "return_reason",
+                  "value": "Package returned safe"
+                },
+                {
+                  "type": "text",
+                  "key": "remarks",
+                  "value": "Approved from app"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/courier-return-update/{{courierReturnId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courier-return-update",
+                "{{courierReturnId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Courier Return Not Approved",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "text",
+                  "key": "return_status",
+                  "value": "NOT_APPROVED"
+                },
+                {
+                  "type": "text",
+                  "key": "remarks",
+                  "value": "Rejected from app"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/courier-return-update/{{courierReturnId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courier-return-update",
+                "{{courierReturnId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Courier Claim Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courier-return-report/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courier-return-report"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Courier Finance Settlement",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courier-finance-settlement/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "courier-finance-settlement"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer Returns",
+      "item": [
+        {
+          "name": "Create Customer Return",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "text",
+                  "key": "order_id",
+                  "value": "{{orderId}}"
+                },
+                {
+                  "type": "text",
+                  "key": "product_id",
+                  "value": "{{productId}}"
+                },
+                {
+                  "type": "text",
+                  "key": "quantity",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "key": "condition",
+                  "value": "SAFE"
+                },
+                {
+                  "type": "text",
+                  "key": "return_status",
+                  "value": "IN_PROGRESS"
+                },
+                {
+                  "type": "text",
+                  "key": "refund_status",
+                  "value": "PENDING"
+                },
+                {
+                  "type": "text",
+                  "key": "remarks",
+                  "value": "Customer return from app"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customer-return/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer-return"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Customer Return List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customer-return-list/?order_id={{orderId}}&return_status=IN_PROGRESS",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer-return-list"
+              ],
+              "query": [
+                {
+                  "key": "order_id",
+                  "value": "{{orderId}}"
+                },
+                {
+                  "key": "return_status",
+                  "value": "IN_PROGRESS"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Customer Return Received",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "text",
+                  "key": "return_status",
+                  "value": "RECEIVED"
+                },
+                {
+                  "type": "text",
+                  "key": "remarks",
+                  "value": "Received from app"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customer-return-update/{{customerReturnId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer-return-update",
+                "{{customerReturnId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Customer Return Approved",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "text",
+                  "key": "return_status",
+                  "value": "APPROVED"
+                },
+                {
+                  "type": "text",
+                  "key": "refund_amount",
+                  "value": "500"
+                },
+                {
+                  "type": "text",
+                  "key": "return_charges",
+                  "value": "50"
+                },
+                {
+                  "type": "text",
+                  "key": "return_receive_date",
+                  "value": "2026-06-08"
+                },
+                {
+                  "type": "text",
+                  "key": "return_reason",
+                  "value": "Customer accepted refund"
+                },
+                {
+                  "type": "text",
+                  "key": "remarks",
+                  "value": "Approved from app"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customer-return-update/{{customerReturnId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer-return-update",
+                "{{customerReturnId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Customer Return Not Approved",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "text",
+                  "key": "return_status",
+                  "value": "NOT_APPROVED"
+                },
+                {
+                  "type": "text",
+                  "key": "remarks",
+                  "value": "Rejected from app"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customer-return-update/{{customerReturnId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer-return-update",
+                "{{customerReturnId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Customer Refund Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customer-refund-report/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer-refund-report"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Customer Refund Settlement",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customer-refund-settlement/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customer-refund-settlement"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Full Return Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/return-report/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "return-report"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products / Inventory",
+      "item": [
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "text",
+                  "key": "name",
+                  "value": "App Product"
+                },
+                {
+                  "type": "text",
+                  "key": "sku",
+                  "value": "APP-SKU-{{$timestamp}}"
+                },
+                {
+                  "type": "text",
+                  "key": "vendor",
+                  "value": "{{vendorId}}"
+                },
+                {
+                  "type": "text",
+                  "key": "unit_purchase_price",
+                  "value": "100"
+                },
+                {
+                  "type": "text",
+                  "key": "unit_sale_price",
+                  "value": "150"
+                },
+                {
+                  "type": "text",
+                  "key": "opening_stock",
+                  "value": "10"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Product List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Product Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{productId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "text",
+                  "key": "name",
+                  "value": "Updated App Product"
+                },
+                {
+                  "type": "text",
+                  "key": "unit_sale_price",
+                  "value": "175"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products-update/{{productId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products-update",
+                "{{productId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Product Stock",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/stock/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{productId}}",
+                "stock"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Safe Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products-delete/{{productId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products-delete",
+                "{{productId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Product Selected Delete",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/product-del/{{productId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "product-del",
+                "{{productId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Stock Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/stock-filter/?search=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "stock-filter"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Inventory List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Inventory Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "{{inventoryId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Inventory Adjust",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/adjust/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "adjust"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product\": \"{{productId}}\",\n  \"quantity\": 1,\n  \"reason\": \"ADJUSTMENT\",\n  \"condition\": \"OK\",\n  \"note\": \"Adjusted from app\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Upload Product Image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "file",
+                  "key": "image",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/upload-image/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "upload-image"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Variants",
+      "item": [
+        {
+          "name": "Variant List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/variants/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{productId}}",
+                "variants"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Product Variant",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "text",
+                  "key": "size",
+                  "value": "M"
+                },
+                {
+                  "type": "text",
+                  "key": "color",
+                  "value": "Blue"
+                },
+                {
+                  "type": "text",
+                  "key": "sku",
+                  "value": "APP-VAR-{{$timestamp}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/variants/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{productId}}",
+                "variants"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Variant Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/variants/{{variantId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "variants",
+                "{{variantId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Variant",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "text",
+                  "key": "color",
+                  "value": "Black"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/variants/{{variantId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "variants",
+                "{{variantId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload Variant Image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "file",
+                  "key": "image",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/variants/{{variantId}}/images/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "variants",
+                "{{variantId}}",
+                "images"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vendors",
+      "item": [
+        {
+          "name": "Create Vendor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/vendors/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "vendors"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"App Vendor\",\n  \"firm_name\": \"App Vendor Firm\",\n  \"mobile\": \"9999999999\",\n  \"email\": \"vendor@example.com\",\n  \"city\": \"Mumbai\",\n  \"state\": \"Maharashtra\",\n  \"gst_number\": \"27ABCDE1234F1Z5\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Vendor List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vendors/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "vendors"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Vendor Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vendors/{{vendorId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "vendors",
+                "{{vendorId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Vendor",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/vendors/{{vendorId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "vendors",
+                "{{vendorId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"city\": \"Delhi\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Vendor",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vendors/{{vendorId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "vendors",
+                "{{vendorId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sales Channels",
+      "item": [
+        {
+          "name": "Create Channel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/channels/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "channels"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"App Channel\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Channel List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/channels/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "channels"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Channel Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/channels/{{channelId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "channels",
+                "{{channelId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Channel",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/channels/{{channelId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "channels",
+                "{{channelId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Channel\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Channel",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/channels/{{channelId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "channels",
+                "{{channelId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Purchases / Bills",
+      "item": [
+        {
+          "name": "All Bills",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/all-bills",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "all-bills"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Bill Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bills-perticuler/{{billId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bills-perticuler",
+                "{{billId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Order Payment Details",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-bills-perticuler/{{orderId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-bills-perticuler",
+                "{{orderId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paid_status\": \"PAID\",\n  \"payment_mode\": \"UPI\",\n  \"amount_paid\": \"100.00\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Order Payment Details New",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-bills-perticulerss/{{orderId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-bills-perticulerss",
+                "{{orderId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paid_status\": \"PAID\",\n  \"payment_mode\": \"UPI\",\n  \"amount_paid\": \"100.00\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Purchase Bill",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-item",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchase-item"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendor\": \"{{vendorId}}\",\n  \"bill_number\": \"PB-{{$timestamp}}\",\n  \"bill_date\": \"2026-06-08\",\n  \"status\": \"PAID\",\n  \"items\": [\n    {\n      \"product\": \"{{productId}}\",\n      \"quantity\": 1,\n      \"unit_price\": \"100.00\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Purchase List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchase-list"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Purchase Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-detail/{{purchaseId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchase-detail",
+                "{{purchaseId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Purchase",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-update/{{purchaseId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchase-update",
+                "{{purchaseId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PAID\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Purchase",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-delete/{{purchaseId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchase-delete",
+                "{{purchaseId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "HSN List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/hsn/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "hsn"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create HSN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/hsn/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "hsn"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"1234\",\n  \"description\": \"App HSN\",\n  \"gst_rate\": \"18.00\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Barcode / QR",
+      "item": [
+        {
+          "name": "Generate Bulk Barcode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/genrate-barcode",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "genrate-barcode"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"{{productId}}\",\n  \"quantity\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Scan Barcode Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/scan-barcode-product/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "scan-barcode-product"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"barcode\": \"{{barcode}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Order Barcodes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/order-barcodes/{{orderId}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "order-barcodes",
+                "{{orderId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports / Imports",
+      "item": [
+        {
+          "name": "WPS Return",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/wps-return/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "wps-return"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{orderId}}\",\n  \"product_id\": \"{{productId}}\",\n  \"quantity\": 1,\n  \"condition\": \"SAFE\",\n  \"remarks\": \"WPS return from app\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Low Stock Alerts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/low-stck/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "low-stck"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Return Filter History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/return-filter-history/?start=2026-06-01&end=2026-06-30",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "return-filter-history"
+              ],
+              "query": [
+                {
+                  "key": "start",
+                  "value": "2026-06-01"
+                },
+                {
+                  "key": "end",
+                  "value": "2026-06-30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Download Product Sample",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/download-sample/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "download-sample"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Uploaded Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/get-products/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "get-products"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload Products CSV/XLSX",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "file",
+                  "key": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/upload-products/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "upload-products"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Download Product Sample 1",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/download-sample1/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "download-sample1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload Products CSV/XLSX 1",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "type": "file",
+                  "key": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/upload-products1/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "upload-products1"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,221 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory Management - StockOS</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.cdnfonts.com/css/google-sans" rel="stylesheet">
+<style>
+:root{--navy:#201a64;--indigo:#5148dd;--bg:#f5f5fb;--white:#fff;--ink:#0e123f;--muted:#858594;--line:#e6e6ed;--green:#31a950;--green-soft:#edfaef;--orange:#ff8b00;--orange-soft:#fff5e5;--red:#ff3f42;--red-soft:#fff0f0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family: 'Google Sans', 'Product Sans', Arial, sans-serif}.sidebar{display:none}.page{min-height:100vh}.hero{background:linear-gradient(120deg,var(--navy),#36318f);color:#fff;padding:20px 18px 22px}.head{display:flex;align-items:center;gap:13px}.back{height:38px;width:38px;border:0;border-radius:10px;background:rgba(255,255,255,.17);color:#fff;font-size:16px;display:grid;place-items:center}.head-copy{flex:1}.head-copy h1{font-size:17px;line-height:1.2;margin:0;font-weight:700}.head-copy p{font-size:10px;margin:2px 0 0;color:rgba(255,255,255,.68)}.head-actions{display:flex;gap:7px;flex-shrink:0}.add{border:0;border-radius:11px;background:#fff;color:var(--navy);height:38px;padding:0 15px;font-size:12px;font-weight:600;white-space:nowrap}.add.excel{padding:0 11px}.add:disabled{opacity:.6;cursor:not-allowed}.excel-message{margin:10px 0 -6px;text-align:right;font-size:10px;color:#fff;min-height:14px}.excel-message.error{color:#ffd2d2}.stats{margin-top:19px;border:1px solid rgba(255,255,255,.2);border-radius:11px;background:rgba(255,255,255,.13);height:92px;display:grid;grid-template-columns:repeat(3,1fr);align-items:center}.stat{text-align:center;border-right:1px solid rgba(255,255,255,.2)}.stat:last-child{border-right:0}.stat i{display:block;font-size:17px;margin-bottom:2px}.stat.total i{color:#dedcff}.stat.low i{color:#ff9d00}.stat.out i{color:#fc6767}.stat strong{display:block;font-size:18px}.stat small{font-size:9px;color:rgba(255,255,255,.75)}
+.content{padding:15px 12px 30px}.toolbar{display:flex;gap:10px;margin-bottom:14px}.search{position:relative;flex:1}.search i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted)}.search input{height:45px;width:100%;border:1px solid var(--line);border-radius:12px;padding:0 13px 0 39px;background:#fff;font-size:12px;outline:none}.filter{height:45px;border:1px solid var(--line);border-radius:12px;padding:0 10px;background:#fff;color:var(--ink);font-size:11px}.inventory-list{display:grid;gap:12px}.product-card{background:#fff;border:1px solid #ecebf2;border-radius:13px;padding:14px 13px 12px;box-shadow:0 5px 17px rgba(25,22,83,.04)}.product-card.out{border-color:#ffb9ba}.product-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.product-name{font-size:13px;font-weight:600;margin:0 0 4px}.sku{font-size:9px;color:#858594;margin:0}.status{border:1px solid;border-radius:6px;padding:5px 9px;font-size:8px;letter-spacing:.05em;white-space:nowrap}.status.in{color:var(--green);border-color:#72c684;background:var(--green-soft)}.status.low{color:var(--orange);border-color:var(--orange);background:var(--orange-soft)}.status.out{color:var(--red);border-color:#ff6565;background:var(--red-soft)}.tags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 11px}.tag{font-size:8px;border:1px solid;border-radius:4px;padding:5px 8px;display:flex;align-items:center;gap:4px}.tag.size{background:#ebf7ff;border-color:#8fd0ff;color:#0485e9}.tag.color{background:#fff1f1;border-color:#ffbcbc;color:#ef4343}.tag.material{background:#f5f1ef;border-color:#ddd2cd;color:#66514a}.qty-row{height:68px;border-radius:9px;background:#fbfbfc;display:flex;align-items:center;justify-content:space-between;padding:10px 11px}.qty-row small{display:block;font-size:9px;color:var(--muted);margin-bottom:3px}.qty{font-size:22px;font-weight:600;color:var(--green)}.qty.low{color:var(--orange)}.qty.out{color:var(--red)}.adjust{height:42px;border:0;border-radius:13px;background:linear-gradient(115deg,var(--navy),var(--indigo));box-shadow:0 5px 12px rgba(32,26,100,.2);padding:0 16px;color:#fff;font-weight:600;font-size:11px;display:flex;align-items:center;gap:7px}.empty{background:#fff;border:1px dashed var(--line);padding:45px 15px;text-align:center;border-radius:14px;color:var(--muted);font-size:13px}
+.modal{position:fixed;inset:0;background:rgba(13,12,43,.5);z-index:200;display:none;align-items:flex-end;justify-content:center}.modal.open{display:flex}.sheet{background:#fff;width:100%;max-height:93vh;overflow:auto;border-radius:22px 22px 0 0;padding:22px 20px calc(25px + env(safe-area-inset-bottom))}.sheet-head{display:flex;gap:14px;align-items:center;margin-bottom:20px}.sheet-icon{height:42px;width:42px;border-radius:10px;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:18px}.sheet-icon.orange{background:#ff8700}.sheet-head h2{font-size:16px;margin:0}.sheet-head p{font-size:10px;color:var(--muted);margin:2px 0 0}.close{margin-left:auto;border:0;background:transparent;color:#8a8993;font-size:17px}.field{margin:0 0 15px}.field label{font-size:11px;display:block;margin-bottom:8px;color:#484852}.control{position:relative}.control i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--navy);font-size:15px}.control input,.control select,.control textarea{width:100%;border:1px solid #dddde5;background:#fbfbfc;border-radius:10px;outline:none;color:#50505c;font-size:12px;padding:0 14px 0 43px}.control input,.control select{height:48px}.control textarea{height:82px;padding-top:15px;resize:none}.sign-row{display:grid;grid-template-columns:46px 1fr 46px;gap:8px}.sign{height:48px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--navy);font-size:22px}.sign.active{background:var(--navy);color:#fff}.quantity-preview{border:1px solid #ecebf4;border-radius:10px;background:#f9f9fc;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 13px;margin:-4px 0 15px;font-size:11px;color:var(--muted)}.quantity-preview strong{font-size:13px;color:var(--navy)}.quantity-preview strong.invalid{color:var(--red)}.submit{width:100%;height:47px;border:0;border-radius:11px;margin-top:11px;background:linear-gradient(110deg,var(--navy),var(--indigo));color:#fff;font-size:12px;font-weight:600;box-shadow:0 6px 14px rgba(32,26,100,.18)}.message{min-height:18px;font-size:10px;color:var(--red);margin:3px 0 0}
+@media(min-width:900px){body{background:#f5f4ff}.sidebar{position:fixed;inset:0 auto 0 0;width:80px;background:var(--navy);display:flex;flex-direction:column;align-items:center;padding:22px 0 16px;gap:4px;box-shadow:4px 0 30px rgba(27,23,93,.18)}.logo{height:42px;width:42px;border-radius:14px;background:#fff;color:var(--navy);font-weight:800;display:grid;place-items:center;text-decoration:none;margin-bottom:14px}.sidebar-label{font-size:8px;font-weight:600;letter-spacing:.1em;color:rgba(255,255,255,.28);text-transform:uppercase;margin:8px 0 4px}.nav{height:50px;width:56px;color:rgba(255,255,255,.48);display:flex;flex-direction:column;justify-content:center;align-items:center;text-decoration:none;border-radius:14px;font-size:9px;gap:4px}.nav i{font-size:18px}.nav.active,.nav:hover{background:rgba(255,255,255,.17);color:#fff}.side-spacer{flex:1}.page{margin-left:80px}.hero{padding:25px 34px 25px;background:#fff;color:var(--ink);border-bottom:1px solid var(--line)}.head{width:100%}.back{background:#f0eff9;color:var(--navy)}.head-copy h1{font-size:25px}.head-copy p{font-size:12px;color:var(--muted)}.add{height:43px;color:#fff;background:linear-gradient(110deg,var(--navy),var(--indigo));padding:0 20px}.add.excel{padding:0 20px}.excel-message{width:100%;margin:10px 0 -6px;color:var(--green);font-size:11px}.excel-message.error{color:var(--red)}.stats{margin:23px 0 0;width:100%;height:105px;background:linear-gradient(115deg,var(--navy),#39338d);border:0;color:#fff}.stat strong{font-size:25px}.stat small{font-size:11px}.content{width:100%;padding:24px 34px 38px}.toolbar{margin-bottom:20px}.search input,.filter{height:48px}.inventory-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.product-card{padding:17px 15px 14px}.product-name{font-size:14px}.qty-row{margin-top:4px}.modal{align-items:center;padding-left:80px}.sheet{width:min(520px,calc(100% - 110px));border-radius:18px;padding:26px 25px}.sheet-head h2{font-size:19px}}
+</style>
+<link rel="stylesheet" href="/static/css/mobile-responsive.css">
+</head>
+<body>
+<nav class="sidebar">
+<a class="logo" href="/api/home">OS</a>
+<a class="nav" href="/api/home"><i class="bi bi-speedometer2"></i><span>Dash</span></a>
+<a class="nav" href="/dashboard/"><i class="bi bi-info-circle"></i><span>Main Info</span></a>
+<a class="nav active" href="/api/inventory-page/"><i class="bi bi-box-seam"></i><span>Inventory</span></a>
+<a class="nav" href="/billing/"><i class="bi bi-receipt"></i><span>Billing</span></a>
+<a class="nav" href="/api/purchase-page/"><i class="bi bi-bag"></i><span>Purchase</span></a>
+<a class="nav" href="/api/items/"><i class="bi bi-grid-1x2"></i><span>Items</span></a>
+<a class="nav" href="/api/vendors-page/"><i class="bi bi-people"></i><span>Vendors</span></a>
+<a class="nav" href="/api/orders-page/"><i class="bi bi-truck"></i><span>Orders</span></a>
+<div class="side-spacer"></div>
+<a class="nav" href="/settings/"><i class="bi bi-gear"></i><span>Settings</span></a>
+<a class="nav" href="/logout/"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
+</nav>
+<div class="page">
+<header class="hero">
+<div class="head">
+<a class="back" href="/api/home" aria-label="Back"><i class="bi bi-chevron-left"></i></a>
+<div class="head-copy"><h1>Inventory Management</h1><p>Track and manage stock levels</p></div>
+<div class="head-actions">
+<button class="add" type="button" onclick="openAdd()"><i class="bi bi-plus-lg"></i> Add</button>
+<a class="add excel" href="/api/download-sample1/" 
+    style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+    <i class="bi bi-download"></i> Sample
+</a>
+<button class="add excel" id="excelButton" type="button" 
+    onclick="document.getElementById('excelFile').click()">
+    <i class="bi bi-file-earmark-excel"></i> Add Excel
+</button>
+<input id="excelFile" type="file" accept=".xlsx,.xls,.csv" hidden>
+</div>
+</div>
+<p class="excel-message" id="excelMessage"></p>
+<section class="stats">
+<div class="stat total"><i class="bi bi-archive"></i><strong id="totalStat">0</strong><small>Total</small></div>
+<div class="stat low"><i class="bi bi-exclamation-triangle"></i><strong id="lowStat">0</strong><small>Low Stock</small></div>
+<div class="stat out"><i class="bi bi-exclamation-circle"></i><strong id="outStat">0</strong><small>Out</small></div>
+</section>
+</header>
+<main class="content">
+<section class="toolbar">
+<label class="search"><i class="bi bi-search"></i><input id="search" placeholder="Search product or SKU..."></label>
+<select id="stockFilter" class="filter"><option value="ALL">All</option><option value="IN">In Stock</option><option value="LOW">Low Stock</option><option value="OUT">Out</option></select>
+</section>
+<section class="inventory-list" id="inventoryList"><div class="empty">Loading inventory...</div></section>
+</main>
+</div>
+<div class="modal" id="addModal" onclick="if(event.target===this)closeModal('addModal')">
+<form class="sheet" id="addForm">
+<div class="sheet-head"><span class="sheet-icon"><i class="bi bi-file-plus-fill"></i></span><div><h2>Add Inventory</h2><p>Increase stock for a product</p></div><button class="close" type="button" onclick="closeModal('addModal')"><i class="bi bi-x-lg"></i></button></div>
+<div class="field"><label>Select Product</label><div class="control"><i class="bi bi-archive-fill"></i><select id="addProduct" required><option value="">Choose a product</option></select></div></div>
+<div class="field"><label>Quantity</label><div class="control"><i class="bi bi-cart-fill"></i><input id="addQuantity" type="number" min="1" value="1" required></div></div>
+<p class="message" id="addMessage"></p>
+<button class="submit" type="submit"><i class="bi bi-check-circle-fill"></i> Add to Inventory</button>
+</form>
+</div>
+<div class="modal" id="adjustModal" onclick="if(event.target===this)closeModal('adjustModal')">
+<form class="sheet" id="adjustForm">
+<div class="sheet-head"><span class="sheet-icon orange"><i class="bi bi-sliders"></i></span><div><h2>Adjust Inventory</h2><p id="adjustSku">SKU:</p></div><button class="close" type="button" onclick="closeModal('adjustModal')"><i class="bi bi-x-lg"></i></button></div>
+<div class="field"><label>Adjustment Amount</label><div class="sign-row"><button class="sign" id="minus" type="button" onclick="changeAmount(-1)">-</button><div class="control"><input id="adjustQuantity" type="number" step="1" value="0" required style="padding-left:14px" oninput="syncAmountState()"></div><button class="sign" id="plus" type="button" onclick="changeAmount(1)">+</button></div></div>
+<div class="quantity-preview"><span>Available: <strong id="currentQuantity">0</strong></span><span>After Adjustment: <strong id="resultQuantity">0</strong></span></div>
+<div class="field"><label>Reason for Adjustment</label><div class="control"><i class="bi bi-info-circle"></i><select id="adjustReason" required><option value="">Select reason</option><option value="ADJUST">Manual Adjust</option><option value="PURCHASE">Purchase</option><option value="RETURN">Customer Return</option><option value="WPS">Warehouse Return</option><option value="ORDER">Order</option></select></div></div>
+<div class="field"><label>Additional Notes (Optional)</label><div class="control"><i class="bi bi-pencil-square" style="top:24px"></i><textarea id="adjustNote" placeholder="Add any additional details..."></textarea></div></div>
+<p class="message" id="adjustMessage"></p>
+<button class="submit" type="submit"><i class="bi bi-check-circle-fill"></i> Confirm Adjustment</button>
+</form>
+</div>
+<script>
+const API = window.API_BASE || "";
+const TOKEN_KEY = "stockos_api_token";
+let products = [], inventory = [], selectedProduct = null;
+async function ensureToken(){
+let token=localStorage.getItem(TOKEN_KEY);
+if(token)return token;
+const res=await fetch(`${API}/api/login/`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({otp:"000000"})});
+const data=await res.json();
+if(!res.ok||!data.token)throw new Error(data.error||"API login failed.");
+localStorage.setItem(TOKEN_KEY,data.token);return data.token;
+}
+async function apiFetch(url,options={},retry=true){
+const token=await ensureToken(),headers=new Headers(options.headers||{});
+headers.set("Authorization",`Bearer ${token}`);
+if(!(options.body instanceof FormData)&&!headers.has("Content-Type"))headers.set("Content-Type","application/json");
+const res=await fetch(url,{...options,headers});
+if(res.status===401&&retry){localStorage.removeItem(TOKEN_KEY);return apiFetch(url,options,false)}
+return res;
+}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function errorText(data,fallback){if(typeof data?.detail==="string")return data.detail;if(typeof data?.message==="string")return data.message;return fallback}
+function stockType(q){return q===0?"OUT":q<=10?"LOW":"IN"}
+function statusLabel(type){return type==="OUT"?"OUT OF STOCK":type==="LOW"?"LOW STOCK":"IN STOCK"}
+function currentRecords(){
+const q=document.getElementById("search").value.trim().toLowerCase(), filter=document.getElementById("stockFilter").value;
+return products.map(product=>{
+const row=inventory.find(item=>String(item.product)===String(product.id));
+return {...product,quantity:Number(row?.quantity||0)};
+}).filter(product=>{
+const match=!q||`${product.name} ${product.sku}`.toLowerCase().includes(q);
+return match&&(filter==="ALL"||stockType(product.quantity)===filter);
+});
+}
+function card(product){
+const type=stockType(product.quantity), cls=type.toLowerCase();
+return `<article class="product-card ${cls}">
+<div class="product-top"><div><h2 class="product-name">${esc(product.name)}</h2><p class="sku">SKU: ${esc(product.sku)}</p></div><span class="status ${cls}">${statusLabel(type)}</span></div>
+<div class="tags">${product.size?`<span class="tag size"><i class="bi bi-rulers"></i>${esc(product.size)}</span>`:""}${product.color?`<span class="tag color"><i class="bi bi-palette"></i>${esc(product.color)}</span>`:""}${product.material?`<span class="tag material"><i class="bi bi-box"></i>${esc(product.material)}</span>`:""}</div>
+<div class="qty-row"><div><small>Available Quantity</small><span class="qty ${cls}">${product.quantity}</span></div><button type="button" class="adjust" onclick="openAdjust(${product.id})"><i class="bi bi-sliders2"></i> Adjust</button></div>
+</article>`;
+}
+function render(){
+const records=currentRecords(), list=document.getElementById("inventoryList");
+list.innerHTML=records.length?records.map(card).join(""):'<div class="empty">No inventory products found.</div>';
+const all=products.map(p=>Number(inventory.find(i=>String(i.product)===String(p.id))?.quantity||0));
+document.getElementById("totalStat").textContent=all.reduce((sum,n)=>sum+n,0);
+document.getElementById("lowStat").textContent=all.filter(n=>n>0&&n<=10).length;
+document.getElementById("outStat").textContent=all.filter(n=>n===0).length;
+}
+async function loadData(){
+try{
+const [productRes,inventoryRes]=await Promise.all([apiFetch(`${API}/api/products/`),apiFetch(`${API}/api/inventory/`)]);
+const productData=await productRes.json(), inventoryData=await inventoryRes.json();
+if(!productRes.ok)throw new Error(errorText(productData,"Products load failed."));
+if(!inventoryRes.ok)throw new Error(errorText(inventoryData,"Inventory load failed."));
+products=Array.isArray(productData)?productData:[]; inventory=Array.isArray(inventoryData)?inventoryData:[];
+document.getElementById("addProduct").innerHTML='<option value="">Choose a product</option>'+products.map(p=>`<option value="${p.id}">${esc(p.name)} - ${esc(p.sku)}</option>`).join("");
+render();
+}catch(error){document.getElementById("inventoryList").innerHTML=`<div class="empty">${esc(error.message)}</div>`}
+}
+async function uploadExcel(fileInput){
+const file=fileInput.files[0], message=document.getElementById("excelMessage"), button=document.getElementById("excelButton");
+if(!file)return;
+message.classList.remove("error");message.textContent="Uploading inventory file...";button.disabled=true;
+try{
+const form=new FormData();form.append("file",file);
+const res=await apiFetch(`${API}/api/upload-products1/`,{method:"POST",body:form});
+const data=await res.json();
+if(!res.ok)throw new Error(data.error||"Excel inventory upload failed.");
+const errors=Array.isArray(data.errors)?data.errors:[];
+message.classList.toggle("error",errors.length>0);
+message.textContent=errors.length?`${data.uploaded} rows added. ${errors[0]}`:`${data.uploaded} product rows added to inventory.`;
+await loadData();
+}catch(error){message.classList.add("error");message.textContent=error.message}
+finally{button.disabled=false;fileInput.value=""}
+}
+function closeModal(id){document.getElementById(id).classList.remove("open")}
+function openAdd(){document.getElementById("addForm").reset();document.getElementById("addQuantity").value=1;document.getElementById("addMessage").textContent="";document.getElementById("addModal").classList.add("open")}
+function syncAmountState(){
+const value=Number(document.getElementById("adjustQuantity").value||0);
+document.getElementById("plus").classList.toggle("active",value>0);
+document.getElementById("minus").classList.toggle("active",value<0);
+const available=Number(document.getElementById("currentQuantity").textContent||0), result=available+value;
+const resultNode=document.getElementById("resultQuantity");
+resultNode.textContent=result;
+resultNode.classList.toggle("invalid",result<0);
+document.getElementById("adjustMessage").textContent=result<0?`Available quantity ${available} se zyada stock remove nahi kar sakte.`:"";
+}
+function changeAmount(step){
+const input=document.getElementById("adjustQuantity");
+const available=Number(document.getElementById("currentQuantity").textContent||0);
+const next=Number(input.value||0)+step;
+if(step<0&&next < -available){
+document.getElementById("adjustMessage").textContent=`Maximum ${available} quantity hi remove kar sakte hain.`;
+return;
+}
+document.getElementById("adjustMessage").textContent="";
+input.value=next;
+syncAmountState();
+}
+function openAdjust(id){
+selectedProduct=products.find(p=>Number(p.id)===Number(id)); if(!selectedProduct)return;
+const available=Number(inventory.find(item=>String(item.product)===String(selectedProduct.id))?.quantity||0);
+document.getElementById("adjustForm").reset();document.getElementById("adjustSku").textContent=`SKU: ${selectedProduct.sku}`;document.getElementById("currentQuantity").textContent=available;document.getElementById("adjustQuantity").value=0;document.getElementById("adjustMessage").textContent="";syncAmountState();document.getElementById("adjustModal").classList.add("open");
+}
+document.getElementById("addForm").addEventListener("submit",async event=>{
+event.preventDefault();const message=document.getElementById("addMessage"),button=event.target.querySelector(".submit");message.textContent="";button.disabled=true;
+try{
+const res=await apiFetch(`${API}/api/inventory/`,{method:"POST",body:JSON.stringify({product:document.getElementById("addProduct").value,quantity:Number(document.getElementById("addQuantity").value)})});
+const data=await res.json();if(!res.ok)throw new Error(errorText(data,"Inventory could not be added."));
+closeModal("addModal");await loadData();
+}catch(error){message.textContent=error.message}finally{button.disabled=false}
+});
+document.getElementById("adjustForm").addEventListener("submit",async event=>{
+event.preventDefault();const message=document.getElementById("adjustMessage"),button=event.target.querySelector(".submit");message.textContent="";button.disabled=true;
+try{
+const delta=Number(document.getElementById("adjustQuantity").value);
+if(!Number.isInteger(delta)||delta===0)throw new Error("Adjustment amount mein + ya - quantity select karein.");
+const available=Number(document.getElementById("currentQuantity").textContent||0);
+if(available+delta<0)throw new Error(`Available quantity ${available} se zyada stock remove nahi kar sakte.`);
+const res=await apiFetch(`${API}/api/inventory/adjust/`,{method:"POST",body:JSON.stringify({sku:selectedProduct.sku,delta,reason:document.getElementById("adjustReason").value,note:document.getElementById("adjustNote").value.trim()})});
+const data=await res.json();if(!res.ok)throw new Error(errorText(data,"Inventory adjustment failed."));
+closeModal("adjustModal");await loadData();
+}catch(error){message.textContent=error.message}finally{button.disabled=false}
+});
+document.getElementById("search").addEventListener("input",render);
+document.getElementById("stockFilter").addEventListener("change",render);
+document.getElementById("excelFile").addEventListener("change",event=>uploadExcel(event.target));
+document.addEventListener("keydown",event=>{if(event.key==="Escape"){closeModal("addModal");closeModal("adjustModal")}});
+loadData();
+</script>
+<script src="/static/js/mobile-sidebar.js"></script>
+</body>
+</html>

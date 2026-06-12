@@ -1,0 +1,166 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Order - StockOS</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.8.1/build/css/intlTelInput.css">
+<link href="https://fonts.cdnfonts.com/css/google-sans" rel="stylesheet">
+<style>
+:root{--ink:#0D0C2B;--brand:#1B175D;--accent:#5147E5;--surface:#F5F4FF;--card:#fff;--muted:#77758E;--border:#E4E3F4;--danger:#FF4148;--blue:#1686F8}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;background:var(--surface);color:var(--ink)}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}h1,h2{font-family: 'Google Sans', 'Product Sans', Arial, sans-serif}
+.sidebar{position:fixed;inset:0 auto 0 0;width:80px;background:var(--brand);display:flex;flex-direction:column;align-items:center;padding:22px 0 16px;gap:4px;color:#fff}.logo{height:42px;width:42px;background:#fff;color:var(--brand);border-radius:14px;display:grid;place-items:center;text-decoration:none;font-weight:800;margin-bottom:16px}.side-label{font-size:8px;color:#ffffff55;text-transform:uppercase;margin:8px 0 4px}.side-link{height:52px;width:56px;border-radius:14px;text-decoration:none;color:#ffffff72;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:9px}.side-link i{font-size:18px}.side-link.active{color:#fff;background:#ffffff2d}.side-spacer{flex:1}
+.shell{min-height:100vh;margin-left:80px}.topbar{height:64px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 30px;gap:14px}.back{width:38px;height:38px;background:#fff;border:1px solid var(--border);border-radius:11px;display:grid;place-items:center;text-decoration:none}.page{max-width:1150px;padding:22px 30px 34px;margin:0 auto}.heading{display:flex;align-items:center;gap:14px;margin-bottom:18px}.head-icon{width:48px;height:48px;border-radius:12px;background:#EEEEF9;color:var(--brand);display:grid;place-items:center;font-size:22px}.heading h1{font-size:25px}.heading p{font-size:13px;color:var(--muted);margin-top:3px}
+.form-layout{display:grid;grid-template-columns:minmax(470px,1fr) 395px;gap:16px;align-items:start}.panel{background:#fff;border:1px solid var(--border);border-radius:14px;padding:19px;box-shadow:0 4px 18px rgba(27,23,93,.04)}.panel-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:14px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:11px}.field{position:relative}.field.full{grid-column:1/-1}.field i{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--brand)}.input,.select-button{height:50px;width:100%;background:#FCFCFE;border:1px solid var(--border);border-radius:12px;padding:0 14px 0 43px;color:var(--ink);font-size:13px;outline:none;text-align:left}.input:focus,.select-button:focus{border-color:var(--accent)}.input::placeholder,textarea::placeholder{color:#9998A6}.phone{padding-bottom:16px}.phone .iti{width:100%}.phone .iti__tel-input{height:50px;width:100%;background:#FCFCFE;border:1px solid var(--border);border-radius:12px;padding-right:14px;color:var(--ink);font-size:13px;outline:none}.phone .iti__tel-input:focus{border-color:var(--accent)}.phone .iti__selected-country-primary{padding-left:12px}.phone .iti__dropdown-content{z-index:220;max-width:min(360px,calc(100vw - 44px))}.phone .iti__country-list{max-height:230px}.counter{position:absolute;bottom:0;right:2px;color:var(--muted);font-size:10px}.remark-button{min-height:68px;height:auto;padding-top:17px;padding-bottom:17px;display:flex;align-items:flex-start}.remark-button.empty{color:#9998A6}.remark-button span{line-height:1.45;white-space:normal}.field.textarea i{top:24px;transform:none}
+.items-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}.items-head .actions{display:flex;gap:17px}.link-action{border:0;background:none;color:var(--blue);font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px}.items{display:grid;gap:10px}.item-box{border:1px solid var(--border);border-radius:13px;padding:11px;display:grid;gap:9px}.item-top{display:flex;gap:10px;align-items:center}.product-select{height:48px;flex:1;min-width:0;border:1px solid var(--border);border-radius:11px;background:#FCFCFE;padding:0 12px;display:flex;align-items:center;gap:11px;color:var(--muted);text-align:left}.product-select.selected{color:var(--ink)}.product-select span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}.remove{height:42px;width:42px;border:0;border-radius:11px;background:#FFE9EC;color:var(--danger);font-size:17px}.item-grid{display:grid;grid-template-columns:100px 1fr;gap:9px}.small-input{height:46px;padding-left:40px}.product-note{font-size:10px;color:var(--muted);line-height:1.3;padding:0 2px;display:none}.item-box.has-product .product-note{display:block}.empty-products{border:1px dashed var(--border);border-radius:13px;padding:25px 18px;text-align:center;color:var(--muted);font-size:12px}.empty-products i{display:block;color:var(--brand);font-size:20px;margin-bottom:7px}
+.form-footer{display:flex;justify-content:flex-end;gap:11px;margin-top:17px}.clear,.submit{height:46px;border-radius:12px;font-size:13px;font-weight:600}.clear{background:#fff;border:1px solid var(--border);width:112px}.submit{border:0;color:#fff;background:linear-gradient(100deg,var(--brand),var(--accent));width:190px;box-shadow:0 8px 20px rgba(27,23,93,.18)}
+.modal{position:fixed;inset:0;background:rgba(13,12,43,.45);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}.modal.open{display:flex}.sheet{background:#fff;border-radius:18px;width:min(100%,430px);max-height:min(82vh,730px);overflow:hidden;display:flex;flex-direction:column;padding:21px}.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.sheet-head h2{font-size:19px;display:flex;align-items:center;gap:10px}.close{border:0;background:transparent;font-size:21px}.modal-search{position:relative;margin-bottom:14px}.modal-search i{position:absolute;left:15px;top:50%;transform:translateY(-50%)}.modal-search input{height:48px;width:100%;border:0;background:#FAFAFC;border-radius:13px;padding:0 13px 0 45px;font-size:13px;outline:none}.option-list{overflow:auto}.option{width:100%;min-height:58px;border:0;border-bottom:1px solid #ECEBF3;background:#fff;display:flex;align-items:center;text-align:left;gap:15px;padding:13px 8px;font-size:14px}.radio{width:18px;height:18px;border:1.5px solid #B4B4BD;border-radius:50%;flex-shrink:0}.option.active .radio{border-color:var(--brand);box-shadow:inset 0 0 0 5px #fff;background:var(--brand)}.option small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.remark-sheet{width:min(100%,365px)}.remark-input-wrap{position:relative}.remark-input-wrap i{position:absolute;top:19px;left:15px;color:var(--brand)}.remark-input{width:100%;height:105px;border:1px solid var(--border);border-radius:13px;background:#FCFCFE;padding:17px 15px 15px 44px;resize:none;outline:none;font-size:13px}.remark-input:focus{border-color:var(--accent)}.modal-actions{margin-top:20px;display:flex;justify-content:flex-end;align-items:center;gap:10px}.modal-cancel,.modal-submit{height:42px;padding:0 22px;border-radius:11px;font-size:13px;font-weight:600}.modal-cancel{border:0;background:#fff;color:var(--muted)}.modal-submit{border:0;background:linear-gradient(100deg,var(--brand),var(--accent));color:#fff;box-shadow:0 7px 16px rgba(27,23,93,.2)}
+.toast{position:fixed;right:25px;bottom:24px;background:var(--brand);color:#fff;border-radius:10px;padding:12px 16px;font-size:13px;display:none;z-index:300}.toast.show{display:block}
+@media(max-width:899px){.sidebar{display:none}.shell{margin-left:0;background:#fff}.topbar{display:none}.page{max-width:760px;padding:34px 22px 84px;background:#fff}.heading{margin-bottom:20px}.heading h1{font-size:20px}.heading p{font-size:11px}.head-icon{width:40px;height:40px;font-size:18px}.form-layout{display:block}.panel{padding:0;border:0;box-shadow:none}.order-panel{margin-bottom:28px}.panel-title{font-size:12px;margin-bottom:13px}.fields{display:block}.field{margin-bottom:11px}.input,.select-button{height:49px}.items-panel .panel-title{margin-bottom:15px}.item-box{padding:11px;border-radius:13px}.item-grid{grid-template-columns:1fr}.empty-products{display:none}.form-footer{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:12px 22px 20px;margin:0;z-index:40}.clear{flex:0 0 106px}.submit{flex:1}.modal{padding:0;align-items:flex-end}.sheet{width:100%;border-radius:20px 20px 0 0;max-height:70vh;padding:20px 20px 18px}.sheet:before{content:"";width:34px;height:4px;background:#DDDCE5;border-radius:99px;margin:-8px auto 18px}.sheet-head h2{font-size:18px}.remark-sheet{max-height:none;margin-bottom:max(18vh,90px);border-radius:17px}}
+@media(max-width:420px){.page{padding:34px 20px 82px}.fields{gap:0}.input,.select-button{font-size:13px}.form-footer{padding-left:20px;padding-right:20px}.sheet{max-height:72vh}}
+/* responsive spacing refinement */
+html,body{min-height:100%}
+body{overflow-y:auto}
+.page{max-width:880px;padding:26px 28px 48px}
+.heading{margin-bottom:20px}
+.form-layout{display:flex;flex-direction:column;align-items:stretch;gap:20px}
+.panel{padding:20px;border-radius:15px}
+.fields{gap:12px}
+.items-panel{position:static;display:flex;flex-direction:column;max-height:none}
+.items{min-height:0;max-height:none;overflow:visible;padding-right:0}
+.item-box{flex-shrink:0}
+.form-footer{flex-shrink:0;padding-top:18px;margin-top:0}
+.option-list{overscroll-behavior:contain}
+@media(min-width:900px) and (max-width:1120px){
+  .page{max-width:760px;padding:25px 24px 40px}
+  .form-layout{gap:18px}
+}
+@media(max-width:899px){
+  body{background:#fff}
+  .page{min-height:100vh;padding:27px 20px calc(94px + env(safe-area-inset-bottom))}
+  .heading{margin-bottom:23px}
+  .order-panel{margin-bottom:34px}
+  .items-panel{position:static;display:block;max-height:none}
+  .items{max-height:none;overflow:visible;padding-right:0}
+  .form-footer{padding:12px 20px calc(16px + env(safe-area-inset-bottom));border-top:1px solid #F1F0F7;box-shadow:0 -6px 18px rgba(13,12,43,.04)}
+  .sheet .option-list{max-height:calc(70vh - 116px)}
+}
+@media(max-width:420px){
+  .page{padding-left:18px;padding-right:18px}
+  .form-footer{padding-left:18px;padding-right:18px}
+}
+</style>
+<link rel="stylesheet" href="/static/css/mobile-responsive.css">
+</head>
+<body>
+<nav class="sidebar">
+<a class="logo" href="/">OS</a>
+<a class="side-link" href="/api/home"><i class="bi bi-speedometer2"></i><span>Dash</span></a>
+<a class="side-link" href="/dashboard/"><i class="bi bi-info-circle"></i><span>Main Info</span></a>
+<a class="side-link" href="/api/items/"><i class="bi bi-box"></i><span>Stock</span></a>
+<a class="side-link active" href="/api/orders-page/"><i class="bi bi-truck"></i><span>Orders</span></a><span class="side-spacer"></span>
+</nav>
+<div class="shell">
+<header class="topbar"><a class="back" href="/api/orders-page/"><i class="bi bi-arrow-left"></i></a><strong>Create Order</strong></header>
+<main class="page">
+<div class="heading"><div class="head-icon"><i class="bi bi-folder-plus"></i></div><div><h1>Create Order</h1><p>Enter transaction and customer info</p></div></div>
+<form id="orderForm">
+<div class="form-layout">
+<section class="panel order-panel">
+<p class="panel-title"><i class="bi bi-clipboard2"></i> Order Details</p>
+<div class="fields">
+<div class="field full"><i class="bi bi-shop"></i><button class="select-button" id="channelButton" type="button" onclick="openChannelSheet()">Select Channel <span style="float:right"><i class="bi bi-chevron-down" style="position:static;transform:none"></i></span></button></div>
+<div class="field"><i class="bi bi-hash"></i><input class="input" id="channelOrderId" placeholder="Channel Order ID"></div>
+<div class="field"><i class="bi bi-person"></i><input class="input" id="customerName" required placeholder="Customer Name*"></div>
+<div class="field"><i class="bi bi-envelope-fill"></i><input class="input" id="customerEmail" type="email" required placeholder="Email*"></div>
+<div class="field phone full"><input class="input" id="mobile" type="tel" required placeholder="Phone Number*"><p class="counter"><span id="phoneCount">0</span> digits</p></div>
+<div class="field textarea full"><i class="bi bi-list"></i><button class="select-button remark-button empty" id="remarksButton" type="button" onclick="openRemarkModal()"><span id="remarksPreview">Remarks</span></button><input id="remarks" type="hidden"></div>
+<div class="field"><i class="bi bi-box"></i><input class="input" id="packageExpense" type="number" min="0" step="0.01" placeholder="Package Expense (Rs.)"></div>
+<div class="field"><i class="bi bi-truck"></i><input class="input" id="buyerShipping" type="number" min="0" step="0.01" placeholder="Buyer Shipping Expense (Rs.)"></div>
+<div class="field full"><i class="bi bi-percent"></i><input class="input" id="buyerTaxAmount" type="number" min="0" step="0.01" placeholder="Buyer Tax Amount (Rs.)"></div>
+</div>
+</section>
+<section class="panel items-panel">
+<div class="items-head"><p class="panel-title" style="margin:0"><i class="bi bi-bag"></i> Product Items</p><div class="actions"><button class="link-action" type="button" onclick="scanProduct()"><i class="bi bi-qr-code-scan"></i> Scan</button><button class="link-action" type="button" onclick="addItem()"><i class="bi bi-plus-circle"></i> Add</button></div></div>
+<div class="items" id="items"></div>
+<div class="form-footer"><button class="clear" type="reset">Clear</button><button class="submit" id="submitBtn" type="submit">Submit Order</button></div>
+</section>
+</div>
+</form>
+</main>
+</div>
+<div class="modal" id="channelModal"><section class="sheet"><div class="sheet-head"><h2><i class="bi bi-shop"></i> Select Channel</h2><button class="close" type="button" onclick="closeModal('channelModal')"><i class="bi bi-x-lg"></i></button></div><div class="modal-search"><i class="bi bi-search"></i><input id="channelSearch" placeholder="Search channels..."></div><div class="option-list" id="channelList"></div></section></div>
+<div class="modal" id="productModal"><section class="sheet"><div class="sheet-head"><h2><i class="bi bi-archive"></i> Choose Product</h2><button class="close" type="button" onclick="closeModal('productModal')"><i class="bi bi-x-lg"></i></button></div><div class="modal-search"><i class="bi bi-search"></i><input id="productSearch" placeholder="Search products..."></div><div class="option-list" id="productList"></div></section></div>
+<div class="modal" id="remarkModal"><section class="sheet remark-sheet"><div class="sheet-head"><h2><i class="bi bi-plus-square"></i> Add Remark</h2><button class="close" type="button" onclick="closeModal('remarkModal')"><i class="bi bi-x-lg"></i></button></div><div class="remark-input-wrap"><i class="bi bi-card-text"></i><textarea class="remark-input" id="remarkInput" placeholder="Enter your remark..."></textarea></div><div class="modal-actions"><button class="modal-cancel" type="button" onclick="closeModal('remarkModal')">Cancel</button><button class="modal-submit" type="button" onclick="saveRemark()">Submit</button></div></section></div>
+<div class="toast" id="toast"></div>
+{{ channels|json_script:"channels-json" }}
+{{ products|json_script:"products-json" }}
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.8.1/build/js/intlTelInput.min.js"></script>
+<script>
+const API = window.API_BASE || "";
+const channels = JSON.parse(document.getElementById("channels-json").textContent);
+const products = JSON.parse(document.getElementById("products-json").textContent);
+let chosenChannel = null, activeItemIndex = 0, orderItems = [];
+const itemsRoot = document.getElementById("items");
+const phoneInput = document.getElementById("mobile");
+const phonePicker = window.intlTelInput ? window.intlTelInput(phoneInput, {initialCountry:"in", separateDialCode:true, nationalMode:true, strictMode:true}) : null;
+const API_TOKEN_KEY="stockos_api_token";
+async function ensureToken(){
+let token=localStorage.getItem(API_TOKEN_KEY);
+if(token)return token;
+const res=await fetch(`${API}/api/login/`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({otp:"000000"})});
+const data=await res.json();
+if(!res.ok||!data.token)throw new Error(data.error||"API login failed.");
+localStorage.setItem(API_TOKEN_KEY,data.token);
+return data.token;
+}
+async function apiFetch(url,options={},retry=true){
+const token=await ensureToken();
+const requestHeaders=new Headers(options.headers||{});
+requestHeaders.set("Authorization",`Bearer ${token}`);
+if(!(options.body instanceof FormData)&&!requestHeaders.has("Content-Type"))requestHeaders.set("Content-Type","application/json");
+const res=await fetch(url,{...options,headers:requestHeaders});
+if(res.status===401&&retry){localStorage.removeItem(API_TOKEN_KEY);return apiFetch(url,options,false);}
+return res;
+}
+function esc(v){return String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function toast(message){const el=document.getElementById("toast");el.textContent=message;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2600)}
+function itemMarkup(item,index){const p=item.product;return `<article class="item-box ${p?"has-product":""}"><div class="item-top"><button class="product-select ${p?"selected":""}" type="button" onclick="openProductSheet(${index})"><i class="bi bi-archive"></i><span>${p?esc(p.name):"Choose Product"}</span><i class="bi bi-chevron-down"></i></button>${orderItems.length>1?`<button class="remove" type="button" onclick="removeItem(${index})"><i class="bi bi-trash"></i></button>`:""}</div><p class="product-note">${p?`${esc(p.sku)} | Stock: ${p.quantity}`:""}</p><div class="item-grid"><div class="field"><i class="bi bi-hash"></i><input class="input small-input" type="number" min="1" value="${esc(item.quantity)}" placeholder="Qty" onchange="setItem(${index},'quantity',this.value)"></div><div class="field"><i class="bi bi-cash-stack"></i><input class="input small-input" type="number" min="0" step="0.01" value="${esc(item.unit_price)}" placeholder="Sale Price" onchange="setItem(${index},'unit_price',this.value)"></div></div></article>`}
+function renderItems(){itemsRoot.innerHTML=orderItems.length?orderItems.map(itemMarkup).join(""):'<div class="empty-products"><i class="bi bi-bag-plus"></i>Use Add to include product items</div>'}
+function setItem(index,key,value){orderItems[index][key]=value}
+function addItem(){orderItems.push({product:null,quantity:"",unit_price:""});renderItems();openProductSheet(orderItems.length-1)}
+function scanProduct(){addItem()}
+function removeItem(index){orderItems.splice(index,1);renderItems()}
+function openChannelSheet(){document.getElementById("channelModal").classList.add("open");renderChannels("")}
+function renderChannels(search){const q=search.toLowerCase();const list=channels.filter(ch=>ch.name.toLowerCase().includes(q));document.getElementById("channelList").innerHTML=list.map(ch=>`<button type="button" class="option ${chosenChannel&&chosenChannel.id===ch.id?"active":""}" onclick="selectChannel(${ch.id})"><span class="radio"></span>${esc(ch.name)}</button>`).join("")||'<p style="padding:18px;color:#777">No channels found.</p>'}
+function selectChannel(id){chosenChannel=channels.find(ch=>ch.id===id);document.getElementById("channelButton").innerHTML=`${esc(chosenChannel.name)} <span style="float:right"><i class="bi bi-chevron-down" style="position:static;transform:none"></i></span>`;closeModal("channelModal")}
+function openProductSheet(index){activeItemIndex=index;document.getElementById("productModal").classList.add("open");renderProducts("")}
+function renderProducts(search){const q=search.toLowerCase();const list=products.filter(p=>(p.name+" "+p.sku).toLowerCase().includes(q));document.getElementById("productList").innerHTML=list.map(p=>`<button type="button" class="option" onclick="selectProduct(${p.id})"><span class="radio"></span><div><b>${esc(p.name)}</b><small>${esc(p.size||"")} ${esc(p.material||"")} | SKU: ${esc(p.sku)} | Stock: ${p.quantity}</small></div></button>`).join("")||'<p style="padding:18px;color:#777">No products found.</p>'}
+function selectProduct(id){const p=products.find(product=>product.id===id);orderItems[activeItemIndex].product=p;if(!orderItems[activeItemIndex].unit_price)orderItems[activeItemIndex].unit_price=Number(p.price||0).toFixed(2);renderItems();closeModal("productModal")}
+function openRemarkModal(){document.getElementById("remarkInput").value=document.getElementById("remarks").value;document.getElementById("remarkModal").classList.add("open");document.getElementById("remarkInput").focus()}
+function saveRemark(){const text=document.getElementById("remarkInput").value.trim();document.getElementById("remarks").value=text;document.getElementById("remarksPreview").textContent=text||"Remarks";document.getElementById("remarksButton").classList.toggle("empty",!text);closeModal("remarkModal")}
+function closeModal(id){document.getElementById(id).classList.remove("open")}
+document.getElementById("channelSearch").addEventListener("input",e=>renderChannels(e.target.value));
+document.getElementById("productSearch").addEventListener("input",e=>renderProducts(e.target.value));
+phoneInput.addEventListener("input",e=>{document.getElementById("phoneCount").textContent=e.target.value.replace(/\D/g,"").length});
+document.querySelectorAll(".modal").forEach(modal=>modal.addEventListener("click",event=>{if(event.target===modal)modal.classList.remove("open")}));
+document.getElementById("orderForm").addEventListener("reset",()=>{setTimeout(()=>{chosenChannel=null;orderItems=[];if(phonePicker)phonePicker.setCountry("in");document.getElementById("channelButton").innerHTML='Select Channel <span style="float:right"><i class="bi bi-chevron-down" style="position:static;transform:none"></i></span>';document.getElementById("remarksPreview").textContent="Remarks";document.getElementById("remarksButton").classList.add("empty");document.getElementById("phoneCount").textContent="0";renderItems()},0)});
+document.getElementById("orderForm").addEventListener("submit",async event=>{
+event.preventDefault();
+if(!chosenChannel){toast("Select a channel first.");return}
+const mobile=phoneInput.value.replace(/\D/g,"");
+if(!mobile){toast("Enter a valid phone number.");return}
+const validItems=orderItems.filter(item=>item.product&&Number(item.quantity)>0&&Number(item.unit_price)>=0);
+if(!validItems.length||validItems.length!==orderItems.length){toast("Select product, quantity and sale price.");return}
+const remark=document.getElementById("remarks").value.trim();
+const selectedCountry=phonePicker?phonePicker.getSelectedCountryData():{dialCode:"91"};
+const payload={channel:chosenChannel.id,channel_order_id:document.getElementById("channelOrderId").value.trim(),customer_name:document.getElementById("customerName").value.trim(),customer_email:document.getElementById("customerEmail").value.trim(),country_code:`+${selectedCountry.dialCode||"91"}`,mobile:mobile,package_expence:Number(document.getElementById("packageExpense").value||0),buyer_shipment_charger:Number(document.getElementById("buyerShipping").value||0),buyer_tax_amount:Number(document.getElementById("buyerTaxAmount").value||0),remarks:remark?[remark]:[],items:validItems.map(item=>({product:item.product.id,quantity:Number(item.quantity),unit_price:Number(item.unit_price)}))};
+const btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="Creating...";
+try{const response=await apiFetch(`${API}/api/orders/`,{method:"POST",body:JSON.stringify(payload)});const data=await response.json();if(!response.ok)throw new Error(data.stock_error||data.error||"Could not create order.");const id=data.order_id||data.id;window.location.href=`/api/order-ui-details/?id=${id}`}catch(error){toast(typeof error.message==="object"?JSON.stringify(error.message):error.message);btn.disabled=false;btn.textContent="Submit Order"}});
+renderItems();
+</script>
+<script src="/static/js/mobile-sidebar.js"></script>
+</body>
+</html>

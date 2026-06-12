@@ -1,0 +1,748 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — StockOS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.cdnfonts.com">
+    <link href="https://fonts.cdnfonts.com/css/google-sans" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --ink: #0D0C2B;
+            --brand: #1B175D;
+            --brand-mid: #2E2A8A;
+            --accent: #6C63FF;
+            --glow: #A89CFF;
+            --surface: #F5F4FF;
+            --card: #FFFFFF;
+            --muted: #6B6A8A;
+            --border: #E4E3F4;
+            --orange: #F07B1D;
+            --orange-soft: #FFF4EB;
+            --green: #2EAA65;
+            --green-soft: #EDFDF4;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            background: var(--surface);
+            color: var(--ink);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1,h2,h3,.heading { font-family: 'Google Sans', 'Product Sans', Arial, sans-serif; }
+
+        /* ─── SIDEBAR ─── */
+        .sidebar {
+            width: 80px;
+            background: var(--brand);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 22px 0 16px;
+            gap: 4px;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 100;
+            box-shadow: 4px 0 30px rgba(27,23,93,0.18);
+        }
+
+        .sidebar-logo {
+            width: 42px; height: 42px;
+            background: white;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            font-weight: 800; font-size: 15px;
+            color: var(--brand);
+            letter-spacing: -1px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .sidebar-section-label {
+            font-size: 8px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.28);
+            text-transform: uppercase;
+            margin: 8px 0 4px;
+        }
+
+        .nav-link {
+            width: 56px; height: 52px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-radius: 14px;
+            color: rgba(255,255,255,0.42);
+            font-size: 9px; font-weight: 500;
+            gap: 4px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .nav-link i { font-size: 18px; }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.85);
+        }
+
+        .nav-link.active {
+            background: rgba(255,255,255,0.18);
+            color: white;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+        }
+
+        .sidebar-spacer { flex: 1; }
+
+        .logout-btn {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 3px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.5);
+            font-size: 8.5px; font-weight: 500;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .logout-btn:hover { background: rgba(255,255,255,0.18); color: white; }
+        .logout-btn i { font-size: 16px; }
+
+        /* ─── LAYOUT ─── */
+        .main-wrap {
+            margin-left: 80px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ─── TOPBAR ─── */
+        .topbar {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 0 28px;
+            height: 68px;
+            display: flex; align-items: center; gap: 16px;
+            position: sticky; top: 0; z-index: 50;
+        }
+
+        .search-wrap {
+            flex: 1;
+            max-width: 420px;
+            position: relative;
+        }
+
+        .search-wrap i {
+            position: absolute; left: 14px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted); font-size: 14px;
+        }
+
+        .search-wrap input {
+            width: 100%;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 9px 14px 9px 36px;
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            font-size: 13px;
+            color: var(--ink);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-wrap input:focus { border-color: var(--accent); }
+        .search-wrap input::placeholder { color: var(--muted); }
+
+        .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+        .icon-btn {
+            width: 40px; height: 40px;
+            background: var(--brand);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 16px;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .icon-btn:hover { background: var(--brand-mid); transform: translateY(-1px); }
+
+        /* ─── CONTENT ─── */
+        .content-row {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            padding: 24px 28px;
+            overflow: hidden;
+        }
+
+        /* ─── LEFT / MAIN ─── */
+        .main-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            overflow-y: auto;
+            min-width: 0;
+        }
+
+        /* hide scrollbar but keep scroll */
+        .main-panel::-webkit-scrollbar,
+        .right-panel::-webkit-scrollbar { width: 0; }
+
+        /* ─── PAGE HEADER ─── */
+        .page-header { display: flex; flex-direction: column; gap: 4px; }
+        .page-header h2 { font-size: 22px; font-weight: 700; }
+        .page-header p { font-size: 13px; color: var(--muted); }
+
+        /* ─── QUICK ACTIONS ─── */
+        .quick-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .q-btn {
+            padding: 8px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 12px; font-weight: 500;
+            color: var(--ink);
+            text-decoration: none;
+            background: white;
+            transition: all 0.15s;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+
+        .q-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--surface);
+        }
+
+        /* ─── STAT CARDS ─── */
+        .section-label {
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            font-size: 13px; font-weight: 700;
+            color: var(--ink);
+            display: flex; align-items: center; gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .section-label i { font-size: 15px; color: var(--muted); }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .stat-card {
+            border-radius: 18px;
+            padding: 20px;
+            color: white;
+            text-decoration: none;
+            display: block;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            min-height: 140px;
+        }
+
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.18); }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: -20px; right: -20px;
+            width: 100px; height: 100px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .stat-card-blue   { background: linear-gradient(135deg, #1B175D 0%, #3930C3 100%); box-shadow: 0 6px 24px rgba(27,23,93,0.3); }
+        .stat-card-orange { background: linear-gradient(135deg, #C55A00 0%, #F59B1E 100%); box-shadow: 0 6px 24px rgba(197,90,0,0.3); }
+        .stat-card-green  { background: linear-gradient(135deg, #1A6B42 0%, #38C172 100%); box-shadow: 0 6px 24px rgba(26,107,66,0.28); }
+
+        .stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .stat-label { font-size: 13px; font-weight: 500; opacity: 0.85; }
+
+        .stat-icon {
+            width: 38px; height: 38px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px;
+        }
+
+        .stat-value {
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            font-size: 42px; font-weight: 700;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .stat-value.smaller { font-size: 28px; }
+
+        .stat-sub {
+            font-size: 11px;
+            opacity: 0.7;
+            display: flex; align-items: center; gap: 4px;
+        }
+
+        /* ─── ACTIVITY FEED ─── */
+        .activity-card {
+            background: white;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 20px rgba(27,23,93,0.06);
+        }
+
+        .activity-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .activity-header-title {
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            font-size: 14px; font-weight: 700;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .pulse-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(46,170,101,0.4); }
+            50%      { box-shadow: 0 0 0 5px rgba(46,170,101,0); }
+        }
+
+        .activity-item {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 14px;
+            transition: background 0.15s;
+        }
+
+        .activity-item:last-child { border-bottom: none; }
+        .activity-item:hover { background: #FAFAFE; }
+
+        .activity-thumb {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+        }
+
+        .activity-thumb-ph {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            background: var(--surface);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--muted); font-size: 20px;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+        }
+
+        .activity-info { flex: 1; min-width: 0; }
+
+        .activity-name {
+            font-size: 14px; font-weight: 500;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 2px;
+        }
+
+        .activity-meta {
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        }
+
+        .meta-chip {
+            font-size: 11px; color: var(--muted);
+            background: var(--surface);
+            padding: 2px 7px; border-radius: 6px;
+        }
+
+        .activity-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+
+        .delta-badge {
+            font-size: 12px; font-weight: 600;
+            padding: 3px 10px; border-radius: 20px;
+        }
+
+        .delta-pos { background: var(--green-soft); color: #1A6B42; }
+        .delta-neg { background: #FFF0F0; color: #C0392B; }
+
+        .reason-tag { font-size: 11px; color: var(--muted); }
+        .time-tag   { font-size: 10.5px; color: var(--muted); }
+
+        .stock-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 20px 12px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+        }
+
+        .stock-footer span { font-size: 12.5px; color: var(--muted); }
+        .stock-footer strong { color: var(--ink); }
+
+        /* ─── EMPTY STATE ─── */
+        .empty-state {
+            text-align: center; padding: 52px 20px; color: var(--muted);
+        }
+
+        .empty-state i { font-size: 38px; opacity: 0.3; display: block; margin-bottom: 10px; }
+        .empty-state p { font-size: 13px; }
+
+        /* ─── RIGHT PANEL ─── */
+        .right-panel {
+            width: 260px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+        }
+
+        .r-card {
+            background: white;
+            border-radius: 18px;
+            padding: 18px 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 20px rgba(27,23,93,0.06);
+        }
+
+        .r-card-title {
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            font-size: 13px; font-weight: 700;
+            margin-bottom: 14px;
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        .r-card-title i { color: var(--muted); font-size: 14px; }
+
+        /* channel form */
+        .channel-form { display: flex; gap: 8px; margin-bottom: 14px; }
+
+        .channel-form input {
+            flex: 1;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            font-size: 12px; color: var(--ink);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .channel-form input:focus { border-color: var(--accent); }
+        .channel-form input::placeholder { color: var(--muted); }
+
+        .btn-sm-brand {
+            background: var(--brand);
+            color: white; border: none;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 12px; font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-sm-brand:hover { background: var(--brand-mid); }
+
+        .channel-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .channel-item:last-child { border-bottom: none; }
+
+        .channel-avatar {
+            width: 32px; height: 32px;
+            border-radius: 10px;
+            background: var(--brand);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 13px; font-weight: 700;
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            flex-shrink: 0;
+        }
+
+        .channel-name { font-size: 13px; font-weight: 500; }
+
+        /* ─── ANIMATIONS ─── */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(14px);
+            animation: fadeUp 0.4s forwards;
+        }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in:nth-child(1) { animation-delay: 0.04s; }
+        .fade-in:nth-child(2) { animation-delay: 0.10s; }
+        .fade-in:nth-child(3) { animation-delay: 0.16s; }
+        .fade-in:nth-child(4) { animation-delay: 0.22s; }
+        .fade-in:nth-child(5) { animation-delay: 0.28s; }
+
+        /* scrollbar */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+    </style>
+<link rel="stylesheet" href="/static/css/mobile-responsive.css">
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav class="sidebar">
+    <a href="/api/home" class="sidebar-logo">OS</a>
+
+
+
+    <a href="/api/home" class="nav-link active">
+        <i class="bi bi-speedometer2"></i>
+        <span>Dash</span>
+    </a>
+    <a href="/dashboard/" class="nav-link">
+        <i class="bi bi-info-circle"></i>
+        <span>Main Info</span>
+    </a>
+    <a href="/api/inventory-page/" class="nav-link">
+        <i class="bi bi-box"></i>
+        <span>inventory</span>
+    </a>
+    <a href="/billing/" class="nav-link">
+        <i class="bi bi-receipt"></i>
+        <span>Billing</span>
+    </a>
+    <a href="/api/purchase-page/" class="nav-link">
+        <i class="bi bi-bag"></i>
+        <span>Purchase</span>
+    </a>
+
+
+    <a href="/api/items/" class="nav-link">
+        <i class="bi bi-grid-1x2"></i>
+        <span>Items</span>
+    </a>
+    <a href="/api/vendors-page/" class="nav-link">
+        <i class="bi bi-people"></i>
+        <span>Vendors</span>
+    </a>
+    <a href="/api/orders-page/" class="nav-link">
+        <i class="bi bi-truck"></i>
+        <span>Orders</span>
+    </a>
+
+    <div class="sidebar-spacer"></div>
+
+    <a href="/settings/" class="nav-link" style="margin-bottom:4px">
+        <i class="bi bi-gear"></i>
+        <span>Settings</span>
+    </a>
+    <a href="/logout/" class="logout-btn">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Logout</span>
+    </a>
+</nav>
+
+<!-- ═══ MAIN WRAP ═══ -->
+<div class="main-wrap">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search items, vendors & orders…">
+        </div>
+        <div class="topbar-right">
+            <a href="/settings/" class="icon-btn"><i class="bi bi-gear"></i></a>
+            <div class="icon-btn"><i class="bi bi-bar-chart-line"></i></div>
+        </div>
+    </header>
+
+    <!-- CONTENT ROW -->
+    <div class="content-row">
+
+        <!-- ═══ LEFT / MAIN ═══ -->
+        <div class="main-panel">
+
+            <!-- Page Header -->
+            <div class="page-header fade-in">
+                <h2>Dashboard</h2>
+                <p>Welcome back! Here's your live overview.</p>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions fade-in">
+                <a href="/api/inventory-page/" class="q-btn"><i class="bi bi-box"></i> View Inventory</a>
+                <a href="/billing/"   class="q-btn"><i class="bi bi-receipt"></i> Sales History</a>
+                <a href="/api/purchase-page/"  class="q-btn"><i class="bi bi-bag"></i> Purchase History</a>
+                <a href="/api/return/"   class="q-btn"><i class="bi bi-arrow-return-left"></i> Return Order</a>
+            </div>
+
+            <!-- Stats -->
+            <div class="fade-in">
+                <div class="section-label">
+                    <i class="bi bi-graph-up"></i> Quick Stats
+                </div>
+                <div class="stats-grid">
+
+                    <a href="/total-stock/" class="stat-card stat-card-blue">
+                        <div class="stat-top">
+                            <span class="stat-label">Total Stock</span>
+                            <div class="stat-icon"><i class="bi bi-boxes"></i></div>
+                        </div>
+                        <div class="stat-value">{{ total_stock }}</div>
+                        <div class="stat-sub"><i class="bi bi-info-circle"></i> Active inventory items</div>
+                    </a>
+
+                    <a href="/low-stock/" class="stat-card stat-card-orange">
+                        <div class="stat-top">
+                            <span class="stat-label">Low Stock</span>
+                            <div class="stat-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                        </div>
+                        <div class="stat-value">{{ low_stock_count }}</div>
+                        <div class="stat-sub"><i class="bi bi-info-circle"></i> Items below threshold (≤5)</div>
+                    </a>
+
+                    <div class="stat-card stat-card-green">
+                        <div class="stat-top">
+                            <span class="stat-label">Total Value</span>
+                            <div class="stat-icon"><i class="bi bi-currency-rupee"></i></div>
+                        </div>
+                        <div class="stat-value smaller">₹{{ total_value|floatformat:0 }}</div>
+                        <div class="stat-sub"><i class="bi bi-info-circle"></i> Total purchase value</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="activity-card fade-in">
+                <div class="activity-header">
+                    <div class="activity-header-title">
+                        <span class="pulse-dot"></span>
+                        Recent Activity
+                    </div>
+                </div>
+
+                {% for movement in recent_movements %}
+                <div class="activity-item">
+                    {% if movement.product.product_image %}
+                        <img src="{{ movement.product.product_image.url }}" class="activity-thumb" alt="">
+                    {% else %}
+                        <div class="activity-thumb-ph"><i class="bi bi-box"></i></div>
+                    {% endif %}
+
+                    <div class="activity-info">
+                        <div class="activity-name">{{ movement.product.name }}</div>
+                        <div class="activity-meta">
+                            <span class="meta-chip">{{ movement.product.sku }}</span>
+                            {% if movement.product.hsn %}
+                                <span class="meta-chip">HSN {{ movement.product.hsn.hsn_code }}</span>
+                            {% endif %}
+                            {% if movement.product.material %}
+                                <span class="meta-chip">{{ movement.product.material }}{% if movement.product.color %} · {{ movement.product.color }}{% endif %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="activity-right">
+                        <span class="delta-badge {% if movement.delta > 0 %}delta-pos{% else %}delta-neg{% endif %}">
+                            {% if movement.delta > 0 %}+{% endif %}{{ movement.delta }}
+                        </span>
+                        <span class="reason-tag">{{ movement.get_reason_display }}</span>
+                        <span class="time-tag">{{ movement.created_at|date:"d M, H:i" }}</span>
+                    </div>
+                </div>
+
+                <div class="stock-footer">
+                    <span>Current Stock: <strong>
+                        {% if movement.product.inventory %}{{ movement.product.inventory.quantity }}{% else %}—{% endif %}
+                    </strong></span>
+                </div>
+
+                {% empty %}
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <p>No recent activity found.</p>
+                </div>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <!-- ═══ RIGHT PANEL ═══ -->
+        <div class="right-panel">
+
+            <!-- Channels Card -->
+            <div class="r-card fade-in">
+                <div class="r-card-title">
+                    <i class="bi bi-broadcast"></i>
+                    Manage Channels
+                </div>
+
+                <form method="POST" action="/channels/add/" class="channel-form">
+                    {% csrf_token %}
+                    <input type="text" name="name" placeholder="Channel name…">
+                    <button type="submit" class="btn-sm-brand">Add</button>
+                </form>
+
+                <div>
+                    {% for channel in channels %}
+                    <div class="channel-item">
+                        <div class="channel-avatar">{{ channel.name|first|upper }}</div>
+                        <span class="channel-name">{{ channel.name }}</span>
+                    </div>
+                    {% empty %}
+                    <p style="font-size:12px;color:var(--muted);text-align:center;padding:16px 0">No channels yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Mini summary card -->
+            <div class="r-card fade-in" style="background:var(--brand);color:white">
+                <div class="r-card-title" style="color:rgba(255,255,255,0.7)">
+                    <i class="bi bi-lightning-charge" style="color:rgba(255,255,255,0.5)"></i>
+                    Quick Links
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                    <a href="/api/items/" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.1);border-radius:12px;text-decoration:none;color:white;font-size:13px;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                        <i class="bi bi-grid-1x2" style="font-size:15px;opacity:0.7"></i> Items
+                    </a>
+                    <a href="/api/vendors-page/" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.1);border-radius:12px;text-decoration:none;color:white;font-size:13px;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                        <i class="bi bi-people" style="font-size:15px;opacity:0.7"></i> Vendors
+                    </a>
+                    <a href="/api/orders-page/" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.1);border-radius:12px;text-decoration:none;color:white;font-size:13px;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                        <i class="bi bi-truck" style="font-size:15px;opacity:0.7"></i> Orders
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script src="/static/js/mobile-sidebar.js"></script>
+</body>
+</html>

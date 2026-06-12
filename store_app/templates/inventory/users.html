@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Users & Access - StockOS</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<link href="https://fonts.cdnfonts.com/css/google-sans" rel="stylesheet">
+<style>
+:root{--ink:#0D0C2B;--brand:#1B175D;--brand-2:#3930C3;--accent:#6C63FF;--surface:#F5F4FF;--card:#fff;--muted:#6B6A8A;--border:#E4E3F4;--soft:#FAFAFE;--green:#2EAA65;--danger:#EF4444;--warn:#956600}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--surface);color:var(--ink);font-family:'Google Sans','Product Sans',Arial,sans-serif}
+button,input,select{font:inherit}
+.sidebar{width:80px;background:var(--brand);display:flex;flex-direction:column;align-items:center;padding:22px 0 16px;gap:4px;position:fixed;inset:0 auto 0 0;z-index:100;box-shadow:4px 0 30px rgba(27,23,93,.18)}
+.sidebar-logo{width:42px;height:42px;background:#fff;border-radius:14px;display:grid;place-items:center;font-weight:800;font-size:15px;color:var(--brand);margin-bottom:16px;text-decoration:none;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.nav-link{width:56px;height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:14px;color:rgba(255,255,255,.42);font-size:9px;font-weight:500;gap:4px;text-decoration:none;transition:.18s}.nav-link i{font-size:18px}.nav-link:hover,.nav-link.active{background:rgba(255,255,255,.18);color:#fff}.sidebar-spacer{flex:1}
+.main{margin-left:80px;min-height:100vh}.topbar{height:68px;background:#fff;border-bottom:1px solid var(--border);padding:0 30px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}.topbar h1{font-size:20px}.topbar-actions{display:flex;gap:10px}.btn-ghost{height:38px;border:1px solid var(--border);background:#fff;color:var(--brand);border-radius:10px;padding:0 14px;font-weight:800;display:inline-flex;align-items:center;gap:7px;text-decoration:none;cursor:pointer}
+.content{padding:26px 30px 42px;display:grid;gap:20px}.page-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-end}.page-head h2{font-size:28px;line-height:1.05}.page-head p{font-size:13px;color:var(--muted);margin-top:5px}.quick-stats{display:flex;gap:10px;flex-wrap:wrap}.stat{min-width:112px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 12px}.stat b{display:block;font-size:18px}.stat span{font-size:11px;color:var(--muted);font-weight:800}
+.message{border-radius:12px;padding:12px 14px;font-size:13px;border:1px solid var(--border)}.message.success{background:#E5F7EB;color:#19733D;border-color:#BFE7CE}.message.error{background:#FFF0F0;color:var(--danger);border-color:#FFD1D1}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,.04),0 8px 28px rgba(27,23,93,.06)}.panel-head{padding:18px 18px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.panel-head h3{font-size:17px}.panel-head p{font-size:12px;color:var(--muted);margin-top:4px}
+.create-panel{padding-bottom:18px}.form-grid{padding:16px 18px 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.field{display:grid;gap:6px}.field label,.label{font-size:12px;color:var(--muted);font-weight:800}.field input,.field select,.role-select{height:42px;border:1.5px solid var(--border);border-radius:10px;padding:0 11px;background:#fff;font-size:13px;outline:none}.field input:focus,.field select:focus,.role-select:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(108,99,255,.08)}.full{grid-column:1/-1}
+.permission-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 0 8px}.toolbar-actions{display:flex;gap:8px;flex-wrap:wrap}.chip-btn{height:32px;border:1px solid var(--border);border-radius:9px;background:#fff;color:var(--brand);font-size:11px;font-weight:900;padding:0 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.permission-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}.permission-card{border:1px solid var(--border);border-radius:13px;background:var(--soft);padding:11px;display:grid;gap:10px;cursor:grab;transition:border-color .16s,box-shadow .16s,transform .16s}.permission-card:hover{border-color:#C8C4FF;box-shadow:0 8px 18px rgba(27,23,93,.07)}.permission-card.dragging{opacity:.42;transform:scale(.98)}.permission-card.drop-before{border-top-color:var(--accent);box-shadow:0 -3px 0 var(--accent)}.permission-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:900}.permission-head .drag{color:var(--muted);cursor:grab}.permission-head i:not(.drag){color:var(--brand)}.permission-head span{flex:1}.enabled-count{font-size:10px;color:var(--muted);font-weight:800}
+.action-row{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.action-toggle{min-height:35px;border:1px solid var(--border);border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;font-weight:900;color:var(--muted);cursor:pointer;user-select:none}.action-toggle input{display:none}.action-toggle:has(input:checked){background:#F0EEFF;border-color:#9F99FF;color:var(--brand);box-shadow:inset 0 0 0 1px rgba(108,99,255,.08)}.action-toggle.delete:has(input:checked){background:#FFF0F0;border-color:#FFC6C6;color:var(--danger)}
+.submit{height:44px;border:0;border-radius:11px;background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;font-weight:900;cursor:pointer;padding:0 18px;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 18px rgba(27,23,93,.2)}.danger-btn{color:var(--danger)}
+.user-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px}.user-card{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,.035),0 7px 22px rgba(27,23,93,.05);overflow:hidden}.user-summary{width:100%;border:0;background:#fff;padding:15px;display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;cursor:pointer}.avatar{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;display:grid;place-items:center;font-weight:900}.user-name{font-weight:900;font-size:14px}.user-meta{font-size:11px;color:var(--muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}.status-chip,.role-chip{display:inline-flex;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:900}.status-chip.active{background:#E5F7EB;color:#19733D}.status-chip.inactive{background:#FFF3CE;color:var(--warn)}.role-chip{background:#F0EEFF;color:var(--brand)}.expand-icon{width:34px;height:34px;border-radius:10px;border:1px solid var(--border);display:grid;place-items:center;color:var(--brand);transition:.16s}
+.user-card.open .expand-icon{transform:rotate(180deg);background:#F0EEFF}.user-editor{display:none;border-top:1px solid var(--border);padding:15px;background:#FCFCFF}.user-card.open .user-editor{display:block}.editor-top{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;margin-bottom:12px}.active-form{display:inline-flex}.empty-state{padding:28px;text-align:center;color:var(--muted);font-size:13px}
+@media(max-width:980px){.sidebar{display:none}.main{margin-left:0}.content{padding:18px 16px 28px}.page-head{display:grid}.form-grid{grid-template-columns:1fr}.user-grid{grid-template-columns:1fr}.editor-top{grid-template-columns:1fr}.permission-board{grid-template-columns:1fr}.topbar{padding:0 16px}}
+</style>
+<link rel="stylesheet" href="/static/css/mobile-responsive.css">
+</head>
+<body>
+<nav class="sidebar">
+    <a href="/api/home" class="sidebar-logo">OS</a>
+    <a href="/api/home" class="nav-link"><i class="bi bi-speedometer2"></i><span>Dash</span></a>
+    <a href="/dashboard/" class="nav-link"><i class="bi bi-info-circle"></i><span>Main</span></a>
+    <a href="/api/inventory-page/" class="nav-link"><i class="bi bi-box"></i><span>Inventory</span></a>
+    <a href="/billing/" class="nav-link"><i class="bi bi-receipt"></i><span>Billing</span></a>
+    <a href="/api/purchase-page/" class="nav-link"><i class="bi bi-bag"></i><span>Purchase</span></a>
+    <a href="/api/items/" class="nav-link"><i class="bi bi-grid-1x2"></i><span>Items</span></a>
+    <a href="/api/vendors-page/" class="nav-link"><i class="bi bi-people"></i><span>Vendors</span></a>
+    <a href="/api/orders-page/" class="nav-link"><i class="bi bi-truck"></i><span>Orders</span></a>
+    <a href="/users/" class="nav-link active"><i class="bi bi-person-gear"></i><span>Users</span></a>
+    <div class="sidebar-spacer"></div>
+    <a href="/logout/" class="nav-link"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
+</nav>
+
+<div class="main">
+    <header class="topbar">
+        <h1>Users & Access</h1>
+        <div class="topbar-actions">
+            <a class="btn-ghost" href="/dashboard/"><i class="bi bi-arrow-left"></i> Back</a>
+        </div>
+    </header>
+
+    <main class="content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <section class="page-head">
+            <div>
+                <h2>Permission Builder</h2>
+                <p>Drag modules into a comfortable order and toggle View, Add, Edit, Delete for each user.</p>
+            </div>
+            <div class="quick-stats">
+                <div class="stat"><b>{{ users|length }}</b><span>Users</span></div>
+                <div class="stat"><b>{{ modules|length }}</b><span>Modules</span></div>
+                <div class="stat"><b>{{ actions|length }}</b><span>Actions</span></div>
+            </div>
+        </section>
+
+        <section class="panel create-panel">
+            <div class="panel-head">
+                <div>
+                    <h3>Create User</h3>
+                    <p>Set role and module permissions before the account is created.</p>
+                </div>
+            </div>
+            <form method="post" class="form-grid">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_user">
+                <div class="field"><label>Full Name</label><input name="full_name" autocomplete="name"></div>
+                <div class="field"><label>Email</label><input name="email" type="email" autocomplete="email"></div>
+                <div class="field"><label>Username</label><input name="username" autocomplete="username" required></div>
+                <div class="field"><label>Password</label><input name="password" type="password" autocomplete="new-password" required></div>
+                <div class="field"><label>Confirm Password</label><input name="confirm_password" type="password" autocomplete="new-password" required></div>
+                <div class="field">
+                    <label>Role</label>
+                    <select name="role" data-role-select>
+                        {% for value, label in roles %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="full">
+                    <div class="permission-toolbar">
+                        <p class="label">Module Permissions</p>
+                        <div class="toolbar-actions">
+                            <button class="chip-btn" type="button" data-quick="view"><i class="bi bi-eye"></i> View all</button>
+                            <button class="chip-btn" type="button" data-quick="full"><i class="bi bi-check2-all"></i> Full access</button>
+                            <button class="chip-btn" type="button" data-quick="clear"><i class="bi bi-x-circle"></i> Clear</button>
+                        </div>
+                    </div>
+                    <div class="permission-board" data-board>
+                        {% for module in modules %}
+                            <article class="permission-card" draggable="true">
+                                <div class="permission-head">
+                                    <i class="bi bi-grip-vertical drag"></i>
+                                    <i class="bi {{ module.icon }}"></i>
+                                    <span>{{ module.label }}</span>
+                                    <small class="enabled-count">0/4</small>
+                                </div>
+                                <div class="action-row">
+                                    {% for action in actions %}
+                                        <label class="action-toggle {% if action.key == 'delete' %}delete{% endif %}">
+                                            <input type="checkbox" name="perm__{{ module.key }}" value="{{ action.key }}">
+                                            <i class="bi {{ action.icon }}"></i>{{ action.label }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="full"><button class="submit" type="submit"><i class="bi bi-person-plus"></i> Create User</button></div>
+            </form>
+        </section>
+
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <h3>User Access</h3>
+                    <p>Open a user card, drag modules, update actions, then save access.</p>
+                </div>
+            </div>
+            <div class="user-grid" style="padding:16px 18px 18px">
+                {% for user in users %}
+                <article class="user-card {% if forloop.first %}open{% endif %}">
+                    <button class="user-summary" type="button" data-expand>
+                        <div class="avatar">{{ user.username|first|upper }}</div>
+                        <div>
+                            <div class="user-name">{{ user.username }}</div>
+                            <div class="user-meta">
+                                {% if user.get_full_name %}<span>{{ user.get_full_name }}</span>{% endif %}
+                                <span>{{ user.email|default:"No email" }}</span>
+                                <span>Joined {{ user.date_joined|date:"d M Y" }}</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap">
+                            <span class="role-chip">{{ user.access_profile.get_role_display }}</span>
+                            {% if user.is_active %}<span class="status-chip active">Active</span>{% else %}<span class="status-chip inactive">Inactive</span>{% endif %}
+                            <span class="expand-icon"><i class="bi bi-chevron-down"></i></span>
+                        </div>
+                    </button>
+
+                    <div class="user-editor">
+                        <form method="post" class="user-edit">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="update_access">
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                            <div class="editor-top">
+                                <div class="field">
+                                    <label>Role</label>
+                                    <select class="role-select" name="role" data-role-select>
+                                        {% for value, label in roles %}
+                                            <option value="{{ value }}" {% if user.access_profile.role == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="toolbar-actions">
+                                    <button class="chip-btn" type="button" data-quick="view"><i class="bi bi-eye"></i> View all</button>
+                                    <button class="chip-btn" type="button" data-quick="full"><i class="bi bi-check2-all"></i> Full access</button>
+                                    <button class="chip-btn" type="button" data-quick="clear"><i class="bi bi-x-circle"></i> Clear</button>
+                                </div>
+                                <button class="submit" type="submit"><i class="bi bi-shield-check"></i> Save Access</button>
+                            </div>
+
+                            <div class="permission-board" data-board>
+                                {% for row in user.access_rows %}
+                                    <article class="permission-card" draggable="true">
+                                        <div class="permission-head">
+                                            <i class="bi bi-grip-vertical drag"></i>
+                                            <i class="bi {{ row.module.icon }}"></i>
+                                            <span>{{ row.module.label }}</span>
+                                            <small class="enabled-count">0/4</small>
+                                        </div>
+                                        <div class="action-row">
+                                            {% for action in actions %}
+                                                <label class="action-toggle {% if action.key == 'delete' %}delete{% endif %}">
+                                                    <input type="checkbox" name="perm__{{ row.module.key }}" value="{{ action.key }}" {% if action.key in row.actions %}checked{% endif %}>
+                                                    <i class="bi {{ action.icon }}"></i>{{ action.label }}
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                    </article>
+                                {% endfor %}
+                            </div>
+                        </form>
+
+                        <form method="post" class="active-form" style="margin-top:12px">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="toggle_active">
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                            <button class="btn-ghost {% if user.is_active %}danger-btn{% endif %}" type="submit">
+                                {% if user.is_active %}<i class="bi bi-person-x"></i> Deactivate{% else %}<i class="bi bi-person-check"></i> Activate{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </article>
+                {% empty %}
+                <div class="empty-state">No users found.</div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+function updateCounts(scope=document){
+    scope.querySelectorAll(".permission-card").forEach(card=>{
+        const total = card.querySelectorAll("input[type='checkbox']").length;
+        const checked = card.querySelectorAll("input[type='checkbox']:checked").length;
+        const label = card.querySelector(".enabled-count");
+        if(label) label.textContent = `${checked}/${total}`;
+    });
+}
+
+function applyQuick(form, mode){
+    const boxes = [...form.querySelectorAll(".permission-card input[type='checkbox']")];
+    boxes.forEach(box => {
+        if(mode === "clear") box.checked = false;
+        if(mode === "view") box.checked = box.value === "view";
+        if(mode === "full") box.checked = true;
+    });
+    updateCounts(form);
+}
+
+document.querySelectorAll("[data-expand]").forEach(button=>{
+    button.addEventListener("click", ()=>{
+        const card = button.closest(".user-card");
+        card.classList.toggle("open");
+    });
+});
+
+document.querySelectorAll("[data-board]").forEach(board => {
+    let dragging = null;
+    board.addEventListener("dragstart", event => {
+        const card = event.target.closest(".permission-card");
+        if (!card) return;
+        dragging = card;
+        card.classList.add("dragging");
+        event.dataTransfer.effectAllowed = "move";
+    });
+    board.addEventListener("dragend", () => {
+        board.querySelectorAll(".permission-card").forEach(card=>card.classList.remove("dragging","drop-before"));
+        dragging = null;
+    });
+    board.addEventListener("dragover", event => {
+        event.preventDefault();
+        if (!dragging) return;
+        const cards = [...board.querySelectorAll(".permission-card:not(.dragging)")];
+        const next = cards.find(card => {
+            const box = card.getBoundingClientRect();
+            return event.clientY < box.top + box.height / 2;
+        });
+        board.querySelectorAll(".permission-card").forEach(card=>card.classList.remove("drop-before"));
+        if(next) next.classList.add("drop-before");
+        board.insertBefore(dragging, next || null);
+    });
+});
+
+document.addEventListener("change", event => {
+    const input = event.target;
+    if(!input.matches(".permission-card input[type='checkbox']")) return;
+    const card = input.closest(".permission-card");
+    const view = card.querySelector("input[value='view']");
+    if(input.value !== "view" && input.checked && view) view.checked = true;
+    if(input.value === "view" && !input.checked){
+        card.querySelectorAll("input[type='checkbox']").forEach(box => box.checked = false);
+    }
+    updateCounts(card);
+});
+
+document.querySelectorAll("[data-quick]").forEach(button=>{
+    button.addEventListener("click", ()=>{
+        const form = button.closest("form");
+        applyQuick(form, button.dataset.quick);
+    });
+});
+
+document.querySelectorAll("[data-role-select]").forEach(select=>{
+    select.addEventListener("change", ()=>{
+        if(select.value === "super_admin"){
+            applyQuick(select.closest("form"), "full");
+        }
+    });
+});
+
+updateCounts();
+</script>
+<script src="/static/js/mobile-sidebar.js"></script>
+</body>
+</html>

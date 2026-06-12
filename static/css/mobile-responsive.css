@@ -1,0 +1,362 @@
+/*
+   Shared mobile responsive safety layer for StockOS pages.
+   Page templates keep their desktop CSS; these overrides only activate on small screens.
+*/
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+body.mobile-sidebar-open {
+  overflow: hidden;
+}
+
+img,
+canvas,
+svg,
+video {
+  max-width: 100%;
+}
+
+input,
+select,
+textarea,
+button {
+  max-width: 100%;
+}
+
+.mobile-menu-toggle,
+.mobile-sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 899px) {
+  body {
+    min-width: 0 !important;
+    padding-top: 56px;
+  }
+
+  .sidebar,
+  .side,
+  .desktop-sidebar {
+    display: flex !important;
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    width: min(82vw, 286px) !important;
+    max-width: 286px !important;
+    height: 100dvh !important;
+    z-index: 1001 !important;
+    padding: 18px 16px 18px !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    transform: translateX(-105%) !important;
+    transition: transform 0.22s ease, box-shadow 0.22s ease !important;
+    box-shadow: none !important;
+  }
+
+  body.mobile-sidebar-open .sidebar,
+  body.mobile-sidebar-open .side,
+  body.mobile-sidebar-open .desktop-sidebar {
+    transform: translateX(0) !important;
+    box-shadow: 18px 0 42px rgba(13, 12, 43, 0.24) !important;
+  }
+
+  .sidebar-logo,
+  .sidebar .logo,
+  .side .logo,
+  .desktop-sidebar .logo {
+    width: 46px !important;
+    height: 46px !important;
+    margin: 0 0 10px !important;
+    flex: 0 0 auto !important;
+  }
+
+  .sidebar-section-label,
+  .sidebar-label,
+  .side-label {
+    width: 100% !important;
+    margin: 12px 0 4px !important;
+    padding: 0 6px !important;
+    text-align: left !important;
+  }
+
+  .nav-link,
+  .side-link {
+    width: 100% !important;
+    min-height: 46px !important;
+    height: auto !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 0 12px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+  }
+
+  .nav-link i,
+  .side-link i {
+    width: 22px !important;
+    flex: 0 0 22px !important;
+    text-align: center !important;
+    font-size: 17px !important;
+  }
+
+  .nav-link span,
+  .side-link span {
+    display: inline !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .sidebar-spacer,
+  .side-spacer {
+    flex: 1 0 14px !important;
+    min-height: 14px !important;
+  }
+
+  .mobile-menu-toggle {
+    position: fixed;
+    top: max(10px, env(safe-area-inset-top));
+    left: 12px;
+    z-index: 1000;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(228, 227, 244, 0.9);
+    border-radius: 12px;
+    background: #fff;
+    color: #1B175D;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 8px 22px rgba(27, 23, 93, 0.14);
+  }
+
+  .mobile-menu-toggle i {
+    font-size: 20px;
+  }
+
+  body.mobile-sidebar-open .mobile-menu-toggle {
+    color: #fff;
+    background: #1B175D;
+    border-color: #1B175D;
+  }
+
+  .mobile-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(13, 12, 43, 0.42);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    display: block;
+    transition: opacity 0.18s ease, visibility 0.18s ease;
+  }
+
+  body.mobile-sidebar-open .mobile-sidebar-backdrop {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .shell,
+  .main,
+  .main-wrap,
+  .phone-shell,
+  .app-shell,
+  .layout,
+  .page-shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  .page,
+  .content,
+  .container,
+  .main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .topbar,
+  .details-topbar,
+  .header,
+  .page-head,
+  .toolbar,
+  .tools {
+    max-width: 100% !important;
+  }
+
+  .topbar,
+  .details-topbar {
+    left: 0 !important;
+    right: 0 !important;
+    padding-left: 64px !important;
+  }
+
+  .workflow-modal,
+  .modal {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+
+  .workflow-panel,
+  .sheet {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 88vh !important;
+    border-radius: 20px 20px 0 0 !important;
+    overflow: auto !important;
+  }
+
+  .card,
+  .card-box,
+  .panel,
+  .detail-box,
+  .summary-card,
+  .user-card,
+  .vendor-card,
+  .item-card,
+  .bill-card {
+    max-width: 100% !important;
+  }
+
+  table {
+    min-width: 680px;
+  }
+
+  .card > table,
+  .panel > table,
+  .box > table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-wrap,
+  .table-container,
+  .orders-table,
+  .inventory-table,
+  .products-table {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 640px) {
+  .grid,
+  .field-grid,
+  .form-grid,
+  .form-layout,
+  .content-row,
+  .stats-grid,
+  .info-grid,
+  .summary-card,
+  .user-form,
+  .user-grid,
+  .permission-board,
+  .workflow-grid,
+  .shipment-two,
+  .item-grid,
+  .items-grid,
+  .cards-grid,
+  #detailRoot {
+    grid-template-columns: 1fr !important;
+  }
+
+  .wide,
+  .full,
+  .shipment-url,
+  .shipment-notes {
+    grid-column: 1 / -1 !important;
+  }
+
+  .action-row,
+  .actions,
+  .toolbar,
+  .tools,
+  .filters,
+  .button-row {
+    flex-wrap: wrap !important;
+  }
+
+  .action-row > *,
+  .actions > *,
+  .toolbar > *,
+  .tools > *,
+  .filters > *,
+  .button-row > * {
+    min-width: 0 !important;
+  }
+
+  .search,
+  .search-wrap,
+  .filter-search {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  .topbar .search-wrap {
+    flex-basis: auto !important;
+  }
+
+  .page h1,
+  .content h1,
+  .heading h1 {
+    font-size: 22px !important;
+    line-height: 1.15 !important;
+  }
+
+  .page h2,
+  .content h2,
+  .section-title {
+    font-size: 17px !important;
+    line-height: 1.2 !important;
+  }
+
+  .workflow-panel textarea.workflow-field,
+  textarea.workflow-field {
+    min-height: 88px;
+  }
+}
+
+@media (max-width: 420px) {
+  .page,
+  .content,
+  .container,
+  .main-content {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .workflow-panel,
+  .sheet {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .btn,
+  .button,
+  .full-gradient,
+  .gradient-btn,
+  .outline-btn,
+  .workflow-submit,
+  .submit,
+  .primary {
+    min-height: 44px;
+  }
+}

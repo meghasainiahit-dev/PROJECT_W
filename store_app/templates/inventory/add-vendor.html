@@ -1,0 +1,601 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Vendor - StockOS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.cdnfonts.com">
+    <link href="https://fonts.cdnfonts.com/css/google-sans" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/css/intlTelInput.css">
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/intlTelInput.min.js"></script>
+    <style>
+        :root {
+            --ink: #0D0C2B;
+            --brand: #1B175D;
+            --brand-mid: #2E2A8A;
+            --accent: #6C63FF;
+            --surface: #F5F4FF;
+            --muted: #6B6A8A;
+            --border: #E4E3F4;
+            --green: #2EAA65;
+            --green-soft: #EDFDF4;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            background: var(--surface);
+            color: var(--ink);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1,h2,h3,.heading { font-family: 'Google Sans', 'Product Sans', Arial, sans-serif; }
+        a { text-decoration: none; color: inherit; }
+        input:focus, select:focus, textarea:focus { outline: none; }
+
+        .sidebar {
+            width: 80px;
+            background: var(--brand);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 22px 0 16px;
+            gap: 4px;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 100;
+            box-shadow: 4px 0 30px rgba(27,23,93,0.18);
+        }
+
+        .sidebar-logo {
+            width: 42px; height: 42px;
+            background: white;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            font-weight: 800; font-size: 15px;
+            color: var(--brand);
+            letter-spacing: 0;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .sidebar-section-label {
+            font-size: 8px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.28);
+            text-transform: uppercase;
+            margin: 8px 0 4px;
+        }
+
+        .nav-link {
+            width: 56px; height: 52px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-radius: 14px;
+            color: rgba(255,255,255,0.42);
+            font-size: 9px; font-weight: 500;
+            gap: 4px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .nav-link i { font-size: 18px; }
+        .nav-link:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85); }
+        .nav-link.active { background: rgba(255,255,255,0.18); color: white; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18); }
+        .sidebar-spacer { flex: 1; }
+
+        .logout-btn {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 3px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.5);
+            font-size: 8.5px; font-weight: 500;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .logout-btn:hover { background: rgba(255,255,255,0.18); color: white; }
+        .logout-btn i { font-size: 16px; }
+
+        .main-wrap {
+            margin-left: 80px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 0 28px;
+            height: 68px;
+            display: flex; align-items: center; gap: 16px;
+            position: sticky; top: 0; z-index: 50;
+        }
+
+        .search-wrap {
+            flex: 1;
+            max-width: 420px;
+            position: relative;
+        }
+
+        .search-wrap i {
+            position: absolute; left: 14px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted); font-size: 14px;
+        }
+
+        .search-wrap input {
+            width: 100%;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 9px 14px 9px 36px;
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            font-size: 13px;
+            color: var(--ink);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-wrap input:focus { border-color: var(--accent); }
+        .search-wrap input::placeholder { color: var(--muted); }
+        .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+        .icon-btn {
+            width: 40px; height: 40px;
+            background: var(--brand);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 16px;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .icon-btn:hover { background: var(--brand-mid); transform: translateY(-1px); }
+
+        .content-row {
+            padding: 24px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .page-title h2 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+        .page-title p { font-size: 13px; color: var(--muted); }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--muted);
+            font-size: 13px;
+            text-decoration: none;
+            margin-bottom: 8px;
+            transition: color 0.15s;
+        }
+
+        .back-link:hover { color: var(--brand); }
+        .back-link i { font-size: 16px; }
+
+        .form-shell {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 20px rgba(27,23,93,0.06);
+            overflow: hidden;
+        }
+
+        .form-section {
+            padding: 20px 22px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-section:last-child { border-bottom: none; }
+
+        .section-title {
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .section-title i { color: var(--muted); font-size: 15px; }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .field-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .field label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .field input {
+            width: 100%;
+            border: 1.5px solid var(--border);
+            background: white;
+            border-radius: 12px;
+            padding: 11px 13px;
+            font-size: 13px;
+            color: var(--ink);
+            transition: border-color 0.18s, background 0.18s;
+        }
+
+        .field input:focus { border-color: var(--accent); }
+        .field input::placeholder { color: #9A99B8; }
+        .field input:disabled { background: #F2F2F7; color: var(--muted); }
+        .iti { width: 100%; }
+        .iti input { width: 100%; }
+
+        .gst-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .radio-card {
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            padding: 13px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            background: white;
+            transition: border-color 0.18s, background 0.18s;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .radio-card:hover { border-color: var(--accent); background: #FAFAFE; }
+        .radio-card input { accent-color: var(--brand); }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding: 18px 22px;
+            background: #FAFAFE;
+        }
+
+        .btn-secondary,
+        .btn-primary {
+            min-width: 130px;
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            cursor: pointer;
+            transition: all 0.18s;
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1.5px solid var(--border);
+            color: var(--ink);
+        }
+
+        .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+        .btn-primary {
+            background: var(--brand);
+            color: white;
+            border: 0;
+            box-shadow: 0 5px 16px rgba(27,23,93,0.22);
+        }
+
+        .btn-primary:hover { background: var(--brand-mid); transform: translateY(-1px); }
+
+        .hint-card {
+            background: var(--green-soft);
+            color: #1A6B42;
+            border: 1px solid #CBEFDC;
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-size: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .hint-card i { margin-top: 1px; }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(14px);
+            animation: fadeUp 0.4s forwards;
+        }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+        @media (max-width: 980px) {
+            .field-grid,
+            .field-grid.two,
+            .gst-grid { grid-template-columns: 1fr; }
+            .actions { justify-content: stretch; flex-direction: column-reverse; }
+            .btn-secondary, .btn-primary { width: 100%; }
+        }
+    </style>
+<link rel="stylesheet" href="/static/css/mobile-responsive.css">
+</head>
+<body>
+
+<nav class="sidebar">
+    <a href="/api/home" class="sidebar-logo">OS</a>
+
+
+    <a href="/api/home" class="nav-link">
+        <i class="bi bi-speedometer2"></i>
+        <span>Dash</span>
+    </a>
+    <a href="/dashboard/" class="nav-link"><i class="bi bi-info-circle"></i><span>Main Info</span></a>
+    <a href="/api/inventory-page/" class="nav-link">
+        <i class="bi bi-box"></i>
+        <span>inventory</span>
+    </a>
+    <a href="/billing/" class="nav-link">
+        <i class="bi bi-receipt"></i>
+        <span>Billing</span>
+    </a>
+    <a href="/api/purchase-page/" class="nav-link">
+        <i class="bi bi-bag"></i>
+        <span>Purchase</span>
+    </a>
+
+
+    <a href="/api/items/" class="nav-link">
+        <i class="bi bi-grid-1x2"></i>
+        <span>Items</span>
+    </a>
+    <a href="/api/vendors-page/" class="nav-link active">
+        <i class="bi bi-people"></i>
+        <span>Vendors</span>
+    </a>
+    <a href="/api/orders-page/" class="nav-link">
+        <i class="bi bi-truck"></i>
+        <span>Orders</span>
+    </a>
+
+    <div class="sidebar-spacer"></div>
+
+    <a href="/settings/" class="nav-link" style="margin-bottom:4px">
+        <i class="bi bi-gear"></i>
+        <span>Settings</span>
+    </a>
+    <a href="/logout/" class="logout-btn">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Logout</span>
+    </a>
+</nav>
+
+<div class="main-wrap">
+    <header class="topbar">
+        <div class="search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search items, vendors & orders...">
+        </div>
+        <div class="topbar-right">
+            <a href="/settings/" class="icon-btn"><i class="bi bi-gear"></i></a>
+            <div class="icon-btn"><i class="bi bi-bar-chart-line"></i></div>
+        </div>
+    </header>
+
+    <main class="content-row">
+        <section class="page-header fade-in">
+            <div>
+                <a href="/api/vendors-page/" class="back-link">
+                    <i class="bi bi-arrow-left-circle"></i>
+                    Back to vendors
+                </a>
+                <div class="page-title">
+                    <h2>Add New Vendor</h2>
+                    <p>Create a supplier profile with contact, location, and GST information.</p>
+                </div>
+            </div>
+        </section>
+
+        <form method="post" action="/api/vendors-page/add/" class="form-shell fade-in">
+            {% csrf_token %}
+
+            <section class="form-section">
+                <div class="section-title">
+                    <i class="bi bi-person-lines-fill"></i>
+                    Contact Information
+                </div>
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="vendorName">Vendor Name *</label>
+                        <input id="vendorName" name="name" type="text" placeholder="Vendor name" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="phoneInput">Phone Number *</label>
+                        <input id="phoneInput" name="mobile" type="tel" placeholder="Phone number" required>
+                        <input type="hidden" id="countryCodeInput" name="country_code" value="+91">
+                    </div>
+
+                    <div class="field">
+                        <label for="vendorEmail">Email Address</label>
+                        <input id="vendorEmail" name="email" type="email" placeholder="name@example.com">
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <div class="section-title">
+                    <i class="bi bi-geo-alt"></i>
+                    Location Details
+                </div>
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="vendorAddress">Street Address</label>
+                        <input id="vendorAddress" name="address" type="text" placeholder="Street address">
+                    </div>
+
+                    <div class="field">
+                        <label for="vendorCountry">Country *</label>
+                        <input id="vendorCountry" name="country" type="text" placeholder="Country" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="vendorState">State *</label>
+                        <input id="vendorState" name="state" type="text" placeholder="State" required>
+                    </div>
+                </div>
+
+                <div class="field-grid two" style="margin-top:14px">
+                    <div class="field">
+                        <label for="vendorCity">City *</label>
+                        <input id="vendorCity" name="city" type="text" placeholder="City" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="vendorPin">Pin Code *</label>
+                        <input id="vendorPin" name="pin_code" type="text" placeholder="Pin code" required>
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <div class="section-title">
+                    <i class="bi bi-receipt"></i>
+                    Tax Information
+                </div>
+
+                <div class="gst-grid">
+                    <label class="radio-card">
+                        <span>Without GST</span>
+                        <input type="radio" name="with_Gst" value="false" id="withoutGst">
+                    </label>
+
+                    <label class="radio-card">
+                        <span>With GST</span>
+                        <input type="radio" name="with_Gst" value="true" id="withGst" checked>
+                    </label>
+                </div>
+
+                <div class="field-grid two">
+                    <div class="field">
+                        <label for="firmNameInput">Firm Name</label>
+                        <input id="firmNameInput" name="firm_name" type="text" placeholder="Firm name">
+                    </div>
+
+                    <div class="field">
+                        <label for="gstNumberInput">GST Number</label>
+                        <input id="gstNumberInput" name="gst_number" type="text" placeholder="GST number">
+                    </div>
+                </div>
+            </section>
+
+            <section class="form-section">
+                <div class="hint-card">
+                    <i class="bi bi-info-circle"></i>
+                    <span>GST fields are required only when With GST is selected. Country code is saved separately from the phone number.</span>
+                </div>
+            </section>
+
+            <div class="actions">
+                <a href="/api/vendors-page/" class="btn-secondary">
+                    Cancel
+                </a>
+                <button type="submit" class="btn-primary">
+                    <i class="bi bi-check2"></i>
+                    Save Vendor
+                </button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<script>
+const phoneInput = document.querySelector("#phoneInput");
+const countryCodeInput = document.querySelector("#countryCodeInput");
+
+const iti = window.intlTelInput(phoneInput, {
+    initialCountry: "in",
+    separateDialCode: true,
+    preferredCountries: ["in", "us", "gb", "ae", "sa"],
+});
+
+function updateCountryCode() {
+    const countryData = iti.getSelectedCountryData();
+    countryCodeInput.value = `+${countryData.dialCode}`;
+}
+
+phoneInput.addEventListener("countrychange", updateCountryCode);
+updateCountryCode();
+
+const withGst = document.querySelector("#withGst");
+const withoutGst = document.querySelector("#withoutGst");
+const firmNameInput = document.querySelector("#firmNameInput");
+const gstNumberInput = document.querySelector("#gstNumberInput");
+
+function updateGstFields() {
+    const enabled = withGst.checked;
+
+    firmNameInput.disabled = !enabled;
+    gstNumberInput.disabled = !enabled;
+
+    firmNameInput.required = enabled;
+    gstNumberInput.required = enabled;
+
+    if (!enabled) {
+        firmNameInput.value = "";
+        gstNumberInput.value = "";
+    }
+}
+
+withGst.addEventListener("change", updateGstFields);
+withoutGst.addEventListener("change", updateGstFields);
+updateGstFields();
+</script>
+<script src="/static/js/mobile-sidebar.js"></script>
+</body>
+</html>

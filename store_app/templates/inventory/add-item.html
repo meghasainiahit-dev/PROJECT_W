@@ -1,0 +1,869 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Item - StockOS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.cdnfonts.com">
+    <link href="https://fonts.cdnfonts.com/css/google-sans" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --ink: #0D0C2B;
+            --brand: #1B175D;
+            --brand-mid: #2E2A8A;
+            --accent: #6C63FF;
+            --surface: #F5F4FF;
+            --card: #FFFFFF;
+            --muted: #6B6A8A;
+            --border: #E4E3F4;
+            --danger-bg: #FFF0F0;
+            --danger: #B71C1C;
+            --success-bg: #EDFDF4;
+            --success: #1B6B3A;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            background: var(--surface);
+            color: var(--ink);
+        }
+        h1, h2, h3, .heading { font-family: 'Google Sans', 'Product Sans', Arial, sans-serif; }
+        a { color: inherit; text-decoration: none; }
+        input, select, textarea, button { font: inherit; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,99,255,0.12); }
+        .sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            width: 80px;
+            background: var(--brand);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 22px 0 16px;
+            box-shadow: 4px 0 24px rgba(27,23,93,0.15);
+            z-index: 20;
+        }
+        .sidebar-logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: white;
+            color: var(--brand);
+            display: grid;
+            place-items: center;
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            font-weight: 800;
+            margin-bottom: 14px;
+        }
+        .nav-link {
+            width: 56px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: rgba(255,255,255,0.48);
+            font-size: 9px;
+            font-weight: 600;
+        }
+        .nav-link i { font-size: 18px; }
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255,255,255,0.16);
+            color: white;
+        }
+        .sidebar-section-label {
+            font-size: 8px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.28);
+            text-transform: uppercase;
+            margin: 8px 0 4px;
+        }
+        .sidebar-spacer { flex: 1; }
+        .main-wrap {
+            margin-left: 80px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .topbar {
+            height: 68px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .topbar-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: var(--surface);
+            display: grid;
+            place-items: center;
+            color: var(--accent);
+        }
+        .content {
+            padding: 28px 32px 40px;
+        }
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .back-link:hover { color: var(--brand); }
+        .form-shell {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 20px rgba(27,23,93,0.06);
+            overflow: hidden;
+        }
+        .form-head {
+            padding: 22px 26px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+        }
+        .form-head h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .form-head p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+        .form-body {
+            padding: 26px;
+            display: grid;
+            grid-template-columns: minmax(220px, 300px) 1fr;
+            gap: 28px;
+        }
+        .upload-box {
+            border: 1.5px dashed var(--border);
+            border-radius: 14px;
+            background: #FAFAFE;
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 18px;
+            cursor: pointer;
+            text-align: center;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .upload-box:hover { border-color: var(--accent); background: var(--surface); }
+        .upload-box img {
+            width: 100%;
+            aspect-ratio: 1;
+            max-height: 238px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: none;
+        }
+        .upload-box.has-image img { display: block; }
+        .upload-box.has-image .upload-copy { display: none; }
+        .upload-copy i {
+            font-size: 34px;
+            color: var(--accent);
+        }
+        .upload-copy strong {
+            display: block;
+            margin-top: 6px;
+            font-size: 14px;
+        }
+        .upload-copy span {
+            display: block;
+            margin-top: 3px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .section {
+            margin-bottom: 22px;
+        }
+        .section-title {
+            font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            margin: 0 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+        .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .field label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .field input, .field select, .field textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: white;
+            color: var(--ink);
+            min-height: 42px;
+            padding: 10px 12px;
+            font-size: 13px;
+        }
+        .field textarea {
+            min-height: 88px;
+            resize: vertical;
+        }
+        .size-mode {
+            display: inline-flex;
+            gap: 4px;
+            padding: 4px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #FAFAFE;
+            margin-bottom: 14px;
+        }
+        .mode-btn {
+            min-height: 34px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 0 12px;
+        }
+        .mode-btn.active {
+            background: var(--brand);
+            color: white;
+            box-shadow: 0 3px 10px rgba(27,23,93,0.18);
+        }
+        .size-panel[hidden] { display: none; }
+        .span-all { grid-column: 1 / -1; }
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 20px 26px;
+            border-top: 1px solid var(--border);
+            background: #FAFAFE;
+        }
+        .btn {
+            border: 0;
+            min-height: 42px;
+            padding: 0 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .btn-secondary {
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--muted);
+        }
+        .btn-primary {
+            background: var(--brand);
+            color: white;
+            box-shadow: 0 4px 12px rgba(27,23,93,0.22);
+        }
+        .btn-primary:hover { background: var(--brand-mid); }
+        .btn[disabled] {
+            cursor: wait;
+            opacity: 0.72;
+        }
+        .status {
+            display: none;
+            margin: 0 26px 20px;
+            padding: 11px 13px;
+            border-radius: 10px;
+            font-size: 13px;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .status.show { display: flex; }
+        .status.success { background: var(--success-bg); border: 1px solid #6FCF97; color: var(--success); }
+        .status.error { background: var(--danger-bg); border: 1px solid #E57373; color: var(--danger); }
+        .hint {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+        @media (max-width: 980px) {
+            .form-body { grid-template-columns: 1fr; }
+            .grid, .grid.two { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 680px) {
+            .sidebar { width: 64px; }
+            .main-wrap { margin-left: 64px; }
+            .topbar, .content { padding-left: 18px; padding-right: 18px; }
+            .form-head, .actions { flex-direction: column; align-items: stretch; }
+            .grid, .grid.two { grid-template-columns: 1fr; }
+        }
+    </style>
+<link rel="stylesheet" href="/static/css/mobile-responsive.css">
+</head>
+<body>
+<nav class="sidebar">
+    <a href="/api/home" class="sidebar-logo">OS</a>
+    <a href="/api/home" class="nav-link">
+        <i class="bi bi-speedometer2"></i>
+        <span>Dash</span>
+    </a>
+    <a href="/dashboard/" class="nav-link"><i class="bi bi-info-circle"></i><span>Main Info</span></a>
+    <a href="/api/inventory-page/" class="nav-link">
+        <i class="bi bi-box"></i>
+        <span>Inventory</span>
+    </a>
+    <a href="/billing/" class="nav-link"><i class="bi bi-receipt"></i><span>Billing</span></a>
+    <a href="/api/purchase-page/" class="nav-link"><i class="bi bi-bag"></i><span>Purchase</span></a>
+    <a href="/api/items/" class="nav-link active">
+        <i class="bi bi-grid-1x2"></i>
+        <span>Items</span>
+    </a>
+    <a href="/api/vendors-page/" class="nav-link"><i class="bi bi-people"></i><span>Vendors</span></a>
+    <a href="/api/orders-page/" class="nav-link"><i class="bi bi-truck"></i><span>Orders</span></a>
+    <div class="sidebar-spacer"></div>
+    <a href="/settings/" class="nav-link"><i class="bi bi-gear"></i><span>Settings</span></a>
+    <a href="/logout/" class="nav-link"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
+</nav>
+
+<div class="main-wrap">
+    <header class="topbar">
+        <div class="topbar-title">
+            <div class="badge"><i class="bi bi-plus-lg"></i></div>
+            Add Item
+        </div>
+        <a href="/api/items/" class="back-link">
+            <i class="bi bi-arrow-left"></i>
+            Back to Items
+        </a>
+    </header>
+
+    <main class="content">
+        <div class="toolbar">
+            <a href="/api/items/" class="back-link">
+                <i class="bi bi-arrow-left-circle"></i>
+                Items list
+            </a>
+        </div>
+
+        <form id="addItemForm" class="form-shell">
+            <div class="form-head">
+                <div>
+                    <h1 id="pageTitle">Add New Product</h1>
+                    <p id="pageSubtitle">Create one product at a time with image, SKU details, pricing, tax and opening stock.</p>
+                </div>
+                <p class="hint">SKU and barcode can be auto-generated when SKU is left blank.</p>
+            </div>
+
+            <div class="form-body">
+                <div>
+                    <label class="upload-box" id="uploadBox" for="productImage">
+                        <img id="previewImage" alt="Product preview">
+                        <span class="upload-copy">
+                            <i class="bi bi-image"></i>
+                            <strong>Upload product image</strong>
+                            <span>JPG, PNG or WEBP</span>
+                        </span>
+                    </label>
+                    <input type="file" id="productImage" accept="image/*" hidden>
+                    <p class="hint" id="imageStatus" style="margin-top:10px">Image API: /api/upload-image/</p>
+                </div>
+
+                <div>
+                    <section class="section">
+                        <h2 class="section-title"><i class="bi bi-info-circle"></i> Basic Information</h2>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="vendor">Vendor *</label>
+                                <select id="vendor" name="vendor" required>
+                                    <option value="">Loading vendors...</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label for="prefix_code">Prefix Code</label>
+                                <input id="prefix_code" name="prefix_code" placeholder="DMH">
+                            </div>
+                            <div class="field">
+                                <label for="name">Item Name *</label>
+                                <input id="name" name="name" required placeholder="Product name">
+                            </div>
+                            <div class="field">
+                                <label for="sku">SKU Code</label>
+                                <input id="sku" name="sku" placeholder="Leave blank for auto">
+                            </div>
+                            <div class="field span-all">
+                                <label for="desc">Description</label>
+                                <textarea id="desc" name="desc" placeholder="Short product description"></textarea>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="section">
+                        <h2 class="section-title"><i class="bi bi-tags"></i> Attributes</h2>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="material">Material</label>
+                                <input id="material" name="material" placeholder="Cotton, wood, metal">
+                            </div>
+                            <div class="field">
+                                <label for="color">Color</label>
+                                <input id="color" name="color" placeholder="Black, red, multi">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="section">
+                        <h2 class="section-title"><i class="bi bi-aspect-ratio"></i> Size</h2>
+                        <div class="size-mode" aria-label="Size input type">
+                            <button type="button" class="mode-btn active" data-size-mode="single">Single Label</button>
+                            <button type="button" class="mode-btn" data-size-mode="multi">Multi Label</button>
+                        </div>
+                        <div class="size-panel" data-size-panel="single">
+                            <div class="grid">
+                                <div class="field">
+                                    <label for="size">Size</label>
+                                    <input id="size" name="size" placeholder="L, XL, 10x12">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="size-panel" data-size-panel="multi" hidden>
+                            <div class="grid">
+                                <div class="field">
+                                    <label for="unit">Unit</label>
+                                    <input id="unit" name="unit" placeholder="cm, inch">
+                                </div>
+                                <div class="field">
+                                    <label for="height">Height</label>
+                                    <input id="height" name="height" placeholder="4">
+                                </div>
+                                <div class="field">
+                                    <label for="width">Width</label>
+                                    <input id="width" name="width" placeholder="8">
+                                </div>
+                                <div class="field">
+                                    <label for="length">Length</label>
+                                    <input id="length" name="length" placeholder="10">
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="section">
+                        <h2 class="section-title"><i class="bi bi-rulers"></i> Weight & Dimensions</h2>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="weight_before">Weight Before</label>
+                                <input id="weight_before" name="weight_before" placeholder="0.5 kg">
+                            </div>
+                            <div class="field">
+                                <label for="weight_after">Weight After</label>
+                                <input id="weight_after" name="weight_after" placeholder="0.7 kg">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="section" style="margin-bottom:0">
+                        <h2 class="section-title"><i class="bi bi-cash-coin"></i> Pricing, Tax & Stock</h2>
+                        <div class="grid">
+                            <div class="field">
+                                <label for="unit_purchase_price">Purchase Price *</label>
+                                <input id="unit_purchase_price" name="unit_purchase_price" type="number" min="0" step="0.01" required placeholder="0.00">
+                            </div>
+                            <div class="field">
+                                <label for="initial_quantity">Opening Stock *</label>
+                                <input id="initial_quantity" name="initial_quantity" type="number" min="0" step="1" required value="1">
+                            </div>
+                            <div class="field">
+                                <label for="hsn">HSN/SAC</label>
+                                <select id="hsn" name="hsn">
+                                    <option value="">Loading HSN...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <div id="formStatus" class="status"></div>
+
+            <div class="actions">
+                <a href="/api/items/" class="btn btn-secondary">
+                    <i class="bi bi-x-lg"></i>
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <i class="bi bi-check2-circle"></i>
+                    Add Product to Stock
+                </button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<script>
+const API_TOKEN_KEY = 'stockos_api_token';
+const EDIT_PRODUCT_ID = '{{ product_id|default:"" }}';
+let originalStockQuantity = 0;
+let uploadedImagePath = '';
+let imageChanged = false;
+
+function getCookie(name) {
+    let val = null;
+    if (document.cookie) {
+        document.cookie.split(';').forEach(cookie => {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) val = decodeURIComponent(cookie.slice(name.length + 1));
+        });
+    }
+    return val;
+}
+
+function setStatus(message, type = 'error') {
+    const box = document.getElementById('formStatus');
+    box.className = 'status show ' + type;
+    box.innerHTML = `<i class="bi ${type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'}"></i><span>${message}</span>`;
+}
+
+function clearStatus() {
+    const box = document.getElementById('formStatus');
+    box.className = 'status';
+    box.innerHTML = '';
+}
+
+async function ensureToken() {
+    const existing = localStorage.getItem(API_TOKEN_KEY);
+    if (existing) return existing;
+
+    const res = await fetch('/api/login/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ otp: '000000' })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.token) throw new Error(data.error || 'API login failed');
+    localStorage.setItem(API_TOKEN_KEY, data.token);
+    return data.token;
+}
+
+async function apiFetch(url, options = {}, retry = true) {
+    const token = await ensureToken();
+    const headers = new Headers(options.headers || {});
+    headers.set('Authorization', 'Bearer ' + token);
+    if (!(options.body instanceof FormData) && !headers.has('Content-Type')) {
+        headers.set('Content-Type', 'application/json');
+    }
+
+    const res = await fetch(url, { ...options, headers });
+    if (res.status === 401 && retry) {
+        localStorage.removeItem(API_TOKEN_KEY);
+        return apiFetch(url, options, false);
+    }
+    return res;
+}
+
+async function loadSelects() {
+    const vendorSelect = document.getElementById('vendor');
+    const hsnSelect = document.getElementById('hsn');
+
+    try {
+        const [vendorRes, hsnRes] = await Promise.all([
+            apiFetch('/api/vendors/'),
+            apiFetch('/api/hsn/')
+        ]);
+        const vendorData = await vendorRes.json();
+        const hsnData = await hsnRes.json();
+
+        if (!vendorRes.ok) throw new Error(vendorData.detail || 'Vendors load failed');
+        if (!hsnRes.ok) throw new Error(hsnData.detail || 'HSN load failed');
+
+        const vendors = Array.isArray(vendorData) ? vendorData : (vendorData.results || vendorData.data || []);
+        const hsns = Array.isArray(hsnData) ? hsnData : (hsnData.results || hsnData.data || []);
+
+        vendorSelect.innerHTML = '<option value="">Select Vendor</option>' + vendors.map(v => (
+            `<option value="${v.id}">${v.name}${v.city ? ' - ' + v.city : ''}</option>`
+        )).join('');
+
+        hsnSelect.innerHTML = '<option value="">Select HSN/SAC</option>' + hsns.map(h => (
+            `<option value="${h.id}">${h.hsn_code} (${h.gst_percentage}%)</option>`
+        )).join('');
+    } catch (err) {
+        vendorSelect.innerHTML = '<option value="">Unable to load vendors</option>';
+        hsnSelect.innerHTML = '<option value="">Unable to load HSN</option>';
+        setStatus(err.message, 'error');
+    }
+}
+
+async function loadEditProduct() {
+    if (!EDIT_PRODUCT_ID) return;
+
+    document.getElementById('pageTitle').textContent = 'Edit Product';
+    document.getElementById('pageSubtitle').textContent = 'Update item details, image, size, pricing and stock.';
+    document.getElementById('submitBtn').innerHTML = '<i class="bi bi-check2-circle"></i> Update Product';
+    document.getElementById('initial_quantity').min = '0';
+
+    const [productRes, stockRes] = await Promise.all([
+        apiFetch(`/api/products-update/${EDIT_PRODUCT_ID}/`),
+        apiFetch(`/api/products/${EDIT_PRODUCT_ID}/stock/`)
+    ]);
+    const product = await productRes.json();
+    const stock = await stockRes.json();
+
+    if (!productRes.ok) throw new Error(formatApiError(product));
+    if (!stockRes.ok) throw new Error(formatApiError(stock));
+
+    fillProductForm(product, stock.current_stock || 0);
+}
+
+function fillProductForm(product, currentStock) {
+    originalStockQuantity = Number(currentStock || 0);
+
+    [
+        'vendor', 'prefix_code', 'name', 'sku', 'desc', 'material', 'color', 'size',
+        'weight_before', 'weight_after', 'unit', 'length', 'width', 'height',
+        'unit_purchase_price', 'hsn'
+    ].forEach(key => {
+        const field = document.getElementById(key);
+        if (field && product[key] !== undefined && product[key] !== null) {
+            field.value = product[key];
+        }
+    });
+
+    document.getElementById('initial_quantity').value = originalStockQuantity || 0;
+
+    if (product.unit || product.height || product.width || product.length) {
+        setSizeMode('multi');
+    } else {
+        setSizeMode('single');
+    }
+
+    if (product.product_image) {
+        uploadedImagePath = '';
+        imageChanged = false;
+        const uploadBox = document.getElementById('uploadBox');
+        const preview = document.getElementById('previewImage');
+        preview.src = product.product_image;
+        uploadBox.classList.add('has-image');
+        document.getElementById('imageStatus').textContent = 'Current image loaded';
+    }
+}
+
+document.getElementById('productImage').addEventListener('change', async event => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const uploadBox = document.getElementById('uploadBox');
+    const preview = document.getElementById('previewImage');
+    const imageStatus = document.getElementById('imageStatus');
+
+    preview.src = URL.createObjectURL(file);
+    uploadBox.classList.add('has-image');
+    imageStatus.textContent = 'Uploading image...';
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+        const res = await fetch('/api/upload-image/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            body: formData
+        });
+        const data = await res.json();
+        if (!res.ok || !data.path) throw new Error(data.error || 'Image upload failed');
+        uploadedImagePath = data.path;
+        imageChanged = true;
+        imageStatus.textContent = 'Image uploaded successfully';
+    } catch (err) {
+        uploadedImagePath = '';
+        imageChanged = false;
+        imageStatus.textContent = err.message;
+        setStatus(err.message, 'error');
+    }
+});
+
+function valueOrNull(formData, key) {
+    const value = String(formData.get(key) || '').trim();
+    return value ? value : null;
+}
+
+function setSizeMode(mode) {
+    document.querySelectorAll('[data-size-mode]').forEach(button => {
+        button.classList.toggle('active', button.dataset.sizeMode === mode);
+    });
+    document.querySelectorAll('[data-size-panel]').forEach(panel => {
+        const isActive = panel.dataset.sizePanel === mode;
+        panel.hidden = !isActive;
+        panel.querySelectorAll('input').forEach(input => {
+            input.disabled = !isActive;
+        });
+    });
+}
+
+document.querySelectorAll('[data-size-mode]').forEach(button => {
+    button.addEventListener('click', () => setSizeMode(button.dataset.sizeMode));
+});
+
+setSizeMode('single');
+
+document.getElementById('addItemForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    clearStatus();
+
+    const submitBtn = document.getElementById('submitBtn');
+    const formData = new FormData(event.currentTarget);
+    const quantity = Number(formData.get('initial_quantity'));
+
+    if (!EDIT_PRODUCT_ID && (!quantity || quantity < 1)) {
+        setStatus('Opening stock must be at least 1.', 'error');
+        return;
+    }
+    if (EDIT_PRODUCT_ID && quantity < 0) {
+        setStatus('Stock quantity cannot be negative.', 'error');
+        return;
+    }
+
+    const payload = {
+        vendor: Number(formData.get('vendor')),
+        prefix_code: valueOrNull(formData, 'prefix_code'),
+        name: valueOrNull(formData, 'name'),
+        size: valueOrNull(formData, 'size') || '',
+        color: valueOrNull(formData, 'color') || '',
+        material: valueOrNull(formData, 'material') || '',
+        sku: valueOrNull(formData, 'sku') || '',
+        unit_purchase_price: valueOrNull(formData, 'unit_purchase_price') || '0.00',
+        desc: valueOrNull(formData, 'desc'),
+        weight_before: valueOrNull(formData, 'weight_before'),
+        weight_after: valueOrNull(formData, 'weight_after'),
+        length: valueOrNull(formData, 'length'),
+        width: valueOrNull(formData, 'width'),
+        height: valueOrNull(formData, 'height'),
+        unit: valueOrNull(formData, 'unit'),
+        hsn: valueOrNull(formData, 'hsn')
+    };
+
+    if (imageChanged && uploadedImagePath) {
+        payload.product_image = uploadedImagePath;
+        payload.product_image_variants = [uploadedImagePath];
+    }
+
+    Object.keys(payload).forEach(key => {
+        if (payload[key] === null || payload[key] === '') delete payload[key];
+    });
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Saving...';
+
+    try {
+        const productUrl = EDIT_PRODUCT_ID ? `/api/products-update/${EDIT_PRODUCT_ID}/` : '/api/products/';
+        const productMethod = EDIT_PRODUCT_ID ? 'PATCH' : 'POST';
+        const productRes = await apiFetch(productUrl, {
+            method: productMethod,
+            body: JSON.stringify(payload)
+        });
+        const product = await productRes.json();
+        if (!productRes.ok) throw new Error(formatApiError(product));
+
+        let finalQuantity = quantity;
+        if (EDIT_PRODUCT_ID) {
+            const delta = quantity - originalStockQuantity;
+            if (delta !== 0) {
+                const adjustRes = await apiFetch('/api/inventory/adjust/', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        sku: product.sku,
+                        delta,
+                        reason: 'ADJUST',
+                        note: 'Stock updated from edit item page'
+                    })
+                });
+                const adjust = await adjustRes.json();
+                if (!adjustRes.ok) throw new Error(formatApiError(adjust));
+                finalQuantity = adjust.new_quantity;
+            }
+        } else {
+            const inventoryRes = await apiFetch('/api/inventory/', {
+                method: 'POST',
+                body: JSON.stringify({ product: product.id, quantity })
+            });
+            const inventory = await inventoryRes.json();
+            if (!inventoryRes.ok) throw new Error(formatApiError(inventory));
+            finalQuantity = inventory.quantity;
+        }
+
+        const actionText = EDIT_PRODUCT_ID ? 'updated' : 'added';
+        setStatus(`Product ${actionText} successfully. SKU: ${product.sku || 'created'} | Stock: ${finalQuantity}`, 'success');
+        setTimeout(() => { window.location.href = '/api/items/'; }, 900);
+    } catch (err) {
+        setStatus(err.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = EDIT_PRODUCT_ID
+            ? '<i class="bi bi-check2-circle"></i> Update Product'
+            : '<i class="bi bi-check2-circle"></i> Add Product to Stock';
+    }
+});
+
+function formatApiError(data) {
+    if (!data || typeof data !== 'object') return 'Request failed';
+    if (data.detail) return data.detail;
+    if (data.error) return data.error;
+    return Object.entries(data).map(([key, value]) => {
+        const text = Array.isArray(value) ? value.join(', ') : String(value);
+        return `${key}: ${text}`;
+    }).join(' | ');
+}
+
+loadSelects().then(loadEditProduct).catch(err => setStatus(err.message, 'error'));
+</script>
+<script src="/static/js/mobile-sidebar.js"></script>
+</body>
+</html>
