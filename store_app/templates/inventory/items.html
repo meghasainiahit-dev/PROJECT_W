@@ -276,6 +276,7 @@
         .table-card-header {
             padding: 20px 24px;
             display: flex; align-items: center; justify-content: space-between;
+            gap: 16px;
             border-bottom: 1px solid var(--border);
         }
 
@@ -301,6 +302,45 @@
             border-radius: 20px;
             font-family: 'Google Sans', 'Product Sans', Arial, sans-serif;
         }
+
+        .table-tools {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: auto;
+        }
+
+        .search-box {
+            width: min(360px, 42vw);
+            height: 38px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 12px;
+            color: var(--muted);
+            transition: all 0.2s;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--accent);
+            background: #fff;
+            box-shadow: 0 6px 18px rgba(108, 99, 255, 0.12);
+        }
+
+        .search-box input {
+            width: 100%;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--ink);
+            font-family: inherit;
+            font-size: 13px;
+        }
+
+        .search-box input::placeholder { color: var(--muted); }
 
         table { width: 100%; border-collapse: collapse; }
 
@@ -456,6 +496,23 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+        @media (max-width: 760px) {
+            .table-card-header {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .table-tools {
+                width: 100%;
+                margin-left: 0;
+                justify-content: space-between;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
     </style>
 <link rel="stylesheet" href="/static/css/mobile-responsive.css">
 </head>
@@ -538,9 +595,15 @@
                     <span class="dot"></span>
                     All Products
                 </div>
-                <span class="count-pill">
+                <div class="table-tools">
+                    <label class="search-box" for="productSearch">
+                        <i class="bi bi-search"></i>
+                        <input id="productSearch" type="search" placeholder="Search SKU, name, qty..." autocomplete="off">
+                    </label>
+                    <span class="count-pill" id="productCount">
                     {% if products %}{{ products|length }} items{% else %}0 items{% endif %}
-                </span>
+                    </span>
+                </div>
             </div>
             <div style="overflow-x:auto">
                 <table>
@@ -602,6 +665,14 @@
                             </td>
                         </tr>
                         {% endfor %}
+                        <tr id="productSearchEmpty" style="display:none">
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <i class="bi bi-search"></i>
+                                    <p>No matching products found.</p>
+                                </div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -738,6 +809,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const msg = sessionStorage.getItem('upload_success_message');
     if (msg) { showStatus(msg, 'success'); sessionStorage.removeItem('upload_success_message'); }
 
+    const productSearch = document.getElementById('productSearch');
+    if (productSearch) productSearch.addEventListener('input', filterProducts);
+
     document.querySelectorAll('.qty-fill').forEach(fill => {
         const quantity = Number(fill.dataset.width || 0);
         const width = quantity <= 0 ? 8 : Math.min(100, Math.max(14, quantity * 3));
@@ -749,6 +823,30 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', () => deleteProduct(button));
     });
 });
+
+function updateProductCount(visibleCount = null) {
+    const count = visibleCount ?? document.querySelectorAll('[data-product-row]').length;
+    const countPill = document.getElementById('productCount');
+    if (countPill) countPill.textContent = `${count} ${count === 1 ? 'item' : 'items'}`;
+}
+
+function filterProducts() {
+    const input = document.getElementById('productSearch');
+    const query = (input?.value || '').toLowerCase().trim();
+    const rows = Array.from(document.querySelectorAll('[data-product-row]'));
+    let visible = 0;
+
+    rows.forEach(row => {
+        const haystack = row.textContent.toLowerCase();
+        const match = !query || haystack.includes(query);
+        row.style.display = match ? '' : 'none';
+        if (match) visible += 1;
+    });
+
+    const empty = document.getElementById('productSearchEmpty');
+    if (empty) empty.style.display = query && visible === 0 ? '' : 'none';
+    updateProductCount(visible);
+}
 
 async function deleteProduct(button) {
     const productId = button.dataset.deleteProduct;
@@ -770,6 +868,7 @@ async function deleteProduct(button) {
 
         const row = document.querySelector(`[data-product-row="${productId}"]`);
         if (row) row.remove();
+        filterProducts();
         showStatus(data.message || 'Product deleted successfully.', 'success');
     } catch (e) {
         showStatus('Delete failed: ' + e.message, 'error');

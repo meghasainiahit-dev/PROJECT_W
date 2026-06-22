@@ -15264,3 +15264,28 @@ DEBUG 2026-06-12 12:51:05,825 django.db.backends utils:131 (0.030) SELECT SUM(`s
 DEBUG 2026-06-12 12:51:05,856 django.db.backends utils:131 (0.029) SELECT SUM(`store_app_orderitem`.`quantity`) AS `total` FROM `store_app_orderitem` WHERE `store_app_orderitem`.`product_id` = 921; args=(921,); alias=default
 INFO 2026-06-12 12:51:05,859 django.server basehttp:212 "GET /api/low-stock-products/ HTTP/1.1" 200 21291
 INFO 2026-06-12 12:51:05,859 django.server basehttp:212 "GET /api/low-stock-products/ HTTP/1.1" 200 21291
+DEBUG 2026-06-16 09:14:23,663 django.db.backends utils:131 (0.039) 
+                SELECT VERSION(),
+                       @@sql_mode,
+                       @@default_storage_engine,
+                       @@sql_auto_is_null,
+                       @@lower_case_table_names,
+                       CONVERT_TZ('2001-01-01 01:00:00', 'UTC', 'UTC') IS NOT NULL
+            ; args=None; alias=default
+DEBUG 2026-06-16 09:14:23,704 django.db.backends utils:131 (0.040) SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED; args=None; alias=default
+DEBUG 2026-06-16 09:14:23,748 django.db.backends utils:131 (0.042) SELECT `store_app_inventory`.`id`, `store_app_inventory`.`product_id`, `store_app_inventory`.`quantity` FROM `store_app_inventory` ORDER BY `store_app_inventory`.`id` ASC; args=(); alias=default
+DEBUG 2026-06-16 09:14:55,378 django.db.backends utils:131 (0.038) 
+                SELECT VERSION(),
+                       @@sql_mode,
+                       @@default_storage_engine,
+                       @@sql_auto_is_null,
+                       @@lower_case_table_names,
+                       CONVERT_TZ('2001-01-01 01:00:00', 'UTC', 'UTC') IS NOT NULL
+            ; args=None; alias=default
+DEBUG 2026-06-16 09:14:55,410 django.db.backends utils:131 (0.030) SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED; args=None; alias=default
+DEBUG 2026-06-16 09:14:55,446 django.db.backends utils:131 (0.036) SELECT COUNT(*) AS `__count` FROM `store_app_inventory`; args=(); alias=default
+DEBUG 2026-06-16 09:14:55,480 django.db.backends utils:131 (0.031) SELECT COUNT(*) AS `__count` FROM `store_app_inventory` WHERE NOT (`store_app_inventory`.`quantity` = 0); args=(0,); alias=default
+DEBUG 2026-06-16 09:14:55,511 django.db.backends utils:161 (0.030) BEGIN; args=None; alias=default
+DEBUG 2026-06-16 09:14:55,545 django.db.backends utils:131 (0.033) UPDATE `store_app_inventory` SET `quantity` = 0 WHERE NOT (`store_app_inventory`.`quantity` = 0); args=(0, 0); alias=default
+DEBUG 2026-06-16 09:14:55,579 django.db.backends utils:161 (0.034) COMMIT; args=None; alias=default
+DEBUG 2026-06-16 09:14:55,641 django.db.backends utils:131 (0.030) SELECT COUNT(*) AS `__count` FROM `store_app_inventory` WHERE NOT (`store_app_inventory`.`quantity` = 0); args=(0,); alias=default
