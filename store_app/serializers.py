@@ -662,21 +662,23 @@ class MediatorSerializer(serializers.ModelSerializer):
 
 
 class CourirPartnerSerializer(serializers.ModelSerializer):
-    mediators = MediatorSerializer(many=True)
+    mediators = MediatorSerializer(many=True, required=False)
 
     class Meta:
         model = CourirPartnerModel
         fields = ["id", "title", "mediators"]
 
     def create(self, validated_data):
-        mediators_data = validated_data.pop("mediators")
-        courier = CourirPartnerModel.objects.create(**validated_data)
+        mediators_data = validated_data.pop("mediators", [])
+        title = (validated_data.get("title") or "").strip()
+        courier = CourirPartnerModel.objects.filter(title__iexact=title).order_by("id").first()
+        if not courier:
+            courier = CourirPartnerModel.objects.create(title=title)
 
         for mediator in mediators_data:
-            MediatorModels.objects.create(
-                courier_partner=courier,
-                **mediator
-            )
+            mediator_title = (mediator.get("title") or "").strip()
+            if mediator_title and not courier.mediators.filter(title__iexact=mediator_title).exists():
+                MediatorModels.objects.create(courier_partner=courier, title=mediator_title)
 
         return courier
 class ShipmentSerializer(serializers.ModelSerializer):
@@ -1065,7 +1067,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
         return remark.created_at.strftime("%d %b %Y, %I:%M %p") if remark else ""
 
 class CourierPartnerSerializer(serializers.ModelSerializer):
-    mediators = MediatorSerializer(many=True)
+    mediators = MediatorSerializer(many=True, required=False)
 
     class Meta:
         model = CourirPartnerModel
@@ -1073,9 +1075,14 @@ class CourierPartnerSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         mediators_data = validated_data.pop("mediators", [])
-        courier = CourirPartnerModel.objects.create(**validated_data)
+        title = (validated_data.get("title") or "").strip()
+        courier = CourirPartnerModel.objects.filter(title__iexact=title).order_by("id").first()
+        if not courier:
+            courier = CourirPartnerModel.objects.create(title=title)
         for mediator_data in mediators_data:
-            MediatorModels.objects.create(courier_partner=courier, **mediator_data)
+            mediator_title = (mediator_data.get("title") or "").strip()
+            if mediator_title and not courier.mediators.filter(title__iexact=mediator_title).exists():
+                MediatorModels.objects.create(courier_partner=courier, title=mediator_title)
         return courier
 
 class ShipmentSerializer(serializers.ModelSerializer):

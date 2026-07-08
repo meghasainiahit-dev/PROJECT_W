@@ -105,6 +105,7 @@ urlpatterns = [
     path("order/<int:order_id>/cancel/", views.CancelOrderView.as_view()),
     path("courier/create/", views.CourirPartnerCreateAPIView.as_view()),
     path("courier/list/", views.CourirPartnerListAPIView.as_view()),
+    path("courier/<int:pk>/", views.CourirPartnerDetailAPIView.as_view()),
     path("order/<int:order_id>/create-shipment/", views.CreateShipmentFromOrderAPIView.as_view()),
     path("order-with-shipments/", views.OrderWithShipmentAPIView.as_view()),
     path('order-status/', views.OrderStatusListCreateView.as_view(), name='order-status-list-create'),
@@ -128,6 +129,7 @@ urlpatterns = [
     path("items/add/", webview.add_item_page, name='add_item_page'),
     path("items/edit/<int:pk>/", webview.add_item_page, name='edit_item_page'),
     path("orders-page/", webview.orders_page, name="Orders-Page"),
+    path("couriers-page/", webview.couriers_page, name="couriers-page"),
     path("order-ui-details/", webview.order_details_page, name="order-ui-details"),
     path("create-order/", webview.create_order_page, name="create-order"),
 

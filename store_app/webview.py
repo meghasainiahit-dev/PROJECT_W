@@ -293,6 +293,10 @@ def orders_page(request):
     return render(request, "inventory/orders.html")
 
 
+def couriers_page(request):
+    return render(request, "inventory/couriers.html")
+
+
 def order_details_page(request):
     return render(request, "inventory/order-details.html")
 

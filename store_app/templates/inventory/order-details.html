@@ -99,6 +99,7 @@ body{background:var(--soft)}
     <a href="/api/items/" class="side-link"><i class="bi bi-grid-1x2"></i><span>Items</span></a>
     <a href="/api/vendors-page/" class="side-link"><i class="bi bi-people"></i><span>Vendors</span></a>
     <a href="/api/orders-page/" class="side-link active"><i class="bi bi-truck"></i><span>Orders</span></a>
+    <a href="/api/couriers-page/" class="side-link"><i class="bi bi-send"></i><span>Courier</span></a>
     <div class="side-spacer"></div>
     <a href="/settings/" class="side-link"><i class="bi bi-gear"></i><span>Settings</span></a>
     <a href="/logout/" class="side-link"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
@@ -205,7 +206,7 @@ body{background:var(--soft)}
                 <label class="shipment-label">Courier Partner</label>
                 <div class="shipment-partner-row">
                     <div class="input-shell"><i class="bi bi-truck"></i><select class="workflow-field" id="courierPartner" name="courier_partner" required></select></div>
-                    <button class="shipment-plus" type="button" onclick="openCourierModal()">+</button>
+                    <button class="shipment-plus" type="button" onclick="location.href='/api/couriers-page/'" title="Manage courier partners">+</button>
                 </div>
             </div>
             <div class="shipment-field">
@@ -886,12 +887,28 @@ finally{button.disabled=false;button.innerHTML='<i class="bi bi-download"></i> S
 async function loadCourierPartners(selected=""){
 const res=await apiFetch(`${API_BASE}/api/courier/list/`);
 const data=await res.json();
-courierPartners=Array.isArray(data)?data:(data.data||[]);
+courierPartners=dedupeCourierPartners(Array.isArray(data)?data:(data.data||[]));
 const select=document.getElementById("courierPartner");
 select.innerHTML='<option value="">Select Courier</option>'+courierPartners.map(p=>`<option value="${p.id}">${p.title}</option>`).join("");
 if(selected)select.value=String(selected);
 else if(courierPartners.length)select.value=String(courierPartners[0].id);
 updateMediatorOptions();
+}
+function dedupeCourierPartners(list){
+const grouped=new Map();
+(list||[]).forEach(partner=>{
+const title=(partner.title||"").trim();
+const key=title.toLowerCase();
+if(!key)return;
+if(!grouped.has(key))grouped.set(key,{...partner,title,mediators:[]});
+const current=grouped.get(key),seen=new Set(current.mediators.map(m=>(m.title||"").trim().toLowerCase()));
+(partner.mediators||[]).forEach(mediator=>{
+const mediatorTitle=(mediator.title||"").trim();
+const mediatorKey=mediatorTitle.toLowerCase();
+if(mediatorKey&&!seen.has(mediatorKey)){seen.add(mediatorKey);current.mediators.push({...mediator,title:mediatorTitle});}
+});
+});
+return [...grouped.values()];
 }
 function updateMediatorOptions(){
 const courier=courierPartners.find(p=>String(p.id)===String(document.getElementById("courierPartner").value));

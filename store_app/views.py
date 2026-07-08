@@ -63,6 +63,27 @@ def normalized_order_status_history(statuses):
     return valid
 
 
+def courier_partner_payloads():
+    grouped = {}
+    for courier in CourirPartnerModel.objects.prefetch_related("mediators").order_by("id"):
+        title = (courier.title or "").strip()
+        key = title.casefold()
+        if not key:
+            continue
+        item = grouped.setdefault(key, {"id": courier.id, "title": title, "mediators": [], "_mediator_keys": set()})
+        for mediator in courier.mediators.all():
+            mediator_title = (mediator.title or "").strip()
+            mediator_key = mediator_title.casefold()
+            if mediator_key and mediator_key not in item["_mediator_keys"]:
+                item["_mediator_keys"].add(mediator_key)
+                item["mediators"].append({"id": mediator.id, "title": mediator_title})
+
+    return [
+        {"id": item["id"], "title": item["title"], "mediators": item["mediators"]}
+        for item in grouped.values()
+    ]
+
+
 def effective_order_status(order):
     status_history = normalized_order_status_history(
         OrderStatus.objects.filter(order_id=order.id)
@@ -1650,9 +1671,58 @@ class CourirPartnerCreateAPIView(APIView):
 
 class CourirPartnerListAPIView(APIView):
     def get(self, request):
-        queryset = CourirPartnerModel.objects.prefetch_related("mediators").all()
-        serializer = CourirPartnerSerializer(queryset, many=True)
-        return Response(serializer.data)
+        return Response(courier_partner_payloads())
+
+
+class CourirPartnerDetailAPIView(APIView):
+    permission_classes = []
+
+    def put(self, request, pk):
+        courier = get_object_or_404(CourirPartnerModel, id=pk)
+        title = (request.data.get("title") or "").strip()
+        if not title:
+            return Response({"message": "Courier name is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        duplicate = CourirPartnerModel.objects.filter(title__iexact=title).exclude(id=courier.id).order_by("id").first()
+        if duplicate:
+            return Response({"message": "Courier partner with this name already exists."}, status=status.HTTP_400_BAD_REQUEST)
+
+        courier.title = title
+        courier.save(update_fields=["title"])
+
+        mediator_titles = []
+        seen = set()
+        for mediator in request.data.get("mediators", []):
+            mediator_title = (mediator.get("title") or "").strip()
+            mediator_key = mediator_title.casefold()
+            if mediator_title and mediator_key not in seen:
+                seen.add(mediator_key)
+                mediator_titles.append(mediator_title)
+
+        existing = list(courier.mediators.all())
+        used_mediator_ids = []
+        for mediator_title in mediator_titles:
+            current = next((m for m in existing if (m.title or "").strip().casefold() == mediator_title.casefold()), None)
+            if current:
+                if current.title != mediator_title:
+                    current.title = mediator_title
+                    current.save(update_fields=["title"])
+            else:
+                current = MediatorModels.objects.create(courier_partner=courier, title=mediator_title)
+            used_mediator_ids.append(current.id)
+
+        courier.mediators.exclude(id__in=used_mediator_ids).delete()
+        return Response({"message": "Courier partner updated successfully.", "data": courier_partner_payloads()})
+
+    def delete(self, request, pk):
+        courier = get_object_or_404(CourirPartnerModel, id=pk)
+        if courier.shipments.exists():
+            return Response(
+                {"message": "Is courier partner par shipments linked hain, delete nahi kar sakte."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        courier.delete()
+        return Response({"message": "Courier partner deleted successfully."})
         
 class CreateShipmentFromOrderAPIView(APIView):
     def post(self, request, order_id):
@@ -2189,11 +2259,8 @@ class CourierPartnerListAPIView(APIView):
     permission_classes = []
 
     def get(self, request):
-        queryset = CourirPartnerModel.objects.prefetch_related("mediators").all()
-        serializer = CourierPartnerSerializer(queryset, many=True)
-
         return Response({
-            "data": serializer.data
+            "data": courier_partner_payloads()
         })
 
 
