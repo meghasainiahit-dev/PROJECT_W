@@ -520,6 +520,14 @@
                                 <input id="unit_purchase_price" name="unit_purchase_price" type="number" min="0" step="0.01" required placeholder="0.00">
                             </div>
                             <div class="field">
+                                <label for="wholesale_price">Wholesale Price</label>
+                                <input id="wholesale_price" name="wholesale_price" type="number" min="0" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="field">
+                                <label for="retailer_price">Retailer Price</label>
+                                <input id="retailer_price" name="retailer_price" type="number" min="0" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="field">
                                 <label for="initial_quantity">Opening Stock *</label>
                                 <input id="initial_quantity" name="initial_quantity" type="number" min="0" step="1" required value="1">
                             </div>
@@ -670,7 +678,7 @@ function fillProductForm(product, currentStock) {
     [
         'vendor', 'prefix_code', 'name', 'sku', 'desc', 'material', 'color', 'size',
         'weight_before', 'weight_after', 'unit', 'length', 'width', 'height',
-        'unit_purchase_price', 'hsn'
+        'unit_purchase_price', 'wholesale_price', 'retailer_price', 'hsn'
     ].forEach(key => {
         const field = document.getElementById(key);
         if (field && product[key] !== undefined && product[key] !== null) {
@@ -781,6 +789,8 @@ document.getElementById('addItemForm').addEventListener('submit', async event =>
         material: valueOrNull(formData, 'material') || '',
         sku: valueOrNull(formData, 'sku') || '',
         unit_purchase_price: valueOrNull(formData, 'unit_purchase_price') || '0.00',
+        wholesale_price: valueOrNull(formData, 'wholesale_price') || '0.00',
+        retailer_price: valueOrNull(formData, 'retailer_price') || '0.00',
         desc: valueOrNull(formData, 'desc'),
         weight_before: valueOrNull(formData, 'weight_before'),
         weight_after: valueOrNull(formData, 'weight_after'),

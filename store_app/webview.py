@@ -13,6 +13,7 @@ from .models import Vendor, Product, PurchaseBill, PurchaseBillItem
 from django.db.models import Sum
 from decimal import Decimal
 from django.db.models import Q
+from django.core.paginator import Paginator
 
 
 from .models import (
@@ -107,8 +108,15 @@ def items_page(request):
         start_date = today.replace(day=1)
         end_date = today
 
+    per_page = request.GET.get("per_page", "25")
+    try:
+        per_page = int(per_page)
+    except (TypeError, ValueError):
+        per_page = 25
+    per_page = min(max(per_page, 10), 100)
+
     # 📦 PRODUCTS (UPDATED)
-    products = list(
+    products_qs = (
         Inventory.objects
         .select_related("product")
         .values(
@@ -118,25 +126,25 @@ def items_page(request):
             "product__product_image",      # 🔥 image support
             "quantity"
         )
-       .order_by("-product__id")[:200]
-  # top 200
+       .order_by("-product__id")
     )
+
+    paginator = Paginator(products_qs, per_page)
+    page_obj = paginator.get_page(request.GET.get("page"))
+    products = list(page_obj.object_list)
 
     for product in products:
         product["product_image_url"] = media_url(product.get("product__product_image"))
 
-    # ⚠️ LOW STOCK (optimized)
-    low_stock = [p for p in products if p["quantity"] <= 10]
-
     # 📊 Extra stats (optional but useful)
-    total_products = len(products)
-    low_stock_count = len(low_stock)
+    total_products = paginator.count
 
     context = {
         "products": products,
-        "low_stock": low_stock,
         "total_products": total_products,
-        "low_stock_count": low_stock_count,
+        "page_obj": page_obj,
+        "paginator": paginator,
+        "per_page": per_page,
     }
 
     return render(request, "inventory/items.html", context)
@@ -316,7 +324,9 @@ def create_order_page(request):
             "size": product.size or "",
             "color": product.color or "",
             "material": product.material or "",
-            "price": float(product.unit_purchase_price or 0),
+            "price": float(product.retailer_price or product.unit_purchase_price or 0),
+            "wholesale_price": float(product.wholesale_price or 0),
+            "retailer_price": float(product.retailer_price or 0),
             "quantity": inventory.quantity if inventory else 0,
         })
 

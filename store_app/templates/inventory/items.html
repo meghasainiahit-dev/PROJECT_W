@@ -463,10 +463,92 @@
         .action-delete { background: var(--red-soft); color: var(--red-text); }
         .action-delete:hover { background: #FFD7D7; }
 
-        /* ─── LOW STOCK ROW ─── */
-        .low-stock-row td { color: var(--red-text); }
-        .low-stock-row { background: var(--red-soft) !important; }
-        .low-stock-row:hover { background: #FFEBEB !important; }
+        .low-stock-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--red-text);
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+            white-space: nowrap;
+        }
+
+        .pagination-bar {
+            padding: 14px 18px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            background: #fff;
+        }
+
+        .pagination-summary {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .pagination-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .page-link,
+        .per-page-select {
+            min-height: 34px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--ink);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 12px;
+            text-decoration: none;
+        }
+
+        .page-link {
+            min-width: 34px;
+            padding: 7px 11px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .page-link:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: #fff;
+        }
+
+        .page-link.active {
+            background: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+        }
+
+        .page-link.disabled {
+            pointer-events: none;
+            opacity: 0.45;
+        }
+
+        .per-page-form {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .per-page-select {
+            padding: 6px 9px;
+            outline: 0;
+            cursor: pointer;
+        }
 
         /* ─── EMPTY STATE ─── */
         .empty-state {
@@ -602,7 +684,7 @@
                         <input id="productSearch" type="search" placeholder="Search SKU, name, qty..." autocomplete="off">
                     </label>
                     <span class="count-pill" id="productCount">
-                    {% if products %}{{ products|length }} items{% else %}0 items{% endif %}
+                    {{ total_products|default:0 }} items
                     </span>
                 </div>
             </div>
@@ -637,6 +719,12 @@
                            <span class="qty-bar">
                             <span class="qty-fill" data-width="{{ p.quantity }}"></span>
                                     </span>
+                         {% if p.quantity <= 10 %}
+                         <span class="low-stock-indicator" title="Low stock">
+                             <i class="bi bi-exclamation-triangle-fill"></i>
+                             Low
+                         </span>
+                         {% endif %}
                                       </span>
                                           </td>
                             <td>
@@ -677,66 +765,50 @@
                     </tbody>
                 </table>
             </div>
-        </div>
-
-        <!-- LOW STOCK TABLE -->
-        <div class="table-card fade-in">
-            <div class="table-card-header">
-                <div class="table-card-title">
-                    <span class="dot red"></span>
-                    Low Stock Alerts
+            {% if paginator.num_pages > 1 %}
+            <div class="pagination-bar">
+                <div class="pagination-summary">
+                    Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ paginator.count }} items
                 </div>
-                <span class="count-pill" style="background:#FFF0F0;color:#C0392B">
-                    {% if low_stock %}{{ low_stock|length }}{% else %}0{% endif %} alerts
-                </span>
+                <div class="pagination-actions">
+                    <form class="per-page-form" method="get">
+                        <label for="perPageSelect">Rows</label>
+                        <select id="perPageSelect" name="per_page" class="per-page-select" onchange="this.form.submit()">
+                            <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                            <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+                            <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                            <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                        </select>
+                    </form>
+
+                    {% if page_obj.has_previous %}
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}">
+                            <i class="bi bi-chevron-left"></i> Prev
+                        </a>
+                    {% else %}
+                        <span class="page-link disabled"><i class="bi bi-chevron-left"></i> Prev</span>
+                    {% endif %}
+
+                    {% for page_number in paginator.page_range %}
+                        {% if page_number == page_obj.number %}
+                            <span class="page-link active">{{ page_number }}</span>
+                        {% elif page_number == 1 or page_number == paginator.num_pages or page_number >= page_obj.number|add:"-2" and page_number <= page_obj.number|add:"2" %}
+                            <a class="page-link" href="?page={{ page_number }}&per_page={{ per_page }}">{{ page_number }}</a>
+                        {% elif page_number == page_obj.number|add:"-3" or page_number == page_obj.number|add:"3" %}
+                            <span class="page-link disabled">...</span>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}">
+                            Next <i class="bi bi-chevron-right"></i>
+                        </a>
+                    {% else %}
+                        <span class="page-link disabled">Next <i class="bi bi-chevron-right"></i></span>
+                    {% endif %}
+                </div>
             </div>
-            <div style="overflow-x:auto">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width:56px">Image</th>
-                            <th>SKU</th>
-                            <th>Product Name</th>
-                            <th>Qty Remaining</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for p in low_stock %}
-                        <tr class="low-stock-row">
-                            <td>
-                                {% if p.product_image_url %}
-                                    <img src="{{ p.product_image_url }}" class="product-img" alt="">
-                                {% else %}
-                                    <div class="product-img-placeholder" style="background:#FFF0F0;color:#C0392B;border-color:#FFCDD2">
-                                        <i class="bi bi-box"></i>
-                                    </div>
-                                {% endif %}
-                            </td>
-                            <td><span class="sku-chip" style="background:#FFF0F0;color:#C0392B">{{ p.product__sku }}</span></td>
-                            <td style="font-weight:500">{{ p.product__name }}</td>
-                            <td>
-                      <span class="qty-badge" style="color:#C0392B">
-                       <i class="bi bi-exclamation-triangle-fill" style="font-size:12px"></i>
-                      {{ p.quantity }}
-                      <span class="qty-bar">
-                           <span class="qty-fill low" data-width="{{ p.quantity }}"></span>
-                           </span>
-                                  </span>
-                                    </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4">
-                                <div class="empty-state">
-                                    <i class="bi bi-check-circle" style="color:#6FCF97;opacity:0.7"></i>
-                                    <p>All products are well-stocked 🎉</p>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+            {% endif %}
         </div>
 
     </main>

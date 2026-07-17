@@ -89,7 +89,7 @@
             <div>
                 <div class="title-row">
                     <h2>{{ product.name }}</h2>
-                    <div class="price">₹{{ product.unit_purchase_price }}</div>
+                    <div class="price">₹{{ product.retailer_price|default:product.unit_purchase_price }}</div>
                 </div>
                 <div class="sku">SKU: {{ product.sku }}</div>
             </div>
@@ -99,6 +99,9 @@
                 <div class="spec"><i class="bi bi-layers"></i><span>Material</span><strong>{{ product.material|default:"N/A" }}</strong></div>
                 <div class="spec"><i class="bi bi-rulers"></i><span>Size</span><strong>{{ product.size|default:dimensions|default:"N/A" }}</strong></div>
                 <div class="spec"><i class="bi bi-palette"></i><span>Color</span><strong>{{ product.color|default:"N/A" }}</strong></div>
+                <div class="spec"><i class="bi bi-cash"></i><span>Purchase Price</span><strong>₹{{ product.unit_purchase_price }}</strong></div>
+                <div class="spec"><i class="bi bi-cash-stack"></i><span>Wholesale Price</span><strong>₹{{ product.wholesale_price }}</strong></div>
+                <div class="spec"><i class="bi bi-tag"></i><span>Retailer Price</span><strong>₹{{ product.retailer_price }}</strong></div>
                 <div class="spec"><i class="bi bi-clipboard2"></i><span>HSN Code</span><strong>{% if product.hsn %}{{ product.hsn.hsn_code }}{% else %}N/A{% endif %}</strong></div>
                 <div class="spec"><i class="bi bi-hash"></i><span>Serial</span><strong>{{ product.serial|default:"N/A" }}</strong></div>
                 <div class="spec"><i class="bi bi-box-arrow-in-down"></i><span>Weight Before Packaging</span><strong>{{ product.weight_before|default:"N/A" }}</strong></div>

@@ -319,6 +319,8 @@ class AppProductsAPIView(APIView):
                 },
                 "quantity": row.quantity,
                 "purchase_price": _money(row.product.unit_purchase_price),
+                "wholesale_price": _money(row.product.wholesale_price),
+                "retailer_price": _money(row.product.retailer_price),
                 "image": _image_url(request, row.product.product_image),
                 "size": row.product.size,
                 "color": row.product.color,

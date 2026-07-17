@@ -302,6 +302,8 @@ class Product(models.Model):
     product_image = models.ImageField(upload_to="product/", blank=True, null=True)
     product_image_variants = models.JSONField(default=list, blank=True)
     unit_purchase_price = models.DecimalField(max_digits=10, decimal_places=2, default=00.00)
+    wholesale_price = models.DecimalField(max_digits=10, decimal_places=2, default=00.00)
+    retailer_price = models.DecimalField(max_digits=10, decimal_places=2, default=00.00)
     desc = models.CharField(max_length=500, null=True)
     weight_before = models.CharField(max_length=120, blank=True, null=True)
     weight_after = models.CharField(max_length=120, blank=True, null=True)

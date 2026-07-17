@@ -352,7 +352,7 @@ class ProductStockSerializer(serializers.ModelSerializer):
     inventory_quantity = serializers.SerializerMethodField()
     class Meta:
         model = Product
-        fields = ['name','sku','size','unit_purchase_price','inventory_quantity']
+        fields = ['name','sku','size','unit_purchase_price','wholesale_price','retailer_price','inventory_quantity']
         
         
     def get_inventory_quantity(self,obj):
@@ -644,6 +644,8 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
             'color',
             'material',
             'unit_purchase_price',
+            'wholesale_price',
+            'retailer_price',
             'desc',
             'weight_before',
             'weight_after',
