@@ -106,3 +106,14 @@ class MediatorAdmin(admin.ModelAdmin):
     list_display = ("id", "title", "courier_partner")
     search_fields = ("title",)
     list_filter = ("courier_partner",)
+
+
+@admin.register(UserActivityLog)
+class UserActivityLogAdmin(admin.ModelAdmin):
+    list_display = ("user", "event", "screen", "target", "created_at")
+    list_filter = ("event", "screen", "created_at")
+    search_fields = ("user__username", "event", "screen", "target", "device_id")
+    readonly_fields = (
+        "user", "event", "screen", "target", "metadata", "client_timestamp",
+        "app_version", "device_id", "ip_address", "user_agent", "created_at",
+    )

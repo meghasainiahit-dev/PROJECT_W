@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from . import views
-from .api import (purchase, barcode, otherView, app)
+from .api import (purchase, barcode, otherView, app, activity)
 from . import webview
 from . import download_sam
 from . import download_sam1
@@ -151,5 +151,7 @@ urlpatterns = [
     path("app/purchases/", app.AppPurchasesAPIView.as_view(), name="app-purchases-api"),
     path("app/orders/", app.AppOrdersAPIView.as_view(), name="app-orders-api"),
     path("app/orders/<int:order_id>/", app.AppOrderDetailAPIView.as_view(), name="app-order-detail-api"),
+    path("app/activity/", activity.UserActivityAPIView.as_view(), name="app-user-activity-api"),
+    path("app/activity/all/", activity.AllUserActivityAPIView.as_view(), name="app-all-user-activity-api"),
 
 ]

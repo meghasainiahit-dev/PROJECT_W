@@ -818,3 +818,32 @@ class OrderStatus(models.Model):
     status = models.IntegerField()
     json = models.JSONField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class UserActivityLog(models.Model):
+    """An immutable audit event sent by an authenticated app user."""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="activity_logs",
+    )
+    event = models.CharField(max_length=100, db_index=True)
+    screen = models.CharField(max_length=100, blank=True, db_index=True)
+    target = models.CharField(max_length=150, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    client_timestamp = models.DateTimeField(null=True, blank=True)
+    app_version = models.CharField(max_length=40, blank=True)
+    device_id = models.CharField(max_length=128, blank=True, db_index=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=500, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ("-created_at", "-id")
+        indexes = [
+            models.Index(fields=("user", "-created_at"), name="activity_user_created_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username}: {self.event}"
