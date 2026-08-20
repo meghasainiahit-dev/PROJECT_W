@@ -264,6 +264,16 @@ def quotation_list_page(request):
 
 
 @login_required
+def quotation_preview_script(request):
+    response = FileResponse(
+        open(settings.BASE_DIR / "static/js/quotation-preview.js", "rb"),
+        content_type="application/javascript; charset=utf-8",
+    )
+    response["Cache-Control"] = "no-store, max-age=0"
+    return response
+
+
+@login_required
 def quotation_page(request, pk=None):
     settings_obj, _ = QuotationSettings.objects.get_or_create(pk=1)
     products = Product.objects.select_related("hsn").order_by("name")

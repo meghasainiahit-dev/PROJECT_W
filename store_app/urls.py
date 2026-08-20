@@ -160,6 +160,7 @@ urlpatterns = [
     path("app/quotations/<int:pk>/pdf/", quotation_api.AppQuotationPDFAPIView.as_view(), name="app-quotation-pdf"),
     path("quotations/", quotation.quotation_list_page, name="quotation-list-page"),
     path("quotations/create/", quotation.quotation_page, name="quotation-create-page"),
+    path("quotations/preview.js", quotation.quotation_preview_script, name="quotation-preview-script"),
     path("quotations/<int:pk>/edit/", quotation.quotation_page, name="quotation-edit-page"),
     path("quotations/<int:pk>/delete/", quotation.quotation_delete, name="quotation-delete"),
     path("quotations/settings/", quotation.quotation_settings_api, name="quotation-settings"),
