@@ -1,0 +1,206 @@
+{
+  "info": {
+    "_postman_id": "1f647135-339d-47fc-8bd3-bb904522a627",
+    "name": "StockOS - Quotation Module APIs",
+    "description": "Complete runnable quotation flow. Run requests in order: Login -> Products -> Create -> List -> Detail -> Update -> PDFs -> Delete. Login stores token, product search stores product_id, and create stores quotation_id automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('quotation_number')) {",
+          "  pm.collectionVariables.set('quotation_number', 'QT-POSTMAN-' + Date.now());",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "https://stms.testwebs.in/api" },
+    { "key": "username", "value": "admin" },
+    { "key": "password", "value": "" },
+    { "key": "token", "value": "" },
+    { "key": "product_id", "value": "" },
+    { "key": "quotation_id", "value": "" },
+    { "key": "quotation_number", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 - Login",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": "{{base_url}}/app/login/",
+        "description": "JWT login. Set username and password collection variables before running. Token is saved automatically."
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+          "const json = pm.response.json();",
+          "pm.expect(json.token).to.be.a('string').and.not.empty;",
+          "pm.collectionVariables.set('token', json.token);"
+        ] }
+      }]
+    },
+    {
+      "name": "02 - Search Products",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{base_url}}/app/quotations/products/?search=", "host": ["{{base_url}}"], "path": ["app", "quotations", "products", ""], "query": [{ "key": "search", "value": "" }] },
+        "description": "Returns products with database price. First product ID is stored automatically for create/update requests."
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('Products API returns 200', () => pm.response.to.have.status(200));",
+          "const json = pm.response.json();",
+          "pm.expect(json.data).to.be.an('array').that.is.not.empty;",
+          "pm.collectionVariables.set('product_id', String(json.data[0].id));"
+        ] }
+      }]
+    },
+    {
+      "name": "03 - Create Quotation",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"number\": \"{{quotation_number}}\",\n  \"quote_date\": \"2026-08-20\",\n  \"valid_until\": \"2026-09-04\",\n  \"customer_name\": \"Postman Test Customer\",\n  \"customer_phone\": \"9876543210\",\n  \"customer_email\": \"customer@example.com\",\n  \"customer_address\": \"Customer billing address\",\n  \"customer_gstin\": \"19ABCDE1234F1Z5\",\n  \"customer_state\": \"West Bengal\",\n  \"customer_state_code\": \"19\",\n  \"consignee_name\": \"Postman Consignee\",\n  \"consignee_address\": \"Consignee shipping address\",\n  \"consignee_gstin\": \"19ABCDE1234F1Z5\",\n  \"consignee_state\": \"West Bengal\",\n  \"consignee_state_code\": \"19\",\n  \"payment_terms\": \"Advance Payment\",\n  \"buyer_reference\": \"PO-POSTMAN-001\",\n  \"other_references\": \"API Test\",\n  \"dispatched_through\": \"Private Transport\",\n  \"destination\": \"Howrah\",\n  \"delivery_terms\": \"Door Delivery\",\n  \"shipment_details\": \"Shipping Charges\",\n  \"shipping_amount\": \"100.00\",\n  \"notes\": \"Quotation valid for 15 days\",\n  \"items\": [\n    {\n      \"product_id\": {{product_id}},\n      \"due_on\": \"2026-09-04\",\n      \"quantity\": \"2\",\n      \"unit\": \"PCS\",\n      \"unit_price\": \"100.00\",\n      \"discount_percentage\": \"0\",\n      \"gst_percentage\": \"18\"\n    }\n  ]\n}"
+        },
+        "url": "{{base_url}}/app/quotations/",
+        "description": "Creates a quotation and stores returned id as quotation_id. GST must be 5 or 18."
+      },
+      "event": [{
+        "listen": "prerequest",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.collectionVariables.set('quotation_number', 'QT-POSTMAN-' + Date.now());"
+        ] }
+      }, {
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('Quotation created', () => pm.response.to.have.status(201));",
+          "const json = pm.response.json();",
+          "pm.expect(json.id).to.be.a('number');",
+          "pm.expect(json.items).to.be.an('array').with.lengthOf(1);",
+          "pm.collectionVariables.set('quotation_id', String(json.id));"
+        ] }
+      }]
+    },
+    {
+      "name": "04 - Quotation List",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{base_url}}/app/quotations/?search={{quotation_number}}&page=1&limit=20", "host": ["{{base_url}}"], "path": ["app", "quotations", ""], "query": [{ "key": "search", "value": "{{quotation_number}}" }, { "key": "page", "value": "1" }, { "key": "limit", "value": "20" }] },
+        "description": "Paginated list with search by quotation number, customer, phone or GSTIN."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('List returns created quotation', () => pm.response.to.have.status(200));",
+        "const json = pm.response.json();",
+        "pm.expect(json.data).to.be.an('array').that.is.not.empty;",
+        "pm.expect(json.count).to.be.above(0);"
+      ] } }]
+    },
+    {
+      "name": "05 - Quotation Detail",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/app/quotations/{{quotation_id}}/",
+        "description": "Complete quotation detail including items and PDF URLs."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Detail returns 200', () => pm.response.to.have.status(200));",
+        "const json = pm.response.json();",
+        "pm.expect(String(json.id)).to.eql(pm.collectionVariables.get('quotation_id'));",
+        "pm.expect(json.items).to.be.an('array').that.is.not.empty;"
+      ] } }]
+    },
+    {
+      "name": "06 - Partial Update Quotation",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"customer_phone\": \"9999999999\",\n  \"shipping_amount\": \"150.00\"\n}" },
+        "url": "{{base_url}}/app/quotations/{{quotation_id}}/",
+        "description": "Updates selected fields and preserves existing fields/items."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('PATCH returns 200', () => pm.response.to.have.status(200));",
+        "const json = pm.response.json();",
+        "pm.expect(json.customer_phone).to.eql('9999999999');",
+        "pm.expect(json.shipping_amount).to.eql('150.00');"
+      ] } }]
+    },
+    {
+      "name": "07 - Full Update Quotation",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"number\": \"{{quotation_number}}\",\n  \"quote_date\": \"2026-08-20\",\n  \"valid_until\": \"2026-09-10\",\n  \"customer_name\": \"Postman Updated Customer\",\n  \"customer_phone\": \"8888888888\",\n  \"customer_email\": \"updated@example.com\",\n  \"customer_address\": \"Updated billing address\",\n  \"customer_gstin\": \"19ABCDE1234F1Z5\",\n  \"customer_state\": \"West Bengal\",\n  \"customer_state_code\": \"19\",\n  \"consignee_name\": \"Updated Consignee\",\n  \"consignee_address\": \"Updated shipping address\",\n  \"consignee_gstin\": \"19ABCDE1234F1Z5\",\n  \"consignee_state\": \"West Bengal\",\n  \"consignee_state_code\": \"19\",\n  \"payment_terms\": \"50% Advance\",\n  \"buyer_reference\": \"PO-UPDATED\",\n  \"other_references\": \"Postman PUT\",\n  \"dispatched_through\": \"Transport\",\n  \"destination\": \"Kolkata\",\n  \"delivery_terms\": \"Door Delivery\",\n  \"shipment_details\": \"Freight included\",\n  \"shipping_amount\": \"200.00\",\n  \"notes\": \"Updated quotation\",\n  \"items\": [\n    {\n      \"product_id\": {{product_id}},\n      \"due_on\": \"2026-09-10\",\n      \"quantity\": \"3\",\n      \"unit\": \"PCS\",\n      \"unit_price\": \"90.00\",\n      \"discount_percentage\": \"5\",\n      \"gst_percentage\": \"5\"\n    }\n  ]\n}"
+        },
+        "url": "{{base_url}}/app/quotations/{{quotation_id}}/",
+        "description": "Replaces quotation fields and product items, then recalculates totals."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('PUT returns 200', () => pm.response.to.have.status(200));",
+        "const json = pm.response.json();",
+        "pm.expect(json.customer_name).to.eql('Postman Updated Customer');",
+        "pm.expect(json.items).to.have.lengthOf(1);",
+        "pm.expect(json.items[0].quantity).to.eql('3.00');"
+      ] } }]
+    },
+    {
+      "name": "08 - View Quotation PDF",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/app/quotations/{{quotation_id}}/pdf/",
+        "description": "Returns inline application/pdf binary response. Use Send and Download or Visualize in Postman."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('PDF view returns 200', () => pm.response.to.have.status(200));",
+        "pm.test('Response is PDF', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/pdf'));",
+        "pm.test('PDF is not empty', () => pm.expect(pm.response.responseSize).to.be.above(500));"
+      ] } }]
+    },
+    {
+      "name": "09 - Download Quotation PDF",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{base_url}}/app/quotations/{{quotation_id}}/pdf/?download=1", "host": ["{{base_url}}"], "path": ["app", "quotations", "{{quotation_id}}", "pdf", ""], "query": [{ "key": "download", "value": "1" }] },
+        "description": "Returns attachment application/pdf binary response. In Postman use Send and Download."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('PDF download returns 200', () => pm.response.to.have.status(200));",
+        "pm.test('Attachment header exists', () => pm.expect(pm.response.headers.get('Content-Disposition')).to.include('attachment'));"
+      ] } }]
+    },
+    {
+      "name": "10 - Delete Quotation",
+      "request": {
+        "method": "DELETE",
+        "url": "{{base_url}}/app/quotations/{{quotation_id}}/",
+        "description": "Permanently deletes the test quotation. Keep this request last."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Delete returns 204', () => pm.response.to.have.status(204));",
+        "pm.collectionVariables.unset('quotation_id');",
+        "pm.collectionVariables.unset('quotation_number');"
+      ] } }]
+    }
+  ]
+}
