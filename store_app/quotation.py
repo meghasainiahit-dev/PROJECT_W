@@ -1,5 +1,6 @@
 import io
 import json
+import logging
 import os
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
@@ -13,6 +14,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
 from .models import Order, Product, Quotation, QuotationItem, QuotationSettings
+
+logger = logging.getLogger(__name__)
 
 
 def money(value):
@@ -151,6 +154,132 @@ def _exact_quotation_html(quote, company):
     soup.select_one(".amt-words-value").string = amount_words(quote.grand_total)
     soup.select_one(".company-for").string = f"for {company.company_name or 'Company'}"
     return str(soup)
+
+
+def _reportlab_quotation_pdf(quote, company):
+    """Portable one-page fallback for servers without WeasyPrint/Pango."""
+    from reportlab.lib.units import mm
+    from reportlab.pdfbase.pdfmetrics import stringWidth
+    from reportlab.pdfgen import canvas
+
+    output = io.BytesIO()
+    width, height = 210 * mm, 305 * mm
+    pdf = canvas.Canvas(output, pagesize=(width, height), pageCompression=1)
+    left, right, top = 12 * mm, width - 12 * mm, height - 9 * mm
+    content_width = right - left
+
+    def text(value, x, y, size=7, bold=False, align="left"):
+        value = str(value or "")
+        font = "Helvetica-Bold" if bold else "Helvetica"
+        pdf.setFont(font, size)
+        if align == "right":
+            x -= stringWidth(value, font, size)
+        elif align == "center":
+            x -= stringWidth(value, font, size) / 2
+        pdf.drawString(x, y, value)
+
+    def wrapped(value, x, y, max_width, size=7, bold=False, leading=8):
+        font = "Helvetica-Bold" if bold else "Helvetica"
+        words, lines, current = str(value or "").replace("\n", " \n ").split(), [], ""
+        for word in words:
+            if word == "\n":
+                lines.append(current); current = ""; continue
+            candidate = f"{current} {word}".strip()
+            if current and stringWidth(candidate, font, size) > max_width:
+                lines.append(current); current = word
+            else:
+                current = candidate
+        if current:
+            lines.append(current)
+        for line in lines[:8]:
+            text(line, x, y, size, bold); y -= leading
+        return y
+
+    text("QUOTATION", width / 2, top, 11, True, "center")
+    y1 = top - 7 * mm
+    header_bottom = y1 - 54 * mm
+    split = left + content_width * .51
+    pdf.rect(left, header_bottom, content_width, y1 - header_bottom)
+    pdf.line(split, header_bottom, split, y1)
+    text(company.company_name or "Company Name", left + 2 * mm, y1 - 4 * mm, 7.5, True)
+    company_info = " | ".join(filter(None, [company.address, f"GSTIN/UIN: {company.gstin}" if company.gstin else "", f"E-Mail: {company.email}" if company.email else ""]))
+    wrapped(company_info, left + 2 * mm, y1 - 8 * mm, split - left - 4 * mm, 6.5, False, 7)
+
+    meta = [
+        ("Voucher No.", quote.number), ("Dated", quote.quote_date.strftime("%d-%b-%y")),
+        ("Mode/Terms of Payment", quote.payment_terms), ("Buyer's Ref./Order No.", quote.buyer_reference),
+        ("Other References", quote.other_references), ("Dispatched through", quote.dispatched_through),
+    ]
+    col = (right - split) / 2
+    row_h = 13.5 * mm
+    for index in range(3):
+        row_top = y1 - index * row_h
+        row_bottom = row_top - row_h
+        pdf.line(split, row_bottom, right, row_bottom)
+        pdf.line(split + col, row_bottom, split + col, row_top)
+        for side in range(2):
+            label, value = meta[index * 2 + side]
+            x = split + side * col + 1.5 * mm
+            text(label, x, row_top - 3 * mm, 5.5)
+            wrapped(value, x, row_top - 6.5 * mm, col - 3 * mm, 6.5, True, 7)
+
+    party_top = y1 - 18 * mm
+    party_mid = header_bottom + 18 * mm
+    pdf.line(left, party_top, split, party_top)
+    text("Consignee (Ship to)", left + 2 * mm, party_top - 3 * mm, 5.5)
+    wrapped(f"{quote.consignee_name or quote.customer_name}\n{quote.consignee_address or quote.customer_address}\nGSTIN/UIN: {quote.consignee_gstin or quote.customer_gstin}\nState: {quote.consignee_state or quote.customer_state}, Code: {quote.consignee_state_code or quote.customer_state_code}", left + 2 * mm, party_top - 7 * mm, split-left-4*mm, 6.5, True, 7)
+    pdf.line(left, party_mid, split, party_mid)
+    text("Buyer (Bill to)", left + 2 * mm, party_mid - 3 * mm, 5.5)
+    wrapped(f"{quote.customer_name}\n{quote.customer_address}\nGSTIN/UIN: {quote.customer_gstin}\nState: {quote.customer_state}, Code: {quote.customer_state_code}", left + 2 * mm, party_mid - 7 * mm, split-left-4*mm, 6.5, True, 7)
+
+    info_top = y1 - 40.5 * mm
+    pdf.line(split, info_top, right, info_top)
+    text("Destination", split + 2 * mm, info_top - 3 * mm, 5.5)
+    text(quote.destination, split + 2 * mm, info_top - 7 * mm, 6.5, True)
+    text("Terms of Delivery", split + col + 2 * mm, info_top - 3 * mm, 5.5)
+    text(quote.delivery_terms, split + col + 2 * mm, info_top - 7 * mm, 6.5, True)
+
+    table_top, table_bottom = header_bottom, header_bottom - 79 * mm
+    widths = [.035, .405, .095, .105, .09, .055, .07, .145]
+    xs = [left]
+    for ratio in widths:
+        xs.append(xs[-1] + content_width * ratio)
+    pdf.rect(left, table_bottom, content_width, table_top - table_bottom)
+    for x in xs[1:-1]: pdf.line(x, table_bottom, x, table_top)
+    head_bottom = table_top - 9 * mm
+    total_top = table_bottom + 7 * mm
+    pdf.line(left, head_bottom, right, head_bottom); pdf.line(left, total_top, right, total_top)
+    headers = ["Sl No.", "Description of Goods and Services", "Due on", "Quantity", "Rate", "per", "Disc.%", "Amount"]
+    for i, label in enumerate(headers): text(label, (xs[i]+xs[i+1])/2, table_top-5.5*mm, 5.5, False, "center")
+    row_y = head_bottom - 5 * mm
+    total_qty = Decimal("0")
+    for index, item in enumerate(quote.items.all(), 1):
+        if row_y < total_top + 24 * mm: break
+        total_qty += item.quantity
+        values = [index, item.product_name, item.due_on.strftime("%d-%b-%y") if item.due_on else "", f"{item.quantity:g} {item.unit}", f"{item.unit_price:,.2f}", item.unit, f"{item.discount_percentage:g}", f"{item.taxable_amount:,.2f}"]
+        for i, value in enumerate(values): text(value, xs[i]+1.2*mm, row_y, 6.2, i in (1,3,7))
+        row_y -= 5 * mm
+    gst = quote.items.first().gst_percentage if quote.items.exists() else Decimal("0")
+    text(f"OUTPUTIGST@{gst:g}%", xs[2]-2*mm, total_top+24*mm, 6.5, True, "right")
+    text("Shipping Charges", xs[2]-2*mm, total_top+19*mm, 6.5, True, "right")
+    text(f"{quote.tax_total:,.2f}", right-2*mm, total_top+24*mm, 6.5, True, "right")
+    text(f"{quote.shipping_amount:,.2f}", right-2*mm, total_top+19*mm, 6.5, True, "right")
+    text("Total", xs[2]-2*mm, table_bottom+2.5*mm, 6.5, True, "right")
+    text(f"{total_qty:g} PCS", (xs[3]+xs[4])/2, table_bottom+2.5*mm, 6.5, True, "center")
+    text(f"Rs. {quote.grand_total:,.2f}", right-2*mm, table_bottom+2.5*mm, 6.5, True, "right")
+
+    bottom = table_bottom - 63 * mm
+    pdf.rect(left, bottom, content_width, table_bottom - bottom)
+    text("Amount Chargeable (in words)", left+2*mm, table_bottom-4*mm, 5.5)
+    text(amount_words(quote.grand_total), left+2*mm, table_bottom-8*mm, 6.5, True)
+    text("E. & O.E", right-2*mm, table_bottom-4*mm, 6, False, "right")
+    sig_left, sig_top = left + content_width/2, bottom + 25*mm
+    pdf.rect(sig_left, bottom, right-sig_left, sig_top-bottom)
+    text(f"for {company.company_name or 'Company'}", right-2*mm, sig_top-5*mm, 6.5, True, "right")
+    text("Authorised Signatory", right-2*mm, bottom+3*mm, 6, False, "right")
+    text("This is a Computer Generated Document", width/2, bottom-5*mm, 5.5, False, "center")
+    pdf.showPage(); pdf.save(); output.seek(0)
+    return output.getvalue()
 
 
 def settings_payload(obj):
@@ -339,15 +468,16 @@ def quotation_pdf(request, pk):
         os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = ":".join(
             path for path in ("/opt/homebrew/lib", existing_library_path) if path
         )
-    from weasyprint import CSS, HTML
-
     quote = get_object_or_404(Quotation.objects.prefetch_related("items"), pk=pk)
     company, _ = QuotationSettings.objects.get_or_create(pk=1)
-    html = _exact_quotation_html(quote, company)
-    # The supplied HTML is 8mm taller than A4 when printed by an HTML engine.
-    # Keep its design untouched and only give the PDF enough paper height so
-    # the signature is not moved onto a second page.
-    pdf_bytes = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf(
-        stylesheets=[CSS(string="@page { size: 210mm 305mm; margin: 0; }")]
-    )
+    try:
+        from weasyprint import CSS, HTML
+        html = _exact_quotation_html(quote, company)
+        # The supplied HTML is 8mm taller than A4 when printed by an HTML engine.
+        pdf_bytes = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf(
+            stylesheets=[CSS(string="@page { size: 210mm 305mm; margin: 0; }")]
+        )
+    except Exception:
+        logger.exception("WeasyPrint failed; using portable quotation PDF renderer")
+        pdf_bytes = _reportlab_quotation_pdf(quote, company)
     return FileResponse(io.BytesIO(pdf_bytes), as_attachment=True, filename=f"{quote.number}.pdf")
