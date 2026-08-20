@@ -847,3 +847,70 @@ class UserActivityLog(models.Model):
 
     def __str__(self):
         return f"{self.user.username}: {self.event}"
+
+
+class QuotationSettings(models.Model):
+    company_name = models.CharField(max_length=180, blank=True)
+    address = models.TextField(blank=True)
+    gstin = models.CharField(max_length=30, blank=True)
+    phone = models.CharField(max_length=30, blank=True)
+    email = models.EmailField(blank=True)
+    bank_name = models.CharField(max_length=120, blank=True)
+    account_name = models.CharField(max_length=120, blank=True)
+    account_number = models.CharField(max_length=60, blank=True)
+    ifsc = models.CharField(max_length=30, blank=True)
+    branch = models.CharField(max_length=120, blank=True)
+    terms = models.TextField(blank=True, default="Quotation valid for 15 days.")
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class Quotation(models.Model):
+    number = models.CharField(max_length=40, unique=True)
+    customer_name = models.CharField(max_length=180)
+    customer_phone = models.CharField(max_length=30, blank=True)
+    customer_email = models.EmailField(blank=True)
+    customer_address = models.TextField(blank=True)
+    customer_gstin = models.CharField(max_length=30, blank=True)
+    customer_state = models.CharField(max_length=80, blank=True)
+    customer_state_code = models.CharField(max_length=10, blank=True)
+    consignee_name = models.CharField(max_length=180, blank=True)
+    consignee_address = models.TextField(blank=True)
+    consignee_gstin = models.CharField(max_length=30, blank=True)
+    consignee_state = models.CharField(max_length=80, blank=True)
+    consignee_state_code = models.CharField(max_length=10, blank=True)
+    payment_terms = models.CharField(max_length=180, blank=True)
+    buyer_reference = models.CharField(max_length=180, blank=True)
+    other_references = models.CharField(max_length=180, blank=True)
+    dispatched_through = models.CharField(max_length=180, blank=True)
+    destination = models.CharField(max_length=180, blank=True)
+    delivery_terms = models.TextField(blank=True)
+    quote_date = models.DateField()
+    valid_until = models.DateField(null=True, blank=True)
+    shipment_details = models.TextField(blank=True)
+    notes = models.TextField(blank=True)
+    subtotal = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    tax_total = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    shipping_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    grand_total = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+
+
+class QuotationItem(models.Model):
+    quotation = models.ForeignKey(Quotation, related_name="items", on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, null=True, blank=True, on_delete=models.SET_NULL)
+    product_name = models.CharField(max_length=180)
+    sku = models.CharField(max_length=80, blank=True)
+    hsn_code = models.CharField(max_length=30, blank=True)
+    due_on = models.DateField(null=True, blank=True)
+    unit = models.CharField(max_length=20, default="PCS")
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    quantity = models.DecimalField(max_digits=12, decimal_places=2)
+    unit_price = models.DecimalField(max_digits=14, decimal_places=2)
+    gst_percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    taxable_amount = models.DecimalField(max_digits=14, decimal_places=2)
+    tax_amount = models.DecimalField(max_digits=14, decimal_places=2)
+    total_amount = models.DecimalField(max_digits=14, decimal_places=2)

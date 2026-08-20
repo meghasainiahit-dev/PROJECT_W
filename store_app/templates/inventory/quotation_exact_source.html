@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Quotation</title>
+<style>
+   @import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap');
+
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Liberation Sans', Arial, Helvetica, sans-serif;
+    background: #e5e5e5;
+    margin: 0;
+    padding: 20px;
+    font-size: 13px;
+    color: #000;
+  }
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    background: #fff;
+    padding: 8mm 12mm 5mm 12mm;
+  }
+  .title {
+    text-align: center;
+    font-size: 19px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    padding: 4px 0 8px 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    height: 100%;
+  }
+  .head-table {
+    border: 1px solid #000;
+    border-bottom: none;
+  }
+  .head-table > tbody > tr > td {
+    vertical-align: top;
+    padding: 0;
+  }
+  .left-col {
+    width: 51%;
+    border-right: 1px solid #000;
+    height: 120px;
+  }
+  .party-block-cell{
+    height: 120px;
+  }
+  .right-col {
+    width: 49%;
+  }
+  .company-name { font-weight: bold; font-size: 13.5px; padding: 3px 6px;}
+ .company-address {
+    margin-top: 1px;
+    font-weight: 500;
+    padding: 3px 6px;
+}
+  .info-grid { height: auto; }
+  .info-grid td {
+    border-bottom: 1px solid #000;
+    padding: 3px 6px;
+    vertical-align: top;
+    width: 50%;
+    height: 40px;
+  }
+    .info-grid tr { height: 40px; }
+  .info-grid tr td:first-child { border-right: 1px solid #000; }
+  .info-grid tr:last-child td { border-bottom: none; }
+  .label { display:block; }
+
+  .party-block-cell { padding: 3px 6px !important; border-bottom: 1px solid #000; }
+  .party-block-cell:last-child { border-bottom: none; }
+  .party-title { font-weight: normal; }
+  .party-name { font-weight: bold; }
+
+  .terms-cell { padding: 3px 6px !important; height: 100%; }
+
+  .items-table {
+    border: 1px solid #000;
+    border-top: 1px solid #000;
+  }
+  .items-table th, .items-table td {
+    border-left: 1px solid #000;
+    padding: 3px 6px;
+    vertical-align: top;
+  }
+  .items-table th:first-child, .items-table td:first-child { border-left: 1px solid #000; }
+  .items-table th {
+    font-weight: normal;
+    text-align: center;
+    border-bottom: 1px solid #000;
+  }
+  .items-table td.num { text-align: right; }
+  .items-table td.center { text-align: center; }
+  .items-table td.desc { text-align: left; font-weight: bold; }
+  .items-table td.amt { text-align: right; font-weight: bold; }
+  .taxline { text-align: right; font-style: italic; font-weight: bold; }
+  .subline { text-align: right; font-style: italic; font-weight: normal; }
+  .taxamt { text-align: right; font-weight: bold; }
+  .dateval { font-style: italic; font-size: 12px ; font-weight: 600; }
+  .filler-row td { height: 18px; border-top: none; }
+  .total-row td { border-top: 1px solid #000; font-weight: bold; }
+
+  .bottom-table { height: 140px; border-left: 1px solid #000; border-right: 1px solid #000; }
+  .bottom-table td { height: 140px; padding: 3px 6px; vertical-align: top; }
+  .bottom-table td:first-child { border-left: 1px solid #000; }
+  .bottom-table td:last-child { border-right: 1px solid #000; }
+  .words-cell { width: 60%; }
+  .eoe-cell { width: 40%; text-align: right; font-style: italic; }
+  .amt-words-label { display:block; }
+  .amt-words-value { font-weight: bold; margin-top: 2px; }
+
+  .sig-table{border: 1px solid #000; border-top: none;}
+  .sig-table td { border: 1px solid #000; width: 50%; padding: 3px 6px; text-align: right; height: 90px; vertical-align: top; }
+  .sig-table .company-for { font-weight: bold; }
+  .sig-table .auth { vertical-align: bottom; }
+
+  .footer-note { text-align: center; font-size: 11px; padding-top: 6px; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page { margin: 0; width: 100%; min-height: auto; padding: 6mm; }
+  }
+
+.custom-tr{
+    height: 42px !important;
+}
+.custom-tr td { height: 42px !important; }
+
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="title">QUOTATION</div>
+
+  <!-- Header block: company info + voucher/date grid -->
+  <table class="head-table">
+    <tr>
+      <td class="left-col" rowspan="2">
+        <div class="company-name">A2G Traders Private Limited</div>
+        <div class="company-address">
+          BASEMENT, 57 SHRI GURUKRIPA NAGAR NIGAM COLONY<br>
+          GOLIMAR GARDEN SCHEME AMER ROAD JAIPUR<br>
+          302002<br>
+          GSTIN/UIN: 08AAVCA7886Q1Z8<br>
+          State Name&nbsp; :&nbsp; Rajasthan, Code : 08<br>
+          E-Mail : ASHUTOSH.BURMAN@a2groups.org
+        </div>
+      </td>
+      <td class="right-col" style="padding:0;">
+        <table class="info-grid">
+          <tr>
+            <td><span class="label">Voucher No.</span><strong>2</strong></td>
+            <td><span class="label">Dated</span><strong>3-Aug-26</strong></td>
+          </tr>
+          <tr>
+            <td>&nbsp;</td>
+            <td><span class="label">Mode/Terms of Payment</span></td>
+          </tr>
+          <tr>
+            <td><span class="label">Buyer's Ref./Order No.</span><strong>2</strong></td>
+            <td><span class="label">Other References</span></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Consignee / Buyer left, Terms of Delivery right, dispatched through row -->
+  <table class="head-table">
+    <tr>
+      <td class="left-col" style="border-right:1px solid #000; padding:0;">
+        <div class="party-block-cell">
+          <span class="party-title">Consignee (Ship to)</span><br>
+          <span class="party-name">S.chari</span>
+          <div class="party-lines">
+            36/38/3, Ram Charan Sett Road, Ramrajatala,<br>
+            Howrah, West Bengal &ndash; 711104,<br>
+            State Name&nbsp; :&nbsp; West Bengal, Code : 19
+          </div>
+        </div>
+        <div class="party-block-cell" style="border-bottom:none;">
+          <span class="party-title">Buyer (Bill to)</span><br>
+          <span class="party-name">S.chari</span>
+          <div class="party-lines">
+            36/38/3, Ram Charan Sett Road, Ramrajatala,<br>
+            Howrah, West Bengal &ndash; 711104,<br>
+            State Name&nbsp; :&nbsp; West Bengal, Code : 19
+          </div>
+        </div>
+      </td>
+      <td class="right-col" style="padding:0;">
+        <table class="info-grid" style="height:100%;">
+          <tr class="custom-tr">
+            <td><span class="label">Dispatched through</span></td>
+            <td><span class="label">Destination</span></td>
+          </tr>
+          <tr class="terms-row">
+            <td colspan="2" class="terms-cell" style="border-right:none;">
+              <span class="label">Terms of Delivery</span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Items table -->
+  <table class="items-table">
+    <colgroup>
+      <col style="width:3%">
+      <col style="width:42%">
+      <col style="width:9%">
+      <col style="width:10%">
+      <col style="width:10%">
+      <col style="width:4.5%">
+      <col style="width:6.5%">
+      <col style="width:15%">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>Sl<br>No.</th>
+        <th>Description of<br>Goods and Services</th>
+        <th>Due on</th>
+        <th>Quantity</th>
+        <th>Rate</th>
+        <th>per</th>
+        <th>Disc. %</th>
+        <th>Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="center">1</td>
+        <td class="desc">Ceramic Tile 8*8</td>
+        <td class="center dateval">3-Aug-26</td>
+        <td class="num">46 PCS</td>
+        <td class="num">85.00</td>
+        <td class="center">PCS</td>
+        <td class="center">&nbsp;</td>
+        <td class="amt">3,910.00</td>
+      </tr>
+      <tr>
+        <td class="center">2</td>
+        <td class="desc">Ceramic Tile 12*6</td>
+        <td class="center dateval">3-Aug-26</td>
+        <td class="num">26 PCS</td>
+        <td class="num">35.00</td>
+        <td class="center">PCS</td>
+        <td class="center">&nbsp;</td>
+        <td class="amt">910.00</td>
+      </tr>
+      <tr>
+        <td>&nbsp;</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td class="amt" style="border-top:1px solid #000;">4,820.00</td>
+      </tr>
+      <tr>
+        <td>&nbsp;</td>
+        <td class="taxline">OUTPUTIGST@5%</td>
+        <td></td>
+        <td></td>
+        <td class="num" style="font-weight:bold;">5</td>
+        <td class="center">%</td>
+        <td></td>
+        <td class="taxamt">241.00</td>
+      </tr>
+      <tr>
+        <td>&nbsp;</td>
+        <td class="taxline">Shipping Charges</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td class="taxamt">990.00</td>
+      </tr>
+      <tr>
+        <td>&nbsp;</td>
+        <td class="subline">20*49.50</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr class="filler-row"><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="filler-row"><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="filler-row"><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="filler-row"><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="filler-row"><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="total-row">
+        <td colspan="2" style="text-align:right;">Total</td>
+        <td></td>
+        <td class="num">72 PCS</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td class="amt">&#8377; 6,051.00</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Amount in words / EOE -->
+  <table class="bottom-table">
+    <tr>
+      <td class="words-cell">
+        <span class="amt-words-label">Amount Chargeable (in words)</span>
+        <div class="amt-words-value">INR Six Thousand Fifty One Only</div>
+      </td>
+      <td class="eoe-cell">E. &amp; O.E</td>
+    </tr>
+  </table>
+
+  <!-- Signature block -->
+  <table class="sig-table">
+
+    <tr>
+
+      <td style="border: none;"></td>
+      <td class="auth"><div class="company-for">for A2G Traders Private Limited</div><br><br>Authorised Signatory</td>
+    </tr>
+  </table>
+
+  <div class="footer-note">This is a Computer Generated Document</div>
+
+</div>
+</body>
+</html>

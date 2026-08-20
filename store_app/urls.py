@@ -1,10 +1,11 @@
 from django.contrib import admin
 from django.urls import path, include
 from . import views
-from .api import (purchase, barcode, otherView, app, activity)
+from .api import (purchase, barcode, otherView, app, activity, quotation as quotation_api)
 from . import webview
 from . import download_sam
 from . import download_sam1
+from . import quotation
 
 from django.views.generic import RedirectView
 from store_app import webview
@@ -153,5 +154,16 @@ urlpatterns = [
     path("app/orders/<int:order_id>/", app.AppOrderDetailAPIView.as_view(), name="app-order-detail-api"),
     path("app/activity/", activity.UserActivityAPIView.as_view(), name="app-user-activity-api"),
     path("app/activity/all/", activity.AllUserActivityAPIView.as_view(), name="app-all-user-activity-api"),
+    path("app/quotations/", quotation_api.AppQuotationListCreateAPIView.as_view(), name="app-quotation-list-create"),
+    path("app/quotations/products/", quotation_api.AppQuotationProductsAPIView.as_view(), name="app-quotation-products"),
+    path("app/quotations/<int:pk>/", quotation_api.AppQuotationDetailAPIView.as_view(), name="app-quotation-detail"),
+    path("app/quotations/<int:pk>/pdf/", quotation_api.AppQuotationPDFAPIView.as_view(), name="app-quotation-pdf"),
+    path("quotations/", quotation.quotation_list_page, name="quotation-list-page"),
+    path("quotations/create/", quotation.quotation_page, name="quotation-create-page"),
+    path("quotations/<int:pk>/edit/", quotation.quotation_page, name="quotation-edit-page"),
+    path("quotations/<int:pk>/delete/", quotation.quotation_delete, name="quotation-delete"),
+    path("quotations/settings/", quotation.quotation_settings_api, name="quotation-settings"),
+    path("quotations/save/", quotation.quotation_save_api, name="quotation-save"),
+    path("quotations/<int:pk>/pdf/", quotation.quotation_pdf, name="quotation-pdf"),
 
 ]

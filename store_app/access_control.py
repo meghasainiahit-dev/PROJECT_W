@@ -18,6 +18,7 @@ MODULES = [
     {"key": "items", "label": "Items", "icon": "bi-grid-1x2", "url": "/api/items/"},
     {"key": "vendors", "label": "Vendors", "icon": "bi-people", "url": "/api/vendors-page/"},
     {"key": "orders", "label": "Orders", "icon": "bi-truck", "url": "/api/orders-page/"},
+    {"key": "quotation", "label": "Quotation", "icon": "bi-file-earmark-text", "url": "/api/quotations/"},
     {"key": "users", "label": "Users", "icon": "bi-person-gear", "url": "/users/"},
 ]
 
@@ -79,6 +80,7 @@ MODULE_PATHS = [
         "/api/wps-return/",
     )),
     ("users", ("/users/",)),
+    ("quotation", ("/api/quotations/",)),
 ]
 
 

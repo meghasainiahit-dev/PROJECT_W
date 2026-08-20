@@ -117,3 +117,24 @@ class UserActivityLogAdmin(admin.ModelAdmin):
         "user", "event", "screen", "target", "metadata", "client_timestamp",
         "app_version", "device_id", "ip_address", "user_agent", "created_at",
     )
+
+
+class QuotationItemInline(admin.TabularInline):
+    model = QuotationItem
+    extra = 0
+    autocomplete_fields = ("product",)
+    readonly_fields = ("product_name", "sku", "hsn_code", "taxable_amount", "tax_amount", "total_amount")
+
+
+@admin.register(Quotation)
+class QuotationAdmin(admin.ModelAdmin):
+    list_display = ("number", "customer_name", "quote_date", "grand_total", "created_by")
+    list_filter = ("quote_date", "created_at")
+    search_fields = ("number", "customer_name", "customer_phone", "customer_gstin")
+    date_hierarchy = "quote_date"
+    inlines = (QuotationItemInline,)
+
+
+@admin.register(QuotationSettings)
+class QuotationSettingsAdmin(admin.ModelAdmin):
+    list_display = ("company_name", "gstin", "bank_name", "updated_at")
