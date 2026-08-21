@@ -1,0 +1,159 @@
+{
+  "info": {
+    "_postman_id": "89f972ec-49cf-4f0d-a8b8-9c912eab6471",
+    "name": "StockOS - Quotation, Company & Bank APIs",
+    "description": "Runnable app API flow: Login, Company CRUD, Bank CRUD, Products, Quotation CRUD and PDF. Run requests in order. IDs and JWT token are saved automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+  },
+  "event": [{
+    "listen": "prerequest",
+    "script": { "type": "text/javascript", "exec": [
+      "if (!pm.collectionVariables.get('quotation_number')) pm.collectionVariables.set('quotation_number', 'QT-POSTMAN-' + Date.now());"
+    ] }
+  }],
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000/api" },
+    { "key": "username", "value": "admin" },
+    { "key": "password", "value": "" },
+    { "key": "access_token", "value": "" },
+    { "key": "company_id", "value": "" },
+    { "key": "bank_id", "value": "" },
+    { "key": "product_id", "value": "" },
+    { "key": "quotation_id", "value": "" },
+    { "key": "quotation_number", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 - Login",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}" },
+        "url": "{{base_url}}/app/login/"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Login successful', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+        "const json = pm.response.json();",
+        "pm.collectionVariables.set('access_token', json.access || json.access_token || json.token);"
+      ] } }]
+    },
+    {
+      "name": "02 - Company Profiles",
+      "item": [
+        {
+          "name": "Create Company Profile",
+          "request": {
+            "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"label\": \"Postman Company\",\n  \"company_name\": \"A2G Traders Private Limited\",\n  \"address\": \"Jaipur, Rajasthan\",\n  \"gstin\": \"08ABCDE1234F1Z5\",\n  \"phone\": \"9876543210\",\n  \"email\": \"accounts@example.com\",\n  \"terms\": \"Quotation valid for 15 days.\"\n}" },
+            "url": "{{base_url}}/app/quotations/companies/"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Company created', () => pm.response.to.have.status(201));",
+            "pm.collectionVariables.set('company_id', String(pm.response.json().id));"
+          ] } }]
+        },
+        { "name": "List Company Profiles", "request": { "method": "GET", "url": "{{base_url}}/app/quotations/companies/" } },
+        { "name": "Get Company Profile", "request": { "method": "GET", "url": "{{base_url}}/app/quotations/companies/{{company_id}}/" } },
+        {
+          "name": "Update Company Profile",
+          "request": {
+            "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"label\": \"Postman Company Updated\",\n  \"phone\": \"9999999999\"\n}" },
+            "url": "{{base_url}}/app/quotations/companies/{{company_id}}/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Bank Accounts",
+      "item": [
+        {
+          "name": "Create Bank Account",
+          "request": {
+            "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"label\": \"Postman HDFC Account\",\n  \"bank_name\": \"HDFC Bank\",\n  \"account_name\": \"A2G Traders Private Limited\",\n  \"account_number\": \"1234567890\",\n  \"ifsc\": \"HDFC0001234\",\n  \"branch\": \"Jaipur\"\n}" },
+            "url": "{{base_url}}/app/quotations/banks/"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Bank created', () => pm.response.to.have.status(201));",
+            "pm.collectionVariables.set('bank_id', String(pm.response.json().id));"
+          ] } }]
+        },
+        { "name": "List Bank Accounts", "request": { "method": "GET", "url": "{{base_url}}/app/quotations/banks/" } },
+        { "name": "Get Bank Account", "request": { "method": "GET", "url": "{{base_url}}/app/quotations/banks/{{bank_id}}/" } },
+        {
+          "name": "Update Bank Account",
+          "request": {
+            "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"label\": \"Postman HDFC Updated\",\n  \"branch\": \"Jaipur Main\"\n}" },
+            "url": "{{base_url}}/app/quotations/banks/{{bank_id}}/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Products",
+      "item": [{
+        "name": "Search Products",
+        "request": { "method": "GET", "url": "{{base_url}}/app/quotations/products/?search=" },
+        "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Products loaded', () => pm.response.to.have.status(200));",
+          "const rows = pm.response.json().data || [];",
+          "if (rows.length) pm.collectionVariables.set('product_id', String(rows[0].id));"
+        ] } }]
+      }]
+    },
+    {
+      "name": "05 - Quotations",
+      "item": [
+        {
+          "name": "Create Quotation",
+          "request": {
+            "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"number\": \"{{quotation_number}}\",\n  \"company_profile_id\": {{company_id}},\n  \"bank_account_id\": {{bank_id}},\n  \"quote_date\": \"2026-08-21\",\n  \"valid_until\": \"2026-09-05\",\n  \"customer_name\": \"Postman Customer\",\n  \"customer_phone\": \"9876543210\",\n  \"customer_email\": \"customer@example.com\",\n  \"customer_address\": \"Customer billing address\",\n  \"customer_gstin\": \"08ABCDE1234F1Z5\",\n  \"customer_state\": \"Rajasthan\",\n  \"customer_state_code\": \"08\",\n  \"consignee_name\": \"Postman Consignee\",\n  \"consignee_address\": \"Shipping address\",\n  \"consignee_gstin\": \"08ABCDE1234F1Z5\",\n  \"consignee_state\": \"Rajasthan\",\n  \"consignee_state_code\": \"08\",\n  \"payment_terms\": \"Advance\",\n  \"buyer_reference\": \"PO-POSTMAN-001\",\n  \"other_references\": \"API Test\",\n  \"dispatched_through\": \"Transport\",\n  \"destination\": \"Jaipur\",\n  \"delivery_terms\": \"Door delivery\",\n  \"shipment_details\": \"Freight extra\",\n  \"shipping_amount\": \"100.00\",\n  \"notes\": \"Created from Postman\",\n  \"items\": [{\n    \"product_id\": {{product_id}},\n    \"due_on\": \"2026-09-05\",\n    \"quantity\": \"2\",\n    \"unit\": \"PCS\",\n    \"unit_price\": \"100.00\",\n    \"discount_percentage\": \"0\",\n    \"gst_percentage\": \"18\"\n  }]\n}" },
+            "url": "{{base_url}}/app/quotations/"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Quotation created', () => pm.response.to.have.status(201));",
+            "const json = pm.response.json();",
+            "pm.collectionVariables.set('quotation_id', String(json.id));",
+            "pm.test('Selected company returned', () => pm.expect(json.company_profile.id).to.eql(Number(pm.collectionVariables.get('company_id'))));",
+            "pm.test('Selected bank returned', () => pm.expect(json.bank_account.id).to.eql(Number(pm.collectionVariables.get('bank_id'))));"
+          ] } }]
+        },
+        { "name": "List Quotations", "request": { "method": "GET", "url": "{{base_url}}/app/quotations/?search={{quotation_number}}&page=1&limit=20" } },
+        { "name": "Get Quotation Detail", "request": { "method": "GET", "url": "{{base_url}}/app/quotations/{{quotation_id}}/" } },
+        {
+          "name": "Update Quotation",
+          "request": {
+            "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"payment_terms\": \"50% Advance\",\n  \"shipping_amount\": \"150.00\"\n}" },
+            "url": "{{base_url}}/app/quotations/{{quotation_id}}/"
+          }
+        },
+        { "name": "View PDF", "request": { "method": "GET", "url": "{{base_url}}/app/quotations/{{quotation_id}}/pdf/" } },
+        { "name": "Download PDF", "request": { "method": "GET", "url": "{{base_url}}/app/quotations/{{quotation_id}}/pdf/?download=1" } },
+        {
+          "name": "Delete Quotation",
+          "request": { "method": "DELETE", "url": "{{base_url}}/app/quotations/{{quotation_id}}/" },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Quotation deleted', () => pm.response.to.have.status(204));"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "06 - Cleanup Test Settings",
+      "description": "Run after Delete Quotation. Used settings cannot be deleted until the quotation is removed.",
+      "item": [
+        { "name": "Delete Test Company", "request": { "method": "DELETE", "url": "{{base_url}}/app/quotations/companies/{{company_id}}/" } },
+        { "name": "Delete Test Bank", "request": { "method": "DELETE", "url": "{{base_url}}/app/quotations/banks/{{bank_id}}/" } }
+      ]
+    }
+  ]
+}

@@ -19,6 +19,10 @@ Content-Type: application/json
 | PUT/PATCH | `/api/app/quotations/{id}/` | Edit quotation and its items |
 | DELETE | `/api/app/quotations/{id}/` | Delete quotation |
 | GET | `/api/app/quotations/products/?search=tile` | Search products with saved price |
+| GET/POST | `/api/app/quotations/companies/` | List or create company profiles |
+| GET/PUT/PATCH/DELETE | `/api/app/quotations/companies/{id}/` | View, edit or delete a company profile |
+| GET/POST | `/api/app/quotations/banks/` | List or create bank accounts |
+| GET/PUT/PATCH/DELETE | `/api/app/quotations/banks/{id}/` | View, edit or delete a bank account |
 | GET | `/api/app/quotations/{id}/pdf/` | View PDF inline |
 | GET | `/api/app/quotations/{id}/pdf/?download=1` | Download PDF |
 
@@ -27,6 +31,8 @@ Content-Type: application/json
 ```json
 {
   "number": "QT-2026-001",
+  "company_profile_id": 1,
+  "bank_account_id": 1,
   "quote_date": "2026-08-20",
   "valid_until": "2026-09-04",
   "customer_name": "Customer Name",
@@ -65,6 +71,43 @@ Content-Type: application/json
 ```
 
 GST accepts `5` or `18`. The product API returns the saved database price as `price`; the app can send an edited value as `unit_price`.
+
+`company_profile_id` is required while saving a quotation. `bank_account_id` is optional. Get these IDs from the company and bank list APIs. Quotation list/detail responses include both the selected IDs and full `company_profile` / `bank_account` objects.
+
+## Company profile CRUD
+
+Create with `POST /api/app/quotations/companies/`:
+
+```json
+{
+  "label": "A2G Jaipur",
+  "company_name": "A2G Traders Private Limited",
+  "address": "Jaipur, Rajasthan",
+  "gstin": "08ABCDE1234F1Z5",
+  "phone": "9876543210",
+  "email": "accounts@example.com",
+  "terms": "Quotation valid for 15 days."
+}
+```
+
+Edit using `PUT` or `PATCH /api/app/quotations/companies/{id}/`. Delete using `DELETE` on the same URL.
+
+## Bank account CRUD
+
+Create with `POST /api/app/quotations/banks/`:
+
+```json
+{
+  "label": "HDFC Current Account",
+  "bank_name": "HDFC Bank",
+  "account_name": "A2G Traders Private Limited",
+  "account_number": "1234567890",
+  "ifsc": "HDFC0001234",
+  "branch": "Jaipur"
+}
+```
+
+Edit using `PUT` or `PATCH /api/app/quotations/banks/{id}/`. Delete using `DELETE` on the same URL. Company/bank records already used by a quotation return HTTP `409` on delete so old quotation PDFs remain valid.
 
 ## List response
 

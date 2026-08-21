@@ -864,6 +864,41 @@ class QuotationSettings(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class QuotationCompanyProfile(models.Model):
+    label = models.CharField(max_length=120)
+    company_name = models.CharField(max_length=180)
+    address = models.TextField(blank=True)
+    gstin = models.CharField(max_length=30, blank=True)
+    phone = models.CharField(max_length=30, blank=True)
+    email = models.EmailField(blank=True)
+    terms = models.TextField(blank=True, default="Quotation valid for 15 days.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("label", "id")
+
+    def __str__(self):
+        return self.label
+
+
+class QuotationBankAccount(models.Model):
+    label = models.CharField(max_length=120)
+    bank_name = models.CharField(max_length=120)
+    account_name = models.CharField(max_length=120, blank=True)
+    account_number = models.CharField(max_length=60)
+    ifsc = models.CharField(max_length=30, blank=True)
+    branch = models.CharField(max_length=120, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("label", "id")
+
+    def __str__(self):
+        return self.label
+
+
 class Quotation(models.Model):
     number = models.CharField(max_length=40, unique=True)
     customer_name = models.CharField(max_length=180)
@@ -892,6 +927,8 @@ class Quotation(models.Model):
     tax_total = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     shipping_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     grand_total = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    company_profile = models.ForeignKey(QuotationCompanyProfile, null=True, blank=True, on_delete=models.SET_NULL, related_name="quotations")
+    bank_account = models.ForeignKey(QuotationBankAccount, null=True, blank=True, on_delete=models.SET_NULL, related_name="quotations")
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
 

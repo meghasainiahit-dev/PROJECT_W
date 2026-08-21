@@ -13,7 +13,10 @@ from django.http import FileResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .models import Order, Product, Quotation, QuotationItem, QuotationSettings
+from .models import (
+    Order, Product, Quotation, QuotationBankAccount, QuotationCompanyProfile,
+    QuotationItem, QuotationSettings,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +44,7 @@ def amount_words(value):
     return "INR " + (" ".join(parts) or "Zero") + " Only"
 
 
-def _exact_quotation_html(quote, company):
+def _exact_quotation_html(quote, company, bank=None):
     """Inject data into the user's exact table.html without changing its design."""
     from bs4 import BeautifulSoup, NavigableString
 
@@ -152,11 +155,26 @@ def _exact_quotation_html(quote, company):
     total_row.find_all("td")[1].extract()
 
     soup.select_one(".amt-words-value").string = amount_words(quote.grand_total)
+    words_cell = soup.select_one(".words-cell")
+    if bank and words_cell:
+        bank_box = soup.new_tag("div")
+        bank_box["style"] = "margin-top:12px;font-size:11px;line-height:1.4"
+        bank_box.append(NavigableString("Bank Details"))
+        bank_box.append(soup.new_tag("br"))
+        details = " | ".join(filter(None, [
+            bank.bank_name, f"A/C Name: {bank.account_name}" if bank.account_name else "",
+            f"A/C No: {bank.account_number}" if bank.account_number else "",
+            f"IFSC: {bank.ifsc}" if bank.ifsc else "", f"Branch: {bank.branch}" if bank.branch else "",
+        ]))
+        strong = soup.new_tag("strong")
+        strong.string = details
+        bank_box.append(strong)
+        words_cell.append(bank_box)
     soup.select_one(".company-for").string = f"for {company.company_name or 'Company'}"
     return str(soup)
 
 
-def _reportlab_quotation_pdf(quote, company):
+def _reportlab_quotation_pdf(quote, company, bank=None):
     """Portable one-page fallback for servers without WeasyPrint/Pango."""
     from reportlab.lib.units import mm
     from reportlab.pdfbase.pdfmetrics import stringWidth
@@ -272,6 +290,10 @@ def _reportlab_quotation_pdf(quote, company):
     pdf.rect(left, bottom, content_width, table_bottom - bottom)
     text("Amount Chargeable (in words)", left+2*mm, table_bottom-4*mm, 5.5)
     text(amount_words(quote.grand_total), left+2*mm, table_bottom-8*mm, 6.5, True)
+    if bank:
+        text("Bank Details", left+2*mm, table_bottom-15*mm, 5.5)
+        bank_line = " | ".join(filter(None, [bank.bank_name, bank.account_name, f"A/C: {bank.account_number}", f"IFSC: {bank.ifsc}" if bank.ifsc else "", bank.branch]))
+        wrapped(bank_line, left+2*mm, table_bottom-19*mm, content_width/2-4*mm, 6, True, 7)
     text("E. & O.E", right-2*mm, table_bottom-4*mm, 6, False, "right")
     sig_left, sig_top = left + content_width/2, bottom + 25*mm
     pdf.rect(sig_left, bottom, right-sig_left, sig_top-bottom)
@@ -287,6 +309,14 @@ def settings_payload(obj):
     return {field: getattr(obj, field, "") for field in fields}
 
 
+def company_payload(obj):
+    return {field: getattr(obj, field, "") for field in ("id", "label", "company_name", "address", "gstin", "phone", "email", "terms")}
+
+
+def bank_payload(obj):
+    return {field: getattr(obj, field, "") for field in ("id", "label", "bank_name", "account_name", "account_number", "ifsc", "branch")}
+
+
 def quotation_payload(quote):
     fields = (
         "number", "quote_date", "valid_until", "customer_name", "customer_phone",
@@ -300,6 +330,8 @@ def quotation_payload(quote):
     for field in ("quote_date", "valid_until"):
         data[field] = data[field].isoformat() if data[field] else ""
     data["shipping_amount"] = str(data["shipping_amount"])
+    data["company_profile_id"] = quote.company_profile_id
+    data["bank_account_id"] = quote.bank_account_id
     data["items"] = [{
         "id": item.id, "product_id": item.product_id, "product_name": item.product_name,
         "sku": item.sku, "hsn_code": item.hsn_code,
@@ -354,6 +386,10 @@ def save_quotation(data, user, quote=None):
         quote.shipment_details = str(data.get("shipment_details", ""))
         quote.notes = str(data.get("notes", ""))
         quote.shipping_amount = money(data.get("shipping_amount"))
+        quote.company_profile = QuotationCompanyProfile.objects.filter(pk=data.get("company_profile_id")).first()
+        quote.bank_account = QuotationBankAccount.objects.filter(pk=data.get("bank_account_id")).first()
+        if not quote.company_profile:
+            raise ValueError("Please select a company profile.")
         quote.save()
         quote.items.all().delete()
 
@@ -405,6 +441,8 @@ def quotation_preview_script(request):
 @login_required
 def quotation_page(request, pk=None):
     settings_obj, _ = QuotationSettings.objects.get_or_create(pk=1)
+    companies = list(QuotationCompanyProfile.objects.all())
+    banks = list(QuotationBankAccount.objects.all())
     products = Product.objects.select_related("hsn").order_by("name")
     customers = (Order.objects.exclude(customer_name="").values("customer_name","mobile","customer_email").order_by("customer_name").distinct()[:500])
     quote = get_object_or_404(Quotation.objects.prefetch_related("items"), pk=pk) if pk else None
@@ -424,7 +462,10 @@ def quotation_page(request, pk=None):
                 else "Purchase Price"
             ),
         } for p in products]),
-        "customers_json": json.dumps(list(customers)), "company_json": json.dumps(settings_payload(settings_obj)),
+        "customers_json": json.dumps(list(customers)),
+        "company_json": json.dumps(company_payload(companies[0]) if companies else settings_payload(settings_obj)),
+        "companies_json": json.dumps([company_payload(obj) for obj in companies]),
+        "banks_json": json.dumps([bank_payload(obj) for obj in banks]),
         "quote_json": json.dumps(quotation_payload(quote)) if quote else "null",
         "editing_id": quote.id if quote else "", "next_number": next_number, "today": date.today().isoformat(),
         "valid_until": (date.today()+timedelta(days=15)).isoformat(),
@@ -432,14 +473,53 @@ def quotation_page(request, pk=None):
 
 
 @login_required
-@require_http_methods(["POST"])
+@require_http_methods(["GET", "POST", "PUT", "DELETE"])
 def quotation_settings_api(request):
+    if request.method == "GET":
+        return JsonResponse({
+            "companies": [company_payload(obj) for obj in QuotationCompanyProfile.objects.all()],
+            "banks": [bank_payload(obj) for obj in QuotationBankAccount.objects.all()],
+        })
     data = json.loads(request.body or "{}")
-    obj, _ = QuotationSettings.objects.get_or_create(pk=1)
-    for field in settings_payload(obj):
-        setattr(obj, field, str(data.get(field, "")).strip())
-    obj.save()
-    return JsonResponse({"settings": settings_payload(obj)})
+    record_type = data.get("type")
+    record_id = data.get("id")
+    if request.method == "DELETE":
+        model = QuotationCompanyProfile if record_type == "company" else QuotationBankAccount if record_type == "bank" else None
+        if model is None:
+            return JsonResponse({"detail": "Invalid settings type."}, status=400)
+        obj = get_object_or_404(model, pk=record_id)
+        if obj.quotations.exists():
+            return JsonResponse({"detail": "This record is used in a quotation and cannot be deleted. You can edit it instead."}, status=409)
+        obj.delete()
+        return JsonResponse({"deleted": True, "id": record_id, "type": record_type})
+    if record_type == "company":
+        required = str(data.get("company_name", "")).strip()
+        if not required:
+            return JsonResponse({"detail": "Company name is required."}, status=400)
+        obj = get_object_or_404(QuotationCompanyProfile, pk=record_id) if request.method == "PUT" else QuotationCompanyProfile()
+        obj.label = str(data.get("label") or required).strip()[:120]
+        obj.company_name = required[:180]
+        obj.address = str(data.get("address", "")).strip()
+        obj.gstin = str(data.get("gstin", "")).strip()[:30]
+        obj.phone = str(data.get("phone", "")).strip()[:30]
+        obj.email = str(data.get("email", "")).strip()[:254]
+        obj.terms = str(data.get("terms", "")).strip()
+        obj.save()
+        return JsonResponse({"company": company_payload(obj)}, status=200 if request.method == "PUT" else 201)
+    if record_type == "bank":
+        bank_name, account_number = str(data.get("bank_name", "")).strip(), str(data.get("account_number", "")).strip()
+        if not bank_name or not account_number:
+            return JsonResponse({"detail": "Bank name and account number are required."}, status=400)
+        obj = get_object_or_404(QuotationBankAccount, pk=record_id) if request.method == "PUT" else QuotationBankAccount()
+        obj.label = str(data.get("label") or bank_name).strip()[:120]
+        obj.bank_name = bank_name[:120]
+        obj.account_name = str(data.get("account_name", "")).strip()[:120]
+        obj.account_number = account_number[:60]
+        obj.ifsc = str(data.get("ifsc", "")).strip()[:30]
+        obj.branch = str(data.get("branch", "")).strip()[:120]
+        obj.save()
+        return JsonResponse({"bank": bank_payload(obj)}, status=200 if request.method == "PUT" else 201)
+    return JsonResponse({"detail": "Invalid settings type."}, status=400)
 
 
 @login_required
@@ -468,16 +548,19 @@ def quotation_pdf(request, pk):
         os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = ":".join(
             path for path in ("/opt/homebrew/lib", existing_library_path) if path
         )
-    quote = get_object_or_404(Quotation.objects.prefetch_related("items"), pk=pk)
-    company, _ = QuotationSettings.objects.get_or_create(pk=1)
+    quote = get_object_or_404(Quotation.objects.select_related("company_profile", "bank_account").prefetch_related("items"), pk=pk)
+    company = quote.company_profile
+    if company is None:
+        company, _ = QuotationSettings.objects.get_or_create(pk=1)
+    bank = quote.bank_account
     try:
         from weasyprint import CSS, HTML
-        html = _exact_quotation_html(quote, company)
+        html = _exact_quotation_html(quote, company, bank)
         # The supplied HTML is 8mm taller than A4 when printed by an HTML engine.
         pdf_bytes = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf(
             stylesheets=[CSS(string="@page { size: 210mm 305mm; margin: 0; }")]
         )
     except Exception:
         logger.exception("WeasyPrint failed; using portable quotation PDF renderer")
-        pdf_bytes = _reportlab_quotation_pdf(quote, company)
+        pdf_bytes = _reportlab_quotation_pdf(quote, company, bank)
     return FileResponse(io.BytesIO(pdf_bytes), as_attachment=True, filename=f"{quote.number}.pdf")
