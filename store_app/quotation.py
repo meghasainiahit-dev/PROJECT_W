@@ -155,21 +155,23 @@ def _exact_quotation_html(quote, company, bank=None):
     total_row.find_all("td")[1].extract()
 
     soup.select_one(".amt-words-value").string = amount_words(quote.grand_total)
-    words_cell = soup.select_one(".words-cell")
-    if bank and words_cell:
+    bank_cell = soup.select_one(".eoe-cell")
+    if bank and bank_cell:
         bank_box = soup.new_tag("div")
-        bank_box["style"] = "margin-top:12px;font-size:11px;line-height:1.4"
-        bank_box.append(NavigableString("Bank Details"))
+        bank_box["style"] = "margin-top:20px;text-align:left;font-size:11px;line-height:1.45;font-style:normal"
+        title = soup.new_tag("strong")
+        title.string = "Company's Bank Details"
+        bank_box.append(title)
         bank_box.append(soup.new_tag("br"))
-        details = " | ".join(filter(None, [
-            bank.bank_name, f"A/C Name: {bank.account_name}" if bank.account_name else "",
-            f"A/C No: {bank.account_number}" if bank.account_number else "",
-            f"IFSC: {bank.ifsc}" if bank.ifsc else "", f"Branch: {bank.branch}" if bank.branch else "",
-        ]))
-        strong = soup.new_tag("strong")
-        strong.string = details
-        bank_box.append(strong)
-        words_cell.append(bank_box)
+        for label, value in (("A/c Holder's Name", bank.account_name), ("Bank Name", bank.bank_name), ("A/c No.", bank.account_number), ("Branch & IFS Code", " - ".join(filter(None, [bank.branch, bank.ifsc])))):
+            if not value:
+                continue
+            bank_box.append(NavigableString(f"{label} : "))
+            strong = soup.new_tag("strong")
+            strong.string = value
+            bank_box.append(strong)
+            bank_box.append(soup.new_tag("br"))
+        bank_cell.append(bank_box)
     soup.select_one(".company-for").string = f"for {company.company_name or 'Company'}"
     return str(soup)
 
@@ -291,9 +293,14 @@ def _reportlab_quotation_pdf(quote, company, bank=None):
     text("Amount Chargeable (in words)", left+2*mm, table_bottom-4*mm, 5.5)
     text(amount_words(quote.grand_total), left+2*mm, table_bottom-8*mm, 6.5, True)
     if bank:
-        text("Bank Details", left+2*mm, table_bottom-15*mm, 5.5)
-        bank_line = " | ".join(filter(None, [bank.bank_name, bank.account_name, f"A/C: {bank.account_number}", f"IFSC: {bank.ifsc}" if bank.ifsc else "", bank.branch]))
-        wrapped(bank_line, left+2*mm, table_bottom-19*mm, content_width/2-4*mm, 6, True, 7)
+        bank_x = left + content_width / 2 + 2 * mm
+        bank_y = table_bottom - 15 * mm
+        text("Company's Bank Details", bank_x, bank_y, 5.5, True)
+        bank_rows = (("A/c Holder's Name", bank.account_name), ("Bank Name", bank.bank_name), ("A/c No.", bank.account_number), ("Branch & IFS Code", " - ".join(filter(None, [bank.branch, bank.ifsc]))))
+        for label, value in bank_rows:
+            if value:
+                bank_y -= 4 * mm
+                text(f"{label}: {value}", bank_x, bank_y, 5.8, True)
     text("E. & O.E", right-2*mm, table_bottom-4*mm, 6, False, "right")
     sig_left, sig_top = left + content_width/2, bottom + 25*mm
     pdf.rect(sig_left, bottom, right-sig_left, sig_top-bottom)

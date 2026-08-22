@@ -2413,3 +2413,34 @@ Traceback (most recent call last):
     )
 RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to 4da0-103-87-58-100.ngrok-free.app/api/login/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
 ERROR 2026-06-12 10:58:42,848 django.request log:241 Internal Server Error: /api/orders/
+ERROR 2026-08-20 10:13:52,964 django.request log:241 Internal Server Error: /api/app/quotations/
+Traceback (most recent call last):
+  File "/Users/ankitsamant/PROJECT_W/.venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ankitsamant/PROJECT_W/.venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ankitsamant/PROJECT_W/.venv/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ankitsamant/PROJECT_W/.venv/lib/python3.12/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ankitsamant/PROJECT_W/.venv/lib/python3.12/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ankitsamant/PROJECT_W/.venv/lib/python3.12/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/Users/ankitsamant/PROJECT_W/.venv/lib/python3.12/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/Users/ankitsamant/PROJECT_W/.venv/lib/python3.12/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ankitsamant/PROJECT_W/store_app/api/quotation.py", line 65, in post
+    return Response({**_summary(request, quote), **quotation_payload(quote)}, status=status.HTTP_201_CREATED)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ankitsamant/PROJECT_W/store_app/api/quotation.py", line 24, in _summary
+    "quote_date": quote.quote_date.isoformat(),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'isoformat'. Did you mean: 'format'?

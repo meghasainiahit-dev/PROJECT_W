@@ -147,6 +147,7 @@ urlpatterns = [
     path("app/dashboard/", app.AppDashboardAPIView.as_view(), name="app-dashboard-api"),
     path("app/login/", app.AppLoginAPIView.as_view(), name="app-login-api"),
     path("app/products/", app.AppProductsAPIView.as_view(), name="app-products-api"),
+    path("app/products/<int:pk>/sku/", app.AppProductSKUUpdateAPIView.as_view(), name="app-product-sku-update-api"),
     path("app/vendors/", app.AppVendorsAPIView.as_view(), name="app-vendors-api"),
     path("app/users/", app.AppUsersAPIView.as_view(), name="app-users-api"),
     path("app/purchases/", app.AppPurchasesAPIView.as_view(), name="app-purchases-api"),

@@ -332,6 +332,37 @@ class AppProductsAPIView(APIView):
         return Response({"data": data, "count": len(data)})
 
 
+class AppProductSKUUpdateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        if not _app_has_module(request.user, "items"):
+            return _app_forbidden()
+
+        product = Product.objects.filter(pk=pk).first()
+        if not product:
+            return Response({"detail": "Product not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        sku = str(request.data.get("sku", "")).strip()
+        if not sku:
+            return Response({"detail": "sku is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if len(sku) > 150:
+            return Response({"detail": "sku cannot exceed 150 characters."}, status=status.HTTP_400_BAD_REQUEST)
+        if Product.objects.exclude(pk=product.pk).filter(sku=sku).exists():
+            return Response({"detail": "This SKU is already used by another product."}, status=status.HTTP_409_CONFLICT)
+
+        old_sku = product.sku
+        product.sku = sku
+        product.save(update_fields=["sku"])
+        return Response({
+            "id": product.id,
+            "name": product.name,
+            "old_sku": old_sku,
+            "sku": product.sku,
+            "detail": "Product SKU updated successfully.",
+        })
+
+
 class AppVendorsAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
