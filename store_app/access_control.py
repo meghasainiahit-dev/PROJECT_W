@@ -1,3 +1,5 @@
+import json
+
 from django.contrib import messages
 from django.contrib.auth.models import AnonymousUser, User
 from django.db.utils import OperationalError
@@ -19,6 +21,7 @@ MODULES = [
     {"key": "vendors", "label": "Vendors", "icon": "bi-people", "url": "/api/vendors-page/"},
     {"key": "orders", "label": "Orders", "icon": "bi-truck", "url": "/api/orders-page/"},
     {"key": "quotation", "label": "Quotation", "icon": "bi-file-earmark-text", "url": "/api/quotations/"},
+    {"key": "leads", "label": "Lead Management", "icon": "bi-person-lines-fill", "url": "/api/leads-page/"},
     {"key": "users", "label": "Users", "icon": "bi-person-gear", "url": "/users/"},
 ]
 
@@ -81,6 +84,7 @@ MODULE_PATHS = [
     )),
     ("users", ("/users/",)),
     ("quotation", ("/api/quotations/",)),
+    ("leads", ("/api/leads/", "/api/leads-page/")),
 ]
 
 
@@ -221,6 +225,19 @@ def module_for_path(path):
 def action_for_request(request):
     path = request.path
     method = request.method.upper()
+
+    if path.startswith(("/api/leads/", "/api/leads-page/")) and method == "POST":
+        bulk_action = request.POST.get("bulk_action") or request.POST.get("action")
+        if path.endswith("/bulk/") and not bulk_action and "application/json" in (request.content_type or ""):
+            try:
+                bulk_action = json.loads(request.body.decode("utf-8") or "{}").get("action")
+            except (ValueError, UnicodeDecodeError):
+                bulk_action = None
+        if "/delete/" in path or (path.endswith("/bulk/") and bulk_action == "delete"):
+            return "delete"
+        if any(token in path for token in ("/edit/", "/status/", "/convert/", "/mark-lost/")) or path.endswith("/bulk/"):
+            return "edit"
+        return "add"
 
     if method == "GET":
         if path.startswith("/api/purchase-create-page/"):

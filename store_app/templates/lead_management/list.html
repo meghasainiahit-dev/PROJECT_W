@@ -1,0 +1,96 @@
+{% extends "lead_management/base.html" %}
+{% block title %}Lead Management{% endblock %}
+{% block content %}
+<section class="page-header">
+    <div class="page-title"><h1>Lead Management</h1><p>Manage prospects, follow-ups, activity and conversions.</p></div>
+    <div class="header-actions">
+        <a class="btn btn-light" href="/api/leads-page/follow-ups/"><i class="bi bi-calendar-check"></i> Follow-ups</a>
+        <a class="btn btn-primary" href="/api/leads-page/add/"><i class="bi bi-plus-lg"></i> Add Lead</a>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <div class="stat"><span>Total Leads</span><strong>{{ totals.total }}</strong></div>
+    <div class="stat"><span>New Leads</span><strong>{{ totals.new }}</strong></div>
+    <div class="stat"><span>Active Leads</span><strong>{{ totals.active }}</strong></div>
+    <div class="stat"><span>Follow-ups Today</span><strong>{{ totals.follow_ups_today }}</strong></div>
+    <div class="stat"><span>Converted</span><strong>{{ totals.converted }}</strong></div>
+    <div class="stat"><span>Lost</span><strong>{{ totals.lost }}</strong></div>
+    <div class="stat"><span>Conversion Rate</span><strong>{{ totals.conversion_rate }}%</strong></div>
+</section>
+
+<div class="tabs">
+    <a class="tab {% if not query.view or query.view == 'all' %}active{% endif %}" href="?view=all">All Leads</a>
+    <a class="tab {% if query.view == 'active' %}active{% endif %}" href="?view=active">Active Leads</a>
+    <a class="tab {% if query.view == 'converted' %}active{% endif %}" href="?view=converted">Converted Leads</a>
+    <a class="tab {% if query.view == 'lost' %}active{% endif %}" href="?view=lost">Lost Leads</a>
+</div>
+
+<form class="toolbar" method="get">
+    <input type="hidden" name="view" value="{{ query.view|default:'all' }}">
+    <input class="control search-field" name="search" value="{{ query.search }}" placeholder="Search name, phone, email or company">
+    <select class="control" name="status"><option value="">All statuses</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if query.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="control" name="priority"><option value="">All priorities</option>{% for value,label in priority_choices %}<option value="{{ value }}" {% if query.priority == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="control" name="source"><option value="">All sources</option>{% for value,label in source_choices %}<option value="{{ value }}" {% if query.source == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select class="control" name="assigned_to"><option value="">All employees</option>{% for employee in users %}<option value="{{ employee.id }}" {% if query.assigned_to == employee.id|stringformat:'s' %}selected{% endif %}>{{ employee.get_full_name|default:employee.username }}</option>{% endfor %}</select>
+    <input class="control" type="date" name="date_from" value="{{ query.date_from }}" title="Created from">
+    <input class="control" type="date" name="date_to" value="{{ query.date_to }}" title="Created to">
+    <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+    <a class="btn btn-light btn-sm" href="/api/leads-page/">Clear</a>
+</form>
+
+<form method="post" action="/api/leads-page/bulk/" id="bulkForm">
+{% csrf_token %}
+<section class="card">
+    <div class="card-head"><div class="card-title"><span class="pulse-dot"></span> Lead Directory</div><span class="subtle">{{ paginator.count }} lead{{ paginator.count|pluralize }}</span></div>
+    <div class="table-wrap"><table>
+        <thead><tr>
+            <th><input id="selectAll" type="checkbox" aria-label="Select all leads"></th>
+            <th>Lead ID</th><th><a href="?{% if sort_query %}{{ sort_query }}&{% endif %}sort={% if query.sort == 'name' %}-name{% else %}name{% endif %}">Name <i class="bi bi-arrow-down-up"></i></a></th>
+            <th>Phone</th><th>Email</th><th>Company</th><th>Lead Source</th><th>Assigned To</th>
+            <th><a href="?{% if sort_query %}{{ sort_query }}&{% endif %}sort={% if query.sort == 'priority' %}-priority{% else %}priority{% endif %}">Priority <i class="bi bi-arrow-down-up"></i></a></th>
+            <th><a href="?{% if sort_query %}{{ sort_query }}&{% endif %}sort={% if query.sort == 'status' %}-status{% else %}status{% endif %}">Status <i class="bi bi-arrow-down-up"></i></a></th>
+            <th>Next Follow-up</th><th><a href="?{% if sort_query %}{{ sort_query }}&{% endif %}sort={% if query.sort == '-created_at' %}created_at{% else %}-created_at{% endif %}">Created Date <i class="bi bi-arrow-down-up"></i></a></th><th>Actions</th>
+        </tr></thead>
+        <tbody>
+        {% for lead in page_obj %}
+        <tr>
+            <td><input class="lead-check" type="checkbox" name="lead_ids" value="{{ lead.id }}" aria-label="Select {{ lead.full_name }}"></td>
+            <td><strong>{{ lead.lead_id }}</strong></td>
+            <td><a class="lead-name" href="/api/leads-page/{{ lead.id }}/">{{ lead.full_name }}</a>{% if lead.designation %}<div class="subtle">{{ lead.designation }}</div>{% endif %}</td>
+            <td>{{ lead.phone }}</td><td>{{ lead.email|default:"—" }}</td><td>{{ lead.company_name|default:"—" }}</td><td>{{ lead.get_source_display }}</td>
+            <td>{% if lead.assigned_to %}{{ lead.assigned_to.get_full_name|default:lead.assigned_to.username }}{% else %}<span class="subtle">Unassigned</span>{% endif %}</td>
+            <td><span class="badge {{ lead.priority }}">{{ lead.get_priority_display }}</span></td><td><span class="badge {{ lead.status }}">{{ lead.get_status_display }}</span></td>
+            <td>{% if lead.next_follow_up_date %}{{ lead.next_follow_up_date|date:"d M Y" }}{% else %}<span class="subtle">Not scheduled</span>{% endif %}</td>
+            <td>{{ lead.created_at|date:"d M Y" }}</td>
+            <td><div class="row-actions"><a class="btn btn-light btn-sm" title="View" href="/api/leads-page/{{ lead.id }}/"><i class="bi bi-eye"></i></a><a class="btn btn-light btn-sm" title="Edit" href="/api/leads-page/{{ lead.id }}/edit/"><i class="bi bi-pencil"></i></a><button class="btn btn-danger btn-sm" title="Delete" type="submit" formaction="/api/leads-page/{{ lead.id }}/delete/" formmethod="post" onclick="return confirm('Delete this lead?')"><i class="bi bi-trash"></i></button></div></td>
+        </tr>
+        {% empty %}<tr><td class="empty" colspan="13"><i class="bi bi-person-lines-fill"></i><br>No leads match the selected filters.</td></tr>{% endfor %}
+        </tbody>
+    </table></div>
+    {% if paginator.count %}
+    <div class="bulk-bar">
+        <strong id="selectedCount">0 selected</strong>
+        <select class="control" name="bulk_action" id="bulkAction" required><option value="">Bulk action</option><option value="status">Change Status</option><option value="assign">Assign Employee</option><option value="priority">Change Priority</option><option value="export">Export</option><option value="delete">Delete</option></select>
+        <select class="control bulk-value" id="bulkStatus"><option value="">Select status</option>{% for value,label in status_choices %}{% if value != 'converted' and value != 'lost' %}<option value="{{ value }}">{{ label }}</option>{% endif %}{% endfor %}</select>
+        <select class="control bulk-value" id="bulkPriority"><option value="">Select priority</option>{% for value,label in priority_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+        <select class="control bulk-value" id="bulkAssign"><option value="">Unassigned</option>{% for employee in users %}<option value="{{ employee.id }}">{{ employee.get_full_name|default:employee.username }}</option>{% endfor %}</select>
+        <input type="hidden" name="bulk_value" id="bulkValue">
+        <button class="btn btn-primary btn-sm" type="submit">Apply</button>
+    </div>
+    <div class="pagination"><span>Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ paginator.count }}</span><div class="pagination-links">{% if page_obj.has_previous %}<a class="page-link" href="?{% if page_query %}{{ page_query }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}<span class="page-link active">{{ page_obj.number }}</span>{% if page_obj.has_next %}<a class="page-link" href="?{% if page_query %}{{ page_query }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>{% endif %}</div></div>
+    {% endif %}
+</section>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+const checks=[...document.querySelectorAll('.lead-check')],all=document.getElementById('selectAll'),count=document.getElementById('selectedCount');
+function updateCount(){const n=checks.filter(x=>x.checked).length;count.textContent=n+' selected';if(all)all.checked=n===checks.length&&n>0}
+if(all)all.addEventListener('change',()=>{checks.forEach(x=>x.checked=all.checked);updateCount()});checks.forEach(x=>x.addEventListener('change',updateCount));
+const action=document.getElementById('bulkAction'),value=document.getElementById('bulkValue'),maps={status:document.getElementById('bulkStatus'),priority:document.getElementById('bulkPriority'),assign:document.getElementById('bulkAssign')};
+function bulkFields(){Object.values(maps).forEach(x=>{x.style.display='none';x.onchange=null});const field=maps[action.value];value.value='';if(field){field.style.display='block';field.onchange=()=>value.value=field.value;value.value=field.value}}
+action.addEventListener('change',bulkFields);
+document.getElementById('bulkForm').addEventListener('submit',e=>{if(!checks.some(x=>x.checked)){e.preventDefault();alert('Select at least one lead.');return}if(action.value==='delete'&&!confirm('Delete selected leads?'))e.preventDefault()});
+</script>
+{% endblock %}

@@ -951,3 +951,153 @@ class QuotationItem(models.Model):
     taxable_amount = models.DecimalField(max_digits=14, decimal_places=2)
     tax_amount = models.DecimalField(max_digits=14, decimal_places=2)
     total_amount = models.DecimalField(max_digits=14, decimal_places=2)
+
+
+# Lead Management is intentionally isolated from the existing stock models.
+class Lead(models.Model):
+    STATUS_NEW = "new"
+    STATUS_CONTACTED = "contacted"
+    STATUS_FOLLOW_UP = "follow_up"
+    STATUS_INTERESTED = "interested"
+    STATUS_QUALIFIED = "qualified"
+    STATUS_PROPOSAL_SENT = "proposal_sent"
+    STATUS_NEGOTIATION = "negotiation"
+    STATUS_CONVERTED = "converted"
+    STATUS_LOST = "lost"
+    STATUS_NOT_INTERESTED = "not_interested"
+    STATUS_NOT_RESPONDING = "not_responding"
+    STATUS_CHOICES = [
+        (STATUS_NEW, "New"), (STATUS_CONTACTED, "Contacted"),
+        (STATUS_FOLLOW_UP, "Follow-up"), (STATUS_INTERESTED, "Interested"),
+        (STATUS_QUALIFIED, "Qualified"), (STATUS_PROPOSAL_SENT, "Proposal Sent"),
+        (STATUS_NEGOTIATION, "Negotiation"), (STATUS_CONVERTED, "Converted"),
+        (STATUS_LOST, "Lost"), (STATUS_NOT_INTERESTED, "Not Interested"),
+        (STATUS_NOT_RESPONDING, "Not Responding"),
+    ]
+    PRIORITY_CHOICES = [("hot", "Hot"), ("warm", "Warm"), ("cold", "Cold")]
+    SOURCE_CHOICES = [
+        ("website", "Website"), ("facebook", "Facebook"),
+        ("instagram", "Instagram"), ("google_ads", "Google Ads"),
+        ("whatsapp", "WhatsApp"), ("referral", "Referral"),
+        ("cold_calling", "Cold Calling"), ("walk_in", "Walk-in"),
+        ("linkedin", "LinkedIn"), ("indiamart", "IndiaMART"),
+        ("justdial", "Justdial"), ("manual_entry", "Manual Entry"),
+        ("other", "Other"),
+    ]
+    LOST_REASON_CHOICES = [
+        ("price_too_high", "Price Too High"), ("not_interested", "Not Interested"),
+        ("competitor_selected", "Competitor Selected"), ("no_response", "No Response"),
+        ("budget_issue", "Budget Issue"), ("requirement_changed", "Requirement Changed"),
+        ("invalid_lead", "Invalid Lead"), ("duplicate_lead", "Duplicate Lead"),
+        ("other", "Other"),
+    ]
+
+    full_name = models.CharField(max_length=180, db_index=True)
+    phone = models.CharField(max_length=30, db_index=True)
+    whatsapp_number = models.CharField(max_length=30, blank=True)
+    email = models.EmailField(blank=True, db_index=True)
+    company_name = models.CharField(max_length=180, blank=True, db_index=True)
+    designation = models.CharField(max_length=120, blank=True)
+    source = models.CharField(max_length=30, choices=SOURCE_CHOICES, default="manual_entry", db_index=True)
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default="warm", db_index=True)
+    assigned_to = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="assigned_leads")
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default=STATUS_NEW, db_index=True)
+    tags = models.CharField(max_length=500, blank=True, help_text="Comma-separated tags")
+    address = models.TextField(blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    state = models.CharField(max_length=100, blank=True)
+    country = models.CharField(max_length=100, blank=True)
+    pincode = models.CharField(max_length=15, blank=True)
+    notes = models.TextField(blank=True)
+    lost_reason = models.CharField(max_length=30, choices=LOST_REASON_CHOICES, blank=True)
+    lost_notes = models.TextField(blank=True)
+    lost_at = models.DateTimeField(null=True, blank=True)
+    lost_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="lost_leads")
+    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="created_leads")
+    updated_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="updated_leads")
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False, db_index=True)
+
+    class Meta:
+        ordering = ("-created_at", "-id")
+
+    @property
+    def lead_id(self):
+        return f"LEAD-{self.pk:05d}" if self.pk else "LEAD-NEW"
+
+    def __str__(self):
+        return f"{self.lead_id} - {self.full_name}"
+
+
+class LeadActivity(models.Model):
+    EVENT_CHOICES = [
+        ("created", "Lead Created"), ("updated", "Lead Updated"),
+        ("assigned", "Assigned to Employee"), ("status_changed", "Status Changed"),
+        ("follow_up_added", "Follow-up Added"), ("follow_up_completed", "Follow-up Completed"),
+        ("note_added", "Note Added"), ("proposal_sent", "Proposal Sent"),
+        ("converted", "Lead Converted"), ("lost", "Lead Lost"),
+    ]
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name="activities")
+    event = models.CharField(max_length=30, choices=EVENT_CHOICES, db_index=True)
+    title = models.CharField(max_length=180)
+    description = models.TextField(blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    actor = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="lead_activities")
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ("-created_at", "-id")
+
+
+class LeadFollowUp(models.Model):
+    TYPE_CHOICES = [("call", "Call"), ("whatsapp", "WhatsApp"), ("email", "Email"), ("meeting", "Meeting"), ("demo", "Demo")]
+    STATUS_CHOICES = [("upcoming", "Upcoming"), ("completed", "Completed"), ("missed", "Missed"), ("cancelled", "Cancelled")]
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name="follow_ups")
+    follow_up_date = models.DateField(db_index=True)
+    follow_up_time = models.TimeField()
+    follow_up_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="upcoming", db_index=True)
+    notes = models.TextField(blank=True)
+    assigned_to = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="lead_follow_ups")
+    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="created_lead_follow_ups")
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("follow_up_date", "follow_up_time", "id")
+
+
+class LeadNote(models.Model):
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name="lead_notes")
+    note = models.TextField()
+    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="lead_notes")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at", "-id")
+
+
+class LeadConversion(models.Model):
+    PAYMENT_STATUS_CHOICES = [("pending", "Pending"), ("partial", "Partial"), ("paid", "Paid")]
+    lead = models.OneToOneField(Lead, on_delete=models.CASCADE, related_name="conversion")
+    conversion_date = models.DateField()
+    product_service = models.CharField(max_length=255)
+    deal_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0, validators=[MinValueValidator(0)])
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default="pending")
+    notes = models.TextField(blank=True)
+    converted_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="converted_leads")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class LeadStatusHistory(models.Model):
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name="status_history")
+    old_status = models.CharField(max_length=30, choices=Lead.STATUS_CHOICES)
+    new_status = models.CharField(max_length=30, choices=Lead.STATUS_CHOICES)
+    changed_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="lead_status_changes")
+    reason = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at", "-id")

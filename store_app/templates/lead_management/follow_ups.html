@@ -1,0 +1,10 @@
+{% extends "lead_management/base.html" %}
+{% block title %}Lead Follow-ups{% endblock %}
+{% block content %}
+<section class="page-header"><div class="page-title"><h1>Lead Follow-ups</h1><p>Track overdue, today, upcoming and completed sales activities.</p></div><a class="btn btn-light" href="/api/leads-page/"><i class="bi bi-arrow-left"></i> Lead Management</a></section>
+
+<section class="card"><div class="card-head"><div class="card-title"><i class="bi bi-exclamation-circle" style="color:var(--red)"></i> Overdue Follow-ups</div><span class="badge missed">{{ overdue|length }}</span></div><div class="list-stack">{% for item in overdue %}{% include "lead_management/follow_up_row.html" %}{% empty %}<div class="empty">No overdue follow-ups.</div>{% endfor %}</div></section>
+<section class="card"><div class="card-head"><div class="card-title"><span class="pulse-dot"></span> Today's Follow-ups</div><span class="badge upcoming">{{ today_follow_ups|length }}</span></div><div class="list-stack">{% for item in today_follow_ups %}{% include "lead_management/follow_up_row.html" %}{% empty %}<div class="empty">No follow-ups scheduled for today.</div>{% endfor %}</div></section>
+<section class="card"><div class="card-head"><div class="card-title"><i class="bi bi-calendar3"></i> Upcoming Follow-ups</div><span class="subtle">{{ upcoming|length }}</span></div><div class="list-stack">{% for item in upcoming %}{% include "lead_management/follow_up_row.html" %}{% empty %}<div class="empty">No upcoming follow-ups.</div>{% endfor %}</div></section>
+<section class="card"><div class="card-head"><div class="card-title"><i class="bi bi-check-circle" style="color:var(--green)"></i> Completed Follow-ups</div><span class="badge completed">{{ completed|length }}</span></div><div class="list-stack">{% for item in completed %}{% include "lead_management/follow_up_row.html" %}{% empty %}<div class="empty">No completed follow-ups.</div>{% endfor %}</div></section>
+{% endblock %}

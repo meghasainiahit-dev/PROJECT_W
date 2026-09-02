@@ -6,6 +6,7 @@ from . import webview
 from . import download_sam
 from . import download_sam1
 from . import quotation
+from . import lead_management
 
 from django.views.generic import RedirectView
 from store_app import webview
@@ -171,5 +172,30 @@ urlpatterns = [
     path("quotations/settings/", quotation.quotation_settings_api, name="quotation-settings"),
     path("quotations/save/", quotation.quotation_save_api, name="quotation-save"),
     path("quotations/<int:pk>/pdf/", quotation.quotation_pdf, name="quotation-pdf"),
+
+    # Lead Management (isolated web pages and APIs)
+    path("leads-page/", lead_management.lead_list_page, name="lead-list-page"),
+    path("leads-page/add/", lead_management.lead_form_page, name="lead-add-page"),
+    path("leads-page/follow-ups/", lead_management.follow_ups_page, name="lead-follow-ups-page"),
+    path("leads-page/export/", lead_management.export_leads, name="lead-export"),
+    path("leads-page/bulk/", lead_management.bulk_lead_action, name="lead-bulk-action"),
+    path("leads-page/follow-ups/<int:pk>/status/", lead_management.follow_up_web_status, name="follow-up-web-status"),
+    path("leads-page/<int:pk>/", lead_management.lead_detail_page, name="lead-detail-page"),
+    path("leads-page/<int:pk>/edit/", lead_management.lead_form_page, name="lead-edit-page"),
+    path("leads-page/<int:pk>/<str:action>/", lead_management.lead_web_action, name="lead-web-action"),
+
+    path("leads/", lead_management.LeadListCreateAPI.as_view(), name="lead-list-create-api"),
+    path("leads/options/", lead_management.LeadOptionsAPI.as_view(), name="lead-options-api"),
+    path("leads/stats/", lead_management.LeadStatsAPI.as_view(), name="lead-stats-api"),
+    path("leads/bulk/", lead_management.LeadBulkAPI.as_view(), name="lead-bulk-api"),
+    path("leads/export/", lead_management.export_leads, name="lead-export-api"),
+    path("leads/follow-ups/", lead_management.LeadFollowUpListAPI.as_view(), name="lead-follow-up-list-api"),
+    path("leads/follow-ups/<int:pk>/", lead_management.FollowUpDetailAPI.as_view(), name="lead-follow-up-detail-api"),
+    path("leads/<int:pk>/", lead_management.LeadDetailAPI.as_view(), name="lead-detail-api"),
+    path("leads/<int:pk>/activities/", lead_management.LeadRelatedAPI.as_view(), {"resource": "activities"}, name="lead-activities-api"),
+    path("leads/<int:pk>/follow-ups/", lead_management.LeadRelatedAPI.as_view(), {"resource": "follow-ups"}, name="lead-related-follow-ups-api"),
+    path("leads/<int:pk>/notes/", lead_management.LeadRelatedAPI.as_view(), {"resource": "notes"}, name="lead-notes-api"),
+    path("leads/<int:pk>/status-history/", lead_management.LeadRelatedAPI.as_view(), {"resource": "status-history"}, name="lead-status-history-api"),
+    path("leads/<int:pk>/<str:action>/", lead_management.LeadActionAPI.as_view(), name="lead-action-api"),
 
 ]

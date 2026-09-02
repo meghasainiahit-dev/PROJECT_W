@@ -1,0 +1,46 @@
+{% extends "lead_management/base.html" %}
+{% block title %}{% if lead %}Edit Lead{% else %}Add Lead{% endif %}{% endblock %}
+{% block content %}
+<section class="page-header">
+    <div class="page-title"><h1>{% if lead %}Edit Lead{% else %}Add New Lead{% endif %}</h1><p>{% if lead %}Update lead information without changing its activity history.{% else %}Capture a new prospect for the sales team.{% endif %}</p></div>
+    <a class="btn btn-light" href="{% if lead %}/api/leads-page/{{ lead.id }}/{% else %}/api/leads-page/{% endif %}"><i class="bi bi-arrow-left"></i> Cancel</a>
+</section>
+<form method="post" class="card form-shell" novalidate>{% csrf_token %}
+    <section class="form-section">
+        <div class="section-title"><i class="bi bi-person"></i> Basic Information</div>
+        <div class="field-grid">
+            <div class="field"><label>Full Name <span class="required">*</span></label><input name="full_name" required value="{% if form_data %}{{ form_data.full_name }}{% else %}{{ lead.full_name }}{% endif %}" placeholder="Enter full name"></div>
+            <div class="field"><label>Phone Number <span class="required">*</span></label><input name="phone" required value="{% if form_data %}{{ form_data.phone }}{% else %}{{ lead.phone }}{% endif %}" placeholder="Enter phone number"></div>
+            <div class="field"><label>WhatsApp Number</label><input name="whatsapp_number" value="{% if form_data %}{{ form_data.whatsapp_number }}{% else %}{{ lead.whatsapp_number }}{% endif %}" placeholder="Enter WhatsApp number"></div>
+            <div class="field"><label>Email</label><input type="email" name="email" value="{% if form_data %}{{ form_data.email }}{% else %}{{ lead.email }}{% endif %}" placeholder="name@company.com"></div>
+            <div class="field"><label>Company Name</label><input name="company_name" value="{% if form_data %}{{ form_data.company_name }}{% else %}{{ lead.company_name }}{% endif %}" placeholder="Enter company name"></div>
+            <div class="field"><label>Designation</label><input name="designation" value="{% if form_data %}{{ form_data.designation }}{% else %}{{ lead.designation }}{% endif %}" placeholder="Enter designation"></div>
+        </div>
+    </section>
+    <section class="form-section">
+        <div class="section-title"><i class="bi bi-person-lines-fill"></i> Lead Information</div>
+        <div class="field-grid">
+            <div class="field"><label>Lead Source</label><select name="source">{% for value,label in source_choices %}<option value="{{ value }}" {% if form_data.source == value or not form_data and lead.source == value or not form_data and not lead and value == 'manual_entry' %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+            <div class="field"><label>Priority</label><select name="priority">{% for value,label in priority_choices %}<option value="{{ value }}" {% if form_data.priority == value or not form_data and lead.priority == value or not form_data and not lead and value == 'warm' %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+            <div class="field"><label>Assigned Employee</label><select name="assigned_to"><option value="">Unassigned</option>{% for employee in users %}<option value="{{ employee.id }}" {% if form_data.assigned_to == employee.id|stringformat:'s' or not form_data and lead.assigned_to_id == employee.id %}selected{% endif %}>{{ employee.get_full_name|default:employee.username }}</option>{% endfor %}</select></div>
+            <div class="field"><label>Lead Status</label>{% if lead.status == 'converted' %}<input type="hidden" name="status" value="converted"><select disabled><option>Converted</option></select>{% else %}<select name="status">{% for value,label in status_choices %}{% if value != 'converted' and value != 'lost' or lead.status == value %}<option value="{{ value }}" {% if form_data.status == value or not form_data and lead.status == value or not form_data and not lead and value == 'new' %}selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}</select>{% endif %}</div>
+            <div class="field full"><label>Tags</label><input name="tags" value="{% if form_data %}{{ form_data.tags }}{% else %}{{ lead.tags }}{% endif %}" placeholder="retail, high-value, repeat customer"></div>
+        </div>
+    </section>
+    <section class="form-section">
+        <div class="section-title"><i class="bi bi-geo-alt"></i> Address</div>
+        <div class="field-grid">
+            <div class="field full"><label>Address</label><textarea name="address" placeholder="Street address">{% if form_data %}{{ form_data.address }}{% else %}{{ lead.address }}{% endif %}</textarea></div>
+            <div class="field"><label>City</label><input name="city" value="{% if form_data %}{{ form_data.city }}{% else %}{{ lead.city }}{% endif %}"></div>
+            <div class="field"><label>State</label><input name="state" value="{% if form_data %}{{ form_data.state }}{% else %}{{ lead.state }}{% endif %}"></div>
+            <div class="field"><label>Country</label><input name="country" value="{% if form_data %}{{ form_data.country }}{% else %}{{ lead.country }}{% endif %}"></div>
+            <div class="field"><label>Pincode</label><input name="pincode" value="{% if form_data %}{{ form_data.pincode }}{% else %}{{ lead.pincode }}{% endif %}"></div>
+        </div>
+    </section>
+    <section class="form-section">
+        <div class="section-title"><i class="bi bi-card-text"></i> Additional Information</div>
+        <div class="field"><label>Notes</label><textarea name="notes" placeholder="Add any useful context about this lead">{% if form_data %}{{ form_data.notes }}{% else %}{{ lead.notes }}{% endif %}</textarea></div>
+    </section>
+    <div class="form-actions"><a class="btn btn-light" href="{% if lead %}/api/leads-page/{{ lead.id }}/{% else %}/api/leads-page/{% endif %}">Cancel</a><button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> {% if lead %}Update Lead{% else %}Save Lead{% endif %}</button></div>
+</form>
+{% endblock %}
