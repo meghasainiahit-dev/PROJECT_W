@@ -1,11 +1,12 @@
 import json
 
 from django.contrib.auth.models import User
+from django.http import HttpResponse
 from django.test import RequestFactory, TestCase
 
 from . import lead_management
-from .access_control import action_for_request
-from .models import Lead, LeadConversion, LeadFollowUp, LeadStatusHistory
+from .access_control import ModuleAccessMiddleware, action_for_request
+from .models import Lead, LeadConversion, LeadFollowUp, LeadStatusHistory, UserAccessProfile
 
 
 class LeadManagementTests(TestCase):
@@ -93,3 +94,54 @@ class LeadManagementTests(TestCase):
         self.assertEqual(action_for_request(self.factory.post("/api/leads-page/1/edit/")), "edit")
         self.assertEqual(action_for_request(self.factory.post("/api/leads-page/1/status/")), "edit")
         self.assertEqual(action_for_request(self.factory.post("/api/leads-page/1/delete/")), "delete")
+        bulk_delete = self.factory.post(
+            "/api/leads/bulk/", json.dumps({"lead_ids": [1], "action": "delete"}),
+            content_type="application/json",
+        )
+        self.assertEqual(action_for_request(bulk_delete), "delete")
+
+    def test_reference_stats_related_and_bulk_apis(self):
+        lead = self.create_lead()
+        for view in (lead_management.LeadOptionsAPI, lead_management.LeadStatsAPI):
+            request = self.factory.get("/api/leads/reference/")
+            request.user = self.user
+            self.assertEqual(view.as_view()(request).status_code, 200)
+
+        request = self.factory.get(f"/api/leads/{lead.id}/activities/")
+        request.user = self.user
+        response = lead_management.LeadRelatedAPI.as_view()(request, pk=lead.id, resource="activities")
+        self.assertEqual(response.status_code, 200)
+
+        response = lead_management.LeadBulkAPI.as_view()(
+            self.request("/api/leads/bulk/", {
+                "lead_ids": [lead.id], "action": "priority", "value": "cold",
+            })
+        )
+        self.assertEqual(response.status_code, 200)
+        lead.refresh_from_db()
+        self.assertEqual(lead.priority, "cold")
+
+    def test_module_middleware_allows_only_selected_lead_actions(self):
+        profile = UserAccessProfile.objects.create(
+            user=self.user, role=UserAccessProfile.ROLE_USER,
+            modules=["leads"], action_permissions={"leads": ["view"]},
+        )
+        middleware = ModuleAccessMiddleware(lambda request: HttpResponse("allowed"))
+
+        view_request = self.factory.get("/api/leads/")
+        view_request.user = self.user
+        self.assertEqual(middleware(view_request).status_code, 200)
+
+        add_request = self.factory.post(
+            "/api/leads/", json.dumps({"full_name": "No Access"}),
+            content_type="application/json",
+        )
+        add_request.user = self.user
+        self.assertEqual(middleware(add_request).status_code, 403)
+
+        profile.modules = []
+        profile.action_permissions = {}
+        profile.save(update_fields=["modules", "action_permissions"])
+        denied_request = self.factory.get("/api/leads/")
+        denied_request.user = self.user
+        self.assertEqual(middleware(denied_request).status_code, 403)
