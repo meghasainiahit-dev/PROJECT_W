@@ -17,17 +17,46 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from .models import (
-    Lead, LeadActivity, LeadConversion, LeadFollowUp, LeadNote,
+    Lead, LeadActivity, LeadConversion, LeadFollowUp, LeadNote, Product,
     LeadStatusHistory,
 )
 
 
 LEAD_FIELDS = (
-    "full_name", "phone", "whatsapp_number", "email", "company_name",
+    "full_name", "shipping_name", "country_code", "phone", "whatsapp_number",
+    "shipping_phone", "email", "company_name",
     "designation", "source", "priority", "status", "tags", "address",
-    "city", "state", "country", "pincode", "notes",
+    "city", "state", "country", "pincode", "shipping_address1",
+    "shipping_address2", "shipping_city", "shipping_zip",
+    "shipping_province", "shipping_province_name", "shipping_country", "notes",
 )
 ACTIVE_STATUSES = [choice[0] for choice in Lead.STATUS_CHOICES if choice[0] not in {Lead.STATUS_CONVERTED, Lead.STATUS_LOST}]
+
+# Kept locally so the lead form does not depend on an external service.  India
+# stays first because it is the application's default market; remaining entries
+# are alphabetical and the country selector keeps the dial code synchronized.
+COUNTRY_DIAL_CODES = [
+    ("India", "+91"), ("Afghanistan", "+93"), ("Albania", "+355"),
+    ("Algeria", "+213"), ("Argentina", "+54"), ("Australia", "+61"),
+    ("Austria", "+43"), ("Bahrain", "+973"), ("Bangladesh", "+880"),
+    ("Belgium", "+32"), ("Bhutan", "+975"), ("Brazil", "+55"),
+    ("Canada", "+1"), ("China", "+86"), ("Denmark", "+45"),
+    ("Egypt", "+20"), ("Finland", "+358"), ("France", "+33"),
+    ("Germany", "+49"), ("Greece", "+30"), ("Hong Kong", "+852"),
+    ("Indonesia", "+62"), ("Ireland", "+353"), ("Israel", "+972"),
+    ("Italy", "+39"), ("Japan", "+81"), ("Kenya", "+254"),
+    ("Kuwait", "+965"), ("Malaysia", "+60"), ("Maldives", "+960"),
+    ("Mauritius", "+230"), ("Mexico", "+52"), ("Myanmar", "+95"),
+    ("Nepal", "+977"), ("Netherlands", "+31"), ("New Zealand", "+64"),
+    ("Nigeria", "+234"), ("Norway", "+47"), ("Oman", "+968"),
+    ("Pakistan", "+92"), ("Philippines", "+63"), ("Poland", "+48"),
+    ("Portugal", "+351"), ("Qatar", "+974"), ("Russia", "+7"),
+    ("Saudi Arabia", "+966"), ("Singapore", "+65"), ("South Africa", "+27"),
+    ("South Korea", "+82"), ("Spain", "+34"), ("Sri Lanka", "+94"),
+    ("Sweden", "+46"), ("Switzerland", "+41"), ("Taiwan", "+886"),
+    ("Thailand", "+66"), ("Turkey", "+90"), ("United Arab Emirates", "+971"),
+    ("United Kingdom", "+44"), ("United States", "+1"), ("Vietnam", "+84"),
+]
 
 
 class MiddlewareUserAuthentication(BaseAuthentication):
@@ -70,14 +99,30 @@ def _bounded_int(value, default, minimum, maximum):
     return min(max(number, minimum), maximum)
 
 
+def _product_ids_from_data(data):
+    if hasattr(data, "getlist"):
+        raw_ids = data.getlist("product_ids") or data.getlist("products")
+    else:
+        raw_ids = data.get("product_ids", data.get("products", []))
+    if isinstance(raw_ids, str):
+        raw_ids = [value.strip() for value in raw_ids.split(",") if value.strip()]
+    if not isinstance(raw_ids, (list, tuple)):
+        return []
+    return [int(value) for value in raw_ids if str(value).isdigit()]
+
+
 def _validation_errors(data, partial=False):
     errors = {}
-    if not partial or "full_name" in data:
-        if not str(data.get("full_name", "")).strip():
-            errors["full_name"] = "Full name is required."
+    if not partial or "shipping_name" in data or "full_name" in data:
+        if not str(data.get("shipping_name", data.get("full_name", ""))).strip():
+            errors["shipping_name"] = "Shipping name is required."
     if not partial or "phone" in data:
         if not str(data.get("phone", "")).strip():
             errors["phone"] = "Phone number is required."
+    if "country_code" in data:
+        code = str(data.get("country_code", "")).strip()
+        if not code.startswith("+") or not code[1:].isdigit():
+            errors["country_code"] = "Select a valid country code."
     for field, choices in (("source", Lead.SOURCE_CHOICES), ("priority", Lead.PRIORITY_CHOICES), ("status", Lead.STATUS_CHOICES)):
         if field in data and data.get(field) not in _choice_values(choices):
             errors[field] = f"Select a valid {field.replace('_', ' ')}."
@@ -90,6 +135,26 @@ def _set_lead_fields(lead, data, request, creating=False):
     for field in LEAD_FIELDS:
         if field in data:
             setattr(lead, field, str(data.get(field, "")).strip())
+
+    # New shipping/customer fields are canonical; keep legacy fields populated
+    # so existing lists, searches and integrations continue to work unchanged.
+    if "shipping_name" in data:
+        lead.full_name = str(data.get("shipping_name", "")).strip()
+    elif "full_name" in data:
+        lead.shipping_name = str(data.get("full_name", "")).strip()
+    if "shipping_phone" in data:
+        lead.whatsapp_number = str(data.get("shipping_phone", "")).strip()
+    if "shipping_address1" in data or "shipping_address2" in data:
+        lead.address = "\n".join(filter(None, [
+            str(data.get("shipping_address1", "")).strip(),
+            str(data.get("shipping_address2", "")).strip(),
+        ]))
+    for shipping_field, legacy_field in (
+        ("shipping_city", "city"), ("shipping_zip", "pincode"),
+        ("shipping_province_name", "state"), ("shipping_country", "country"),
+    ):
+        if shipping_field in data:
+            setattr(lead, legacy_field, str(data.get(shipping_field, "")).strip())
     if "assigned_to" in data or "assigned_to_id" in data:
         raw_id = data.get("assigned_to", data.get("assigned_to_id"))
         lead.assigned_to = User.objects.filter(pk=raw_id, is_active=True).first() if raw_id else None
@@ -98,6 +163,8 @@ def _set_lead_fields(lead, data, request, creating=False):
         lead.created_by = actor
     lead.updated_by = actor
     lead.save()
+    if "product_ids" in data or "products" in data:
+        lead.products.set(Product.objects.filter(pk__in=_product_ids_from_data(data)))
 
     if creating:
         LeadActivity.objects.create(lead=lead, event="created", title="Lead Created", actor=actor)
@@ -288,7 +355,9 @@ def serialize_lead(lead, detailed=False):
         ).select_related("assigned_to").first()
     data = {
         "id": lead.id, "lead_id": lead.lead_id, "full_name": lead.full_name,
-        "phone": lead.phone, "whatsapp_number": lead.whatsapp_number,
+        "shipping_name": lead.shipping_name or lead.full_name,
+        "country_code": lead.country_code, "phone": lead.phone,
+        "shipping_phone": lead.shipping_phone, "whatsapp_number": lead.whatsapp_number,
         "email": lead.email, "company_name": lead.company_name, "designation": lead.designation,
         "source": lead.source, "source_display": lead.get_source_display(),
         "priority": lead.priority, "priority_display": lead.get_priority_display(),
@@ -297,7 +366,20 @@ def serialize_lead(lead, detailed=False):
         "status": lead.status, "status_display": lead.get_status_display(),
         "tags": [tag.strip() for tag in lead.tags.split(",") if tag.strip()],
         "address": lead.address, "city": lead.city, "state": lead.state,
-        "country": lead.country, "pincode": lead.pincode, "notes": lead.notes,
+        "country": lead.country, "pincode": lead.pincode,
+        "shipping_address1": lead.shipping_address1,
+        "shipping_address2": lead.shipping_address2,
+        "shipping_city": lead.shipping_city, "shipping_zip": lead.shipping_zip,
+        "shipping_province": lead.shipping_province,
+        "shipping_province_name": lead.shipping_province_name,
+        "shipping_country": lead.shipping_country,
+        "products": [{
+            "id": product.id, "name": product.name, "sku": product.sku,
+            "size": product.size, "color": product.color,
+            "retailer_price": str(product.retailer_price),
+            "wholesale_price": str(product.wholesale_price),
+        } for product in lead.products.all()],
+        "notes": lead.notes,
         "next_follow_up": _serialize_follow_up(next_item) if next_item else None,
         "created_at": lead.created_at.isoformat(), "updated_at": lead.updated_at.isoformat(),
         "updated_by": lead.updated_by_id,
@@ -319,10 +401,16 @@ def serialize_lead(lead, detailed=False):
 
 
 def filtered_leads(request):
-    leads = Lead.objects.filter(is_deleted=False).select_related("assigned_to", "updated_by")
+    leads = Lead.objects.filter(is_deleted=False).select_related("assigned_to", "updated_by").prefetch_related("products")
     search = request.GET.get("search", "").strip()
     if search:
-        leads = leads.filter(Q(full_name__icontains=search) | Q(phone__icontains=search) | Q(email__icontains=search) | Q(company_name__icontains=search))
+        leads = leads.filter(
+            Q(full_name__icontains=search) | Q(shipping_name__icontains=search)
+            | Q(phone__icontains=search) | Q(shipping_phone__icontains=search)
+            | Q(email__icontains=search) | Q(shipping_city__icontains=search)
+            | Q(shipping_country__icontains=search) | Q(products__name__icontains=search)
+            | Q(products__sku__icontains=search)
+        ).distinct()
     for param, field in (("status", "status"), ("priority", "priority"), ("source", "source"), ("assigned_to", "assigned_to_id")):
         value = request.GET.get(param)
         if value and (param != "assigned_to" or str(value).isdigit()):
@@ -391,6 +479,13 @@ class LeadOptionsAPI(LeadAPIView):
                 "name": employee.get_full_name() or employee.username,
                 "username": employee.username,
             } for employee in User.objects.filter(is_active=True).order_by("first_name", "username")],
+            "countries": [{"name": country, "dial_code": code} for country, code in COUNTRY_DIAL_CODES],
+            "products": [{
+                "id": product.id, "name": product.name, "sku": product.sku,
+                "size": product.size, "color": product.color,
+                "retailer_price": str(product.retailer_price),
+                "wholesale_price": str(product.wholesale_price),
+            } for product in Product.objects.select_related("vendor").order_by("name", "id")],
         })
 
 
@@ -632,12 +727,26 @@ def lead_form_page(request, pk=None):
         for message in errors.values():
             messages.error(request, message)
     context = _base_context(request)
-    context.update({"lead": lead, "form_data": request.POST if request.method == "POST" else None})
+    selected_ids = set(
+        _product_ids_from_data(request.POST)
+        if request.method == "POST"
+        else (lead.products.values_list("id", flat=True) if lead else [])
+    )
+    products = list(Product.objects.select_related("vendor").order_by("name", "id"))
+    for product in products:
+        product.is_selected_for_lead = product.id in selected_ids
+    context.update({
+        "lead": lead, "form_data": request.POST if request.method == "POST" else None,
+        "products": products,
+    })
     return render(request, "lead_management/form.html", context)
 
 
 def lead_detail_page(request, pk):
-    lead = get_object_or_404(Lead.objects.select_related("assigned_to", "created_by", "updated_by"), pk=pk, is_deleted=False)
+    lead = get_object_or_404(
+        Lead.objects.select_related("assigned_to", "created_by", "updated_by").prefetch_related("products"),
+        pk=pk, is_deleted=False,
+    )
     context = _base_context(request)
     context.update({
         "lead": lead,
@@ -765,12 +874,20 @@ def export_leads(request, queryset=None):
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = f'attachment; filename="leads-{timezone.localdate().isoformat()}.csv"'
     writer = csv.writer(response)
-    writer.writerow(["Lead ID", "Name", "Phone", "Email", "Company", "Source", "Assigned To", "Priority", "Status", "Created Date"])
+    writer.writerow([
+        "Lead ID", "Shipping Name", "Country Code", "Phone", "Shipping Phone",
+        "Email", "Shipping Address1", "Shipping Address2", "Shipping City",
+        "Shipping Zip", "Shipping Province", "Shipping Province Name",
+        "Shipping Country", "Products", "Status", "Created Date",
+    ])
     for lead in queryset.select_related("assigned_to"):
         writer.writerow([
-            lead.lead_id, lead.full_name, lead.phone, lead.email, lead.company_name,
-            lead.get_source_display(), lead.assigned_to.get_full_name() or lead.assigned_to.username if lead.assigned_to else "",
-            lead.get_priority_display(), lead.get_status_display(), timezone.localtime(lead.created_at).strftime("%Y-%m-%d %H:%M"),
+            lead.lead_id, lead.shipping_name or lead.full_name, lead.country_code,
+            lead.phone, lead.shipping_phone, lead.email, lead.shipping_address1,
+            lead.shipping_address2, lead.shipping_city, lead.shipping_zip,
+            lead.shipping_province, lead.shipping_province_name,
+            lead.shipping_country, "; ".join(product.name for product in lead.products.all()),
+            lead.get_status_display(), timezone.localtime(lead.created_at).strftime("%Y-%m-%d %H:%M"),
         ])
     return response
 
@@ -786,6 +903,7 @@ def _base_context(request):
         "source_choices": Lead.SOURCE_CHOICES, "lost_reason_choices": Lead.LOST_REASON_CHOICES,
         "follow_up_type_choices": LeadFollowUp.TYPE_CHOICES,
         "payment_status_choices": LeadConversion.PAYMENT_STATUS_CHOICES,
+        "country_dial_codes": COUNTRY_DIAL_CODES,
         "query": request.GET, "page_query": page_params.urlencode(),
         "sort_query": sort_params.urlencode(),
     }

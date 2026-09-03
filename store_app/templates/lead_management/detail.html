@@ -9,21 +9,24 @@
 <section class="detail-grid">
     <div style="display:flex;flex-direction:column;gap:18px">
         <article class="card profile">
-            <div class="profile-top"><div class="avatar">{{ lead.full_name|slice:":2"|upper }}</div><div><div class="profile-name">{{ lead.full_name }}</div><div class="subtle">{{ lead.designation|default:"Lead" }}{% if lead.company_name %} at {{ lead.company_name }}{% endif %}</div></div><span class="badge {{ lead.status }}" style="margin-left:auto">{{ lead.get_status_display }}</span></div>
+            <div class="profile-top"><div class="avatar">{{ lead.full_name|slice:":2"|upper }}</div><div><div class="profile-name">{{ lead.shipping_name|default:lead.full_name }}</div><div class="subtle">Customer shipping information</div></div><span class="badge {{ lead.status }}" style="margin-left:auto">{{ lead.get_status_display }}</span></div>
             <div class="info-grid">
-                <div class="info-item"><span>Phone</span><a href="tel:{{ lead.phone }}">{{ lead.phone }}</a></div>
-                <div class="info-item"><span>WhatsApp</span>{% if lead.whatsapp_number %}<a href="https://wa.me/{{ lead.whatsapp_number }}" target="_blank">{{ lead.whatsapp_number }}</a>{% else %}<strong>—</strong>{% endif %}</div>
+                <div class="info-item"><span>Phone</span><a href="tel:{{ lead.country_code }}{{ lead.phone }}">{{ lead.country_code }} {{ lead.phone }}</a></div>
+                <div class="info-item"><span>Shipping Phone</span>{% if lead.shipping_phone %}<a href="tel:{{ lead.country_code }}{{ lead.shipping_phone }}">{{ lead.country_code }} {{ lead.shipping_phone }}</a>{% else %}<strong>—</strong>{% endif %}</div>
                 <div class="info-item"><span>Email</span>{% if lead.email %}<a href="mailto:{{ lead.email }}">{{ lead.email }}</a>{% else %}<strong>—</strong>{% endif %}</div>
-                <div class="info-item"><span>Company</span><strong>{{ lead.company_name|default:"—" }}</strong></div>
-                <div class="info-item"><span>Designation</span><strong>{{ lead.designation|default:"—" }}</strong></div>
-                <div class="info-item"><span>Lead Source</span><strong>{{ lead.get_source_display }}</strong></div>
-                <div class="info-item"><span>Priority</span><span class="badge {{ lead.priority }}">{{ lead.get_priority_display }}</span></div>
-                <div class="info-item"><span>Assigned Employee</span><strong>{% if lead.assigned_to %}{{ lead.assigned_to.get_full_name|default:lead.assigned_to.username }}{% else %}Unassigned{% endif %}</strong></div>
+                <div class="info-item"><span>Shipping City</span><strong>{{ lead.shipping_city|default:"—" }}</strong></div>
+                <div class="info-item"><span>Shipping Zip</span><strong>{{ lead.shipping_zip|default:"—" }}</strong></div>
+                <div class="info-item"><span>Shipping Province</span><strong>{{ lead.shipping_province|default:"—" }}</strong></div>
+                <div class="info-item"><span>Shipping Province Name</span><strong>{{ lead.shipping_province_name|default:"—" }}</strong></div>
+                <div class="info-item"><span>Shipping Country</span><strong>{{ lead.shipping_country|default:"—" }}</strong></div>
                 <div class="info-item"><span>Last Updated</span><strong>{{ lead.updated_at|date:"d M Y, h:i A" }}</strong><div class="subtle">{% if lead.updated_by %}by {{ lead.updated_by.get_full_name|default:lead.updated_by.username }}{% endif %}</div></div>
-                {% if lead.address or lead.city or lead.state %}<div class="info-item" style="grid-column:1/-1"><span>Address</span><strong>{% if lead.address %}{{ lead.address }}{% endif %}{% if lead.city %}{% if lead.address %}, {% endif %}{{ lead.city }}{% endif %}{% if lead.state %}{% if lead.address or lead.city %}, {% endif %}{{ lead.state }}{% endif %}{% if lead.country %}{% if lead.address or lead.city or lead.state %}, {% endif %}{{ lead.country }}{% endif %}{% if lead.pincode %} {{ lead.pincode }}{% endif %}</strong></div>{% endif %}
-                {% if lead.tags %}<div class="info-item" style="grid-column:1/-1"><span>Tags</span><strong>{{ lead.tags }}</strong></div>{% endif %}
-                {% if lead.notes %}<div class="info-item" style="grid-column:1/-1"><span>Notes</span><strong>{{ lead.notes|linebreaksbr }}</strong></div>{% endif %}
+                {% if lead.shipping_address1 or lead.shipping_address2 %}<div class="info-item" style="grid-column:1/-1"><span>Shipping Address</span><strong>{{ lead.shipping_address1 }}{% if lead.shipping_address2 %}<br>{{ lead.shipping_address2 }}{% endif %}</strong></div>{% endif %}
             </div>
+        </article>
+
+        <article class="card">
+            <div class="card-head"><div class="card-title"><i class="bi bi-box-seam"></i> Selected Products</div><span class="subtle">{{ lead.products.count }}</span></div>
+            <div class="list-stack">{% for product in lead.products.all %}<div class="list-item"><div><div class="list-title">{{ product.name }}</div><div class="subtle">{{ product.sku|default:"No SKU" }}{% if product.size %} · {{ product.size }}{% endif %}{% if product.color %} · {{ product.color }}{% endif %} · {{ product.vendor.name }}</div></div><strong>₹{{ product.retailer_price|floatformat:2 }}</strong></div>{% empty %}<div class="empty">No products selected.</div>{% endfor %}</div>
         </article>
 
         {% if lead.status == 'converted' and lead.conversion %}

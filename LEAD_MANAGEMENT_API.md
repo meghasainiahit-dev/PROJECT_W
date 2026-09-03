@@ -46,11 +46,12 @@ An unauthenticated request returns `401`. A user without the required module/act
 
 ## Reference data
 
-### Get all form options and employees
+### Get all form options, employees, countries and products
 
 `GET /leads/options/`
 
-Returns statuses, priorities, lead sources, lost reasons, follow-up types/statuses, payment statuses and active employees.
+Returns statuses, priorities, lead sources, lost reasons, follow-up types/statuses,
+payment statuses, active employees, country/dial-code pairs and the product list.
 
 ### Statistics
 
@@ -77,7 +78,7 @@ Returns statuses, priorities, lead sources, lost reasons, follow-up types/status
 
 Supported query parameters:
 
-- `search`: name, phone, email or company
+- `search`: shipping name, phone, shipping phone, email, city, country, product name or SKU
 - `status`, `priority`, `source`, `assigned_to`
 - `date_from`, `date_to`: `YYYY-MM-DD`
 - `view`: `all`, `active`, `converted`, `lost`
@@ -110,27 +111,27 @@ Supported query parameters:
 
 ```json
 {
-  "full_name": "Asha Patel",
+  "shipping_name": "Asha Patel",
+  "country_code": "+91",
   "phone": "9876543210",
-  "whatsapp_number": "9876543210",
+  "shipping_phone": "9876543211",
   "email": "asha@example.com",
-  "company_name": "Acme Retail",
-  "designation": "Purchase Manager",
-  "source": "website",
-  "priority": "hot",
-  "assigned_to": 4,
-  "status": "new",
-  "tags": "retail,high-value",
-  "address": "MG Road",
-  "city": "Mumbai",
-  "state": "Maharashtra",
-  "country": "India",
-  "pincode": "400001",
-  "notes": "Requested a product demo"
+  "shipping_address1": "101 MG Road",
+  "shipping_address2": "Near Metro Station",
+  "shipping_city": "Mumbai",
+  "shipping_zip": "400001",
+  "shipping_province": "MH",
+  "shipping_province_name": "Maharashtra",
+  "shipping_country": "India",
+  "product_ids": [12, 18, 21]
 }
 ```
 
-Required fields: `full_name`, `phone`. A new lead cannot be created directly as `converted` or `lost`; use the dedicated actions.
+Required fields: `shipping_name`, `phone`. `country_code` defaults to `+91`.
+`product_ids` accepts multiple existing product IDs. The API response includes the
+selected products. Legacy `full_name` and address fields remain accepted for existing
+integrations. A new lead cannot be created directly as `converted` or `lost`; use the
+dedicated actions.
 
 ### Lead detail
 

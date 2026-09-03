@@ -6,7 +6,10 @@ from django.test import RequestFactory, TestCase
 
 from . import lead_management
 from .access_control import ModuleAccessMiddleware, action_for_request
-from .models import Lead, LeadConversion, LeadFollowUp, LeadStatusHistory, UserAccessProfile
+from .models import (
+    Lead, LeadConversion, LeadFollowUp, LeadStatusHistory, Product,
+    UserAccessProfile, Vendor,
+)
 
 
 class LeadManagementTests(TestCase):
@@ -78,6 +81,59 @@ class LeadManagementTests(TestCase):
         self.assertEqual(lead.status, Lead.STATUS_LOST)
         self.assertEqual(lead.lost_reason, "budget_issue")
         self.assertIsNotNone(lead.lost_at)
+
+    def test_shipping_customer_fields_country_code_and_multiple_products(self):
+        vendor = Vendor.objects.create(
+            name="Demo Vendor", mobile="9000000000", city="Mumbai",
+            state="Maharashtra", country="India", pin_code="400001",
+        )
+        first = Product.objects.create(vendor=vendor, name="Product One", prefix_code="P1")
+        second = Product.objects.create(vendor=vendor, name="Product Two", prefix_code="P2")
+        response = lead_management.LeadListCreateAPI.as_view()(self.request("/api/leads/", {
+            "shipping_name": "Riya Sharma", "country_code": "+91",
+            "phone": "9876500000", "shipping_phone": "9876500001",
+            "email": "riya@example.com", "shipping_address1": "MG Road",
+            "shipping_address2": "Near Metro", "shipping_city": "Mumbai",
+            "shipping_zip": "400001", "shipping_province": "MH",
+            "shipping_province_name": "Maharashtra", "shipping_country": "India",
+            "product_ids": [first.id, second.id],
+        }))
+        self.assertEqual(response.status_code, 201)
+        lead = Lead.objects.get()
+        self.assertEqual(lead.full_name, "Riya Sharma")
+        self.assertEqual(lead.shipping_name, "Riya Sharma")
+        self.assertEqual(lead.country_code, "+91")
+        self.assertEqual(lead.products.count(), 2)
+        payload = json.loads(response.content)
+        self.assertEqual({row["id"] for row in payload["products"]}, {first.id, second.id})
+
+        page_request = self.factory.get("/api/leads-page/add/")
+        page_request.user = self.user
+        page = lead_management.lead_form_page(page_request)
+        html = page.content.decode()
+        for field_name in (
+            "shipping_name", "country_code", "phone", "shipping_phone", "email",
+            "shipping_address1", "shipping_address2", "shipping_city", "shipping_zip",
+            "shipping_province", "shipping_province_name", "shipping_country", "product_ids",
+        ):
+            self.assertIn(f'name="{field_name}"', html)
+        self.assertIn("Product One", html)
+        self.assertIn("Product Two", html)
+        self.assertNotIn('name="company_name"', html)
+        self.assertNotIn('name="source"', html)
+
+        search_request = self.factory.get("/api/leads/?search=Product%20One")
+        search_request.user = self.user
+        search_response = lead_management.LeadListCreateAPI.as_view()(search_request)
+        self.assertEqual(search_response.status_code, 200)
+        self.assertEqual(json.loads(search_response.content)["count"], 1)
+
+        export_request = self.factory.get("/api/leads/export/")
+        export_request.user = self.user
+        export_response = lead_management.export_leads(export_request)
+        exported = export_response.content.decode()
+        self.assertIn("Shipping Name,Country Code,Phone,Shipping Phone", exported)
+        self.assertIn("Product One; Product Two", exported)
 
     def test_soft_delete_keeps_related_history(self):
         lead = self.create_lead()

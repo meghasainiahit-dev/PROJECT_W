@@ -992,9 +992,16 @@ class Lead(models.Model):
         ("other", "Other"),
     ]
 
+    # ``full_name`` and the legacy address fields are retained for backwards
+    # compatibility with the existing lead list and integrations.  New lead
+    # capture uses the shipping fields below and keeps ``full_name`` in sync
+    # with ``shipping_name``.
     full_name = models.CharField(max_length=180, db_index=True)
+    shipping_name = models.CharField(max_length=180, blank=True, db_index=True)
+    country_code = models.CharField(max_length=8, default="+91")
     phone = models.CharField(max_length=30, db_index=True)
     whatsapp_number = models.CharField(max_length=30, blank=True)
+    shipping_phone = models.CharField(max_length=30, blank=True)
     email = models.EmailField(blank=True, db_index=True)
     company_name = models.CharField(max_length=180, blank=True, db_index=True)
     designation = models.CharField(max_length=120, blank=True)
@@ -1008,6 +1015,14 @@ class Lead(models.Model):
     state = models.CharField(max_length=100, blank=True)
     country = models.CharField(max_length=100, blank=True)
     pincode = models.CharField(max_length=15, blank=True)
+    shipping_address1 = models.CharField(max_length=255, blank=True)
+    shipping_address2 = models.CharField(max_length=255, blank=True)
+    shipping_city = models.CharField(max_length=100, blank=True)
+    shipping_zip = models.CharField(max_length=20, blank=True)
+    shipping_province = models.CharField(max_length=100, blank=True)
+    shipping_province_name = models.CharField(max_length=100, blank=True)
+    shipping_country = models.CharField(max_length=100, blank=True, default="India")
+    products = models.ManyToManyField(Product, blank=True, related_name="leads")
     notes = models.TextField(blank=True)
     lost_reason = models.CharField(max_length=30, choices=LOST_REASON_CHOICES, blank=True)
     lost_notes = models.TextField(blank=True)

@@ -28,7 +28,7 @@
 
 <form class="toolbar" method="get">
     <input type="hidden" name="view" value="{{ query.view|default:'all' }}">
-    <input class="control search-field" name="search" value="{{ query.search }}" placeholder="Search name, phone, email or company">
+    <input class="control search-field" name="search" value="{{ query.search }}" placeholder="Search customer, phone, city or product">
     <select class="control" name="status"><option value="">All statuses</option>{% for value,label in status_choices %}<option value="{{ value }}" {% if query.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <select class="control" name="priority"><option value="">All priorities</option>{% for value,label in priority_choices %}<option value="{{ value }}" {% if query.priority == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <select class="control" name="source"><option value="">All sources</option>{% for value,label in source_choices %}<option value="{{ value }}" {% if query.source == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
@@ -47,7 +47,7 @@
         <thead><tr>
             <th><input id="selectAll" type="checkbox" aria-label="Select all leads"></th>
             <th>Lead ID</th><th><a href="?{% if sort_query %}{{ sort_query }}&{% endif %}sort={% if query.sort == 'name' %}-name{% else %}name{% endif %}">Name <i class="bi bi-arrow-down-up"></i></a></th>
-            <th>Phone</th><th>Email</th><th>Company</th><th>Lead Source</th><th>Assigned To</th>
+            <th>Phone</th><th>Email</th><th>Shipping City</th><th>Country</th><th>Products</th>
             <th><a href="?{% if sort_query %}{{ sort_query }}&{% endif %}sort={% if query.sort == 'priority' %}-priority{% else %}priority{% endif %}">Priority <i class="bi bi-arrow-down-up"></i></a></th>
             <th><a href="?{% if sort_query %}{{ sort_query }}&{% endif %}sort={% if query.sort == 'status' %}-status{% else %}status{% endif %}">Status <i class="bi bi-arrow-down-up"></i></a></th>
             <th>Next Follow-up</th><th><a href="?{% if sort_query %}{{ sort_query }}&{% endif %}sort={% if query.sort == '-created_at' %}created_at{% else %}-created_at{% endif %}">Created Date <i class="bi bi-arrow-down-up"></i></a></th><th>Actions</th>
@@ -57,9 +57,9 @@
         <tr>
             <td><input class="lead-check" type="checkbox" name="lead_ids" value="{{ lead.id }}" aria-label="Select {{ lead.full_name }}"></td>
             <td><strong>{{ lead.lead_id }}</strong></td>
-            <td><a class="lead-name" href="/api/leads-page/{{ lead.id }}/">{{ lead.full_name }}</a>{% if lead.designation %}<div class="subtle">{{ lead.designation }}</div>{% endif %}</td>
-            <td>{{ lead.phone }}</td><td>{{ lead.email|default:"—" }}</td><td>{{ lead.company_name|default:"—" }}</td><td>{{ lead.get_source_display }}</td>
-            <td>{% if lead.assigned_to %}{{ lead.assigned_to.get_full_name|default:lead.assigned_to.username }}{% else %}<span class="subtle">Unassigned</span>{% endif %}</td>
+            <td><a class="lead-name" href="/api/leads-page/{{ lead.id }}/">{{ lead.shipping_name|default:lead.full_name }}</a></td>
+            <td>{{ lead.country_code }} {{ lead.phone }}</td><td>{{ lead.email|default:"—" }}</td><td>{{ lead.shipping_city|default:"—" }}</td><td>{{ lead.shipping_country|default:"—" }}</td>
+            <td>{% with product_count=lead.products.count %}{% if product_count %}<span class="badge">{{ product_count }} selected</span>{% else %}<span class="subtle">None</span>{% endif %}{% endwith %}</td>
             <td><span class="badge {{ lead.priority }}">{{ lead.get_priority_display }}</span></td><td><span class="badge {{ lead.status }}">{{ lead.get_status_display }}</span></td>
             <td>{% if lead.next_follow_up_date %}{{ lead.next_follow_up_date|date:"d M Y" }}{% else %}<span class="subtle">Not scheduled</span>{% endif %}</td>
             <td>{{ lead.created_at|date:"d M Y" }}</td>

@@ -34,6 +34,8 @@
     { "key": "password", "value": "", "type": "string" },
     { "key": "token", "value": "", "type": "string" },
     { "key": "employee_id", "value": "", "type": "string" },
+    { "key": "product_id", "value": "1", "type": "string" },
+    { "key": "product_id_2", "value": "2", "type": "string" },
     { "key": "lead_id", "value": "", "type": "string" },
     { "key": "lost_lead_id", "value": "", "type": "string" },
     { "key": "follow_up_id", "value": "", "type": "string" },
@@ -92,18 +94,20 @@
           "request": {
             "method": "GET",
             "url": "{{base_url}}/leads/options/",
-            "description": "Returns all dropdown options and active employees. The first employee id is saved automatically."
+            "description": "Returns dropdown options, countries with dial codes, active employees and products. The first available IDs are saved automatically."
           },
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
             "pm.test('Options returned', () => pm.response.to.have.status(200));",
             "const json = pm.response.json();",
             "pm.expect(json.statuses).to.be.an('array').that.is.not.empty;",
-            "if (json.employees && json.employees.length) pm.collectionVariables.set('employee_id', String(json.employees[0].id));"
+            "if (json.employees && json.employees.length) pm.collectionVariables.set('employee_id', String(json.employees[0].id));",
+            "if (json.products && json.products.length) pm.collectionVariables.set('product_id', String(json.products[0].id));",
+            "if (json.products && json.products.length > 1) pm.collectionVariables.set('product_id_2', String(json.products[1].id));"
           ] } }],
           "response": [{
             "name": "200 - Options", "originalRequest": { "method": "GET", "url": "{{base_url}}/leads/options/" },
             "status": "OK", "code": 200, "_postman_previewlanguage": "json", "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
-            "body": "{\n  \"statuses\": [{\"value\": \"new\", \"label\": \"New\"}, {\"value\": \"converted\", \"label\": \"Converted\"}],\n  \"priorities\": [{\"value\": \"hot\", \"label\": \"Hot\"}],\n  \"sources\": [{\"value\": \"website\", \"label\": \"Website\"}],\n  \"lost_reasons\": [{\"value\": \"budget_issue\", \"label\": \"Budget Issue\"}],\n  \"follow_up_types\": [{\"value\": \"call\", \"label\": \"Call\"}],\n  \"follow_up_statuses\": [{\"value\": \"upcoming\", \"label\": \"Upcoming\"}],\n  \"payment_statuses\": [{\"value\": \"pending\", \"label\": \"Pending\"}],\n  \"employees\": [{\"id\": 4, \"name\": \"Sales User\", \"username\": \"sales\"}]\n}"
+            "body": "{\n  \"statuses\": [{\"value\": \"new\", \"label\": \"New\"}],\n  \"priorities\": [{\"value\": \"hot\", \"label\": \"Hot\"}],\n  \"sources\": [{\"value\": \"website\", \"label\": \"Website\"}],\n  \"lost_reasons\": [{\"value\": \"budget_issue\", \"label\": \"Budget Issue\"}],\n  \"follow_up_types\": [{\"value\": \"call\", \"label\": \"Call\"}],\n  \"follow_up_statuses\": [{\"value\": \"upcoming\", \"label\": \"Upcoming\"}],\n  \"payment_statuses\": [{\"value\": \"pending\", \"label\": \"Pending\"}],\n  \"employees\": [{\"id\": 4, \"name\": \"Sales User\", \"username\": \"sales\"}],\n  \"countries\": [{\"name\": \"India\", \"dial_code\": \"+91\"}],\n  \"products\": [{\"id\": 1, \"name\": \"Demo Product\", \"sku\": \"DEMO-1\", \"retailer_price\": \"100.00\"}]\n}"
           }]
         },
         {
@@ -126,9 +130,9 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"full_name\": \"Postman Lead {{unique_suffix}}\",\n  \"phone\": \"9876543210\",\n  \"whatsapp_number\": \"9876543210\",\n  \"email\": \"postman.{{unique_suffix}}@example.com\",\n  \"company_name\": \"Acme Retail\",\n  \"designation\": \"Purchase Manager\",\n  \"source\": \"website\",\n  \"priority\": \"hot\",\n  \"assigned_to\": {{employee_id}},\n  \"status\": \"new\",\n  \"tags\": \"retail,high-value\",\n  \"address\": \"MG Road\",\n  \"city\": \"Mumbai\",\n  \"state\": \"Maharashtra\",\n  \"country\": \"India\",\n  \"pincode\": \"400001\",\n  \"notes\": \"Created from Postman collection\"\n}", "options": { "raw": { "language": "json" } } },
+            "body": { "mode": "raw", "raw": "{\n  \"shipping_name\": \"Postman Lead {{unique_suffix}}\",\n  \"country_code\": \"+91\",\n  \"phone\": \"9876543210\",\n  \"shipping_phone\": \"9876543211\",\n  \"email\": \"postman.{{unique_suffix}}@example.com\",\n  \"shipping_address1\": \"101 MG Road\",\n  \"shipping_address2\": \"Near Metro Station\",\n  \"shipping_city\": \"Mumbai\",\n  \"shipping_zip\": \"400001\",\n  \"shipping_province\": \"MH\",\n  \"shipping_province_name\": \"Maharashtra\",\n  \"shipping_country\": \"India\",\n  \"product_ids\": [{{product_id}}, {{product_id_2}}]\n}", "options": { "raw": { "language": "json" } } },
             "url": "{{base_url}}/leads/",
-            "description": "Creates the primary test lead. full_name and phone are required. Use dedicated endpoints for converted/lost status."
+            "description": "Creates the primary test lead. shipping_name and phone are required. product_ids accepts multiple products. Use dedicated endpoints for converted/lost status."
           },
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
             "pm.test('Lead created', () => pm.response.to.have.status(201));",
@@ -139,11 +143,11 @@
           "response": [{
             "name": "201 - Lead Created", "originalRequest": { "method": "POST", "url": "{{base_url}}/leads/" },
             "status": "Created", "code": 201, "_postman_previewlanguage": "json", "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
-            "body": "{\n  \"id\": 12,\n  \"lead_id\": \"LEAD-00012\",\n  \"full_name\": \"Postman Lead\",\n  \"phone\": \"9876543210\",\n  \"whatsapp_number\": \"9876543210\",\n  \"email\": \"postman@example.com\",\n  \"company_name\": \"Acme Retail\",\n  \"designation\": \"Purchase Manager\",\n  \"source\": \"website\",\n  \"source_display\": \"Website\",\n  \"priority\": \"hot\",\n  \"priority_display\": \"Hot\",\n  \"assigned_to\": 4,\n  \"assigned_to_name\": \"Sales User\",\n  \"status\": \"new\",\n  \"status_display\": \"New\",\n  \"tags\": [\"retail\", \"high-value\"],\n  \"next_follow_up\": null,\n  \"activities\": [{\"id\": 31, \"event\": \"created\", \"title\": \"Lead Created\"}],\n  \"follow_ups\": [],\n  \"lead_notes\": [],\n  \"created_at\": \"2026-09-02T10:30:00+05:30\",\n  \"updated_at\": \"2026-09-02T10:30:00+05:30\"\n}"
+            "body": "{\n  \"id\": 12,\n  \"lead_id\": \"LEAD-00012\",\n  \"full_name\": \"Postman Lead\",\n  \"shipping_name\": \"Postman Lead\",\n  \"country_code\": \"+91\",\n  \"phone\": \"9876543210\",\n  \"shipping_phone\": \"9876543211\",\n  \"email\": \"postman@example.com\",\n  \"shipping_address1\": \"101 MG Road\",\n  \"shipping_address2\": \"Near Metro Station\",\n  \"shipping_city\": \"Mumbai\",\n  \"shipping_zip\": \"400001\",\n  \"shipping_province\": \"MH\",\n  \"shipping_province_name\": \"Maharashtra\",\n  \"shipping_country\": \"India\",\n  \"products\": [{\"id\": 1, \"name\": \"Demo Product\", \"sku\": \"DEMO-1\", \"retailer_price\": \"100.00\"}],\n  \"status\": \"new\",\n  \"status_display\": \"New\",\n  \"next_follow_up\": null,\n  \"activities\": [{\"id\": 31, \"event\": \"created\", \"title\": \"Lead Created\"}],\n  \"follow_ups\": [],\n  \"lead_notes\": [],\n  \"created_at\": \"2026-09-02T10:30:00+05:30\",\n  \"updated_at\": \"2026-09-02T10:30:00+05:30\"\n}"
           }, {
             "name": "400 - Validation Error", "originalRequest": { "method": "POST", "url": "{{base_url}}/leads/" },
             "status": "Bad Request", "code": 400, "_postman_previewlanguage": "json", "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
-            "body": "{\n  \"detail\": \"Please correct the highlighted fields.\",\n  \"errors\": {\"full_name\": \"Full name is required.\", \"phone\": \"Phone number is required.\"}\n}"
+            "body": "{\n  \"detail\": \"Please correct the highlighted fields.\",\n  \"errors\": {\"shipping_name\": \"Shipping name is required.\", \"phone\": \"Phone number is required.\"}\n}"
           }]
         },
         {
@@ -179,10 +183,10 @@
           "name": "PATCH Lead",
           "request": {
             "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"full_name\": \"Postman Lead Updated\",\n  \"phone\": \"9876543210\",\n  \"priority\": \"warm\",\n  \"assigned_to\": {{employee_id}},\n  \"notes\": \"Updated through PATCH\"\n}", "options": { "raw": { "language": "json" } } },
-            "url": "{{base_url}}/leads/{{lead_id}}/", "description": "Updates a lead. Include full_name and phone in the current API implementation. Converted/lost transitions require dedicated actions."
+            "body": { "mode": "raw", "raw": "{\n  \"shipping_name\": \"Postman Lead Updated\",\n  \"country_code\": \"+91\",\n  \"phone\": \"9876543210\",\n  \"shipping_phone\": \"9876543211\",\n  \"shipping_city\": \"Pune\",\n  \"shipping_country\": \"India\",\n  \"product_ids\": [{{product_id}}, {{product_id_2}}]\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/leads/{{lead_id}}/", "description": "Updates customer shipping information and selected products. Include shipping_name and phone in the current API implementation."
           },
-          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Lead patched', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().priority).to.eql('warm');"] } }],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Lead patched', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().shipping_city).to.eql('Pune');"] } }],
           "response": [{
             "name": "200 - Lead Updated", "originalRequest": { "method": "PATCH", "url": "{{base_url}}/leads/12/" },
             "status": "OK", "code": 200, "_postman_previewlanguage": "json", "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
@@ -193,7 +197,7 @@
           "name": "PUT Lead",
           "request": {
             "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"full_name\": \"Postman Lead Full Update\",\n  \"phone\": \"9876543210\",\n  \"whatsapp_number\": \"9876543210\",\n  \"email\": \"postman.updated@example.com\",\n  \"company_name\": \"Acme Retail Pvt Ltd\",\n  \"designation\": \"Director\",\n  \"source\": \"referral\",\n  \"priority\": \"hot\",\n  \"assigned_to\": {{employee_id}},\n  \"status\": \"contacted\",\n  \"tags\": \"retail,updated\",\n  \"address\": \"Andheri East\",\n  \"city\": \"Mumbai\",\n  \"state\": \"Maharashtra\",\n  \"country\": \"India\",\n  \"pincode\": \"400069\",\n  \"notes\": \"Full update from Postman\"\n}", "options": { "raw": { "language": "json" } } },
+            "body": { "mode": "raw", "raw": "{\n  \"shipping_name\": \"Postman Lead Full Update\",\n  \"country_code\": \"+91\",\n  \"phone\": \"9876543210\",\n  \"shipping_phone\": \"9876543211\",\n  \"email\": \"postman.updated@example.com\",\n  \"shipping_address1\": \"Andheri East\",\n  \"shipping_address2\": \"Near Station\",\n  \"shipping_city\": \"Mumbai\",\n  \"shipping_zip\": \"400069\",\n  \"shipping_province\": \"MH\",\n  \"shipping_province_name\": \"Maharashtra\",\n  \"shipping_country\": \"India\",\n  \"product_ids\": [{{product_id}}, {{product_id_2}}],\n  \"status\": \"contacted\"\n}", "options": { "raw": { "language": "json" } } },
             "url": "{{base_url}}/leads/{{lead_id}}/", "description": "Full lead update example. This also records status history when the status changes."
           },
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Lead fully updated', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().status).to.eql('contacted');"] } }],
@@ -268,7 +272,7 @@
           "name": "Create Separate Lead for Lost Flow",
           "request": {
             "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"full_name\": \"Postman Lost Lead {{unique_suffix}}\",\n  \"phone\": \"9123456780\",\n  \"source\": \"cold_call\",\n  \"priority\": \"cold\",\n  \"status\": \"new\",\n  \"notes\": \"Separate record for lost flow\"\n}", "options": { "raw": { "language": "json" } } },
+            "body": { "mode": "raw", "raw": "{\n  \"shipping_name\": \"Postman Lost Lead {{unique_suffix}}\",\n  \"country_code\": \"+91\",\n  \"phone\": \"9123456780\",\n  \"shipping_country\": \"India\",\n  \"product_ids\": []\n}", "options": { "raw": { "language": "json" } } },
             "url": "{{base_url}}/leads/", "description": "Creates a separate lead so the mark-lost example does not overwrite the converted lead."
           },
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Lost-flow lead created', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('lost_lead_id', String(pm.response.json().id));"] } }],
@@ -458,7 +462,7 @@
           "response": [{
             "name": "200 - CSV Export", "originalRequest": { "method": "GET", "url": "{{base_url}}/leads/export/?view=all" },
             "status": "OK", "code": 200, "_postman_previewlanguage": "text", "header": [{ "key": "Content-Type", "value": "text/csv" }, { "key": "Content-Disposition", "value": "attachment; filename=leads.csv" }], "cookie": [],
-            "body": "Lead ID,Name,Phone,Email,Company,Source,Priority,Status,Assigned To,Created At\r\nLEAD-00012,Postman Lead,9876543210,postman@example.com,Acme Retail,Website,Hot,Converted,Sales User,2026-09-02 10:30\r\n"
+            "body": "Lead ID,Shipping Name,Country Code,Phone,Shipping Phone,Email,Shipping Address1,Shipping Address2,Shipping City,Shipping Zip,Shipping Province,Shipping Province Name,Shipping Country,Products,Status,Created Date\r\nLEAD-00012,Postman Lead,+91,9876543210,9876543211,postman@example.com,101 MG Road,Near Metro Station,Mumbai,400001,MH,Maharashtra,India,Demo Product,Converted,2026-09-02 10:30\r\n"
           }]
         },
         {
