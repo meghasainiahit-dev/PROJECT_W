@@ -44,6 +44,30 @@ Permission mapping:
 
 An unauthenticated request returns `401`. A user without the required module/action permission receives `403`.
 
+## App endpoint checklist
+
+| Method | Endpoint | Purpose | Permission |
+|---|---|---|---|
+| `POST` | `/app/login/` | Login and receive a 7-day Bearer token | Public |
+| `GET` | `/leads/options/` | Form choices, employees, countries and products | View |
+| `GET` | `/leads/stats/` | Lead and follow-up dashboard totals | View |
+| `GET`, `POST` | `/leads/` | Paginated lead list and lead creation | View / Add |
+| `GET`, `PUT`, `PATCH`, `DELETE` | `/leads/{id}/` | Lead detail, full/partial update and soft delete | View / Edit / Delete |
+| `POST` | `/leads/{id}/status/` | Change non-terminal status | Edit |
+| `POST` | `/leads/{id}/note/` | Add a note | Add |
+| `POST` | `/leads/{id}/follow-up/` | Schedule a follow-up | Add |
+| `POST` | `/leads/{id}/convert/` | Convert a lead | Edit |
+| `POST` | `/leads/{id}/mark-lost/` | Mark a lead lost with reason | Edit |
+| `GET` | `/leads/{id}/activities/` | Activity timeline | View |
+| `GET` | `/leads/{id}/follow-ups/` | Follow-ups for one lead | View |
+| `GET` | `/leads/{id}/notes/` | Notes for one lead | View |
+| `GET` | `/leads/{id}/status-history/` | Status audit trail | View |
+| `GET` | `/leads/follow-ups/` | Filtered, paginated follow-up list | View |
+| `GET`, `PUT`, `PATCH`, `DELETE` | `/leads/follow-ups/{id}/` | Follow-up detail, update and delete | View / Edit / Delete |
+| `POST` | `/leads/bulk/` | Bulk status, priority, assignment or delete | Edit / Delete |
+| `POST` | `/leads/import/` | Shopify checkout CSV import | Add |
+| `GET` | `/leads/export/` | Download filtered leads CSV | View |
+
 ## Reference data
 
 ### Get all form options, employees, countries and products
@@ -133,6 +157,44 @@ selected products. Legacy `full_name` and address fields remain accepted for exi
 integrations. A new lead cannot be created directly as `converted` or `lost`; use the
 dedicated actions.
 
+### Bulk import Shopify checkout CSV
+
+`POST /leads/import/`
+
+Send as `multipart/form-data` with the CSV in the `file` field.
+
+```bash
+curl -X POST "https://your-domain.example/api/leads/import/" \
+  -H "Authorization: Bearer <token>" \
+  -F "file=@checkouts_export.csv"
+```
+
+```json
+{
+  "source_rows": 60,
+  "checkout_groups": 50,
+  "created": 50,
+  "duplicates_skipped": 0,
+  "invalid_skipped": 0,
+  "products_created": 31,
+  "product_links": 32,
+  "name_fallbacks": 8,
+  "errors": [],
+  "unmatched_products": ["UNKNOWN-SKU — Product name"],
+  "unmatched_product_count": 1
+}
+```
+
+Import rules:
+
+- Rows sharing the same checkout `Name` are grouped into one lead.
+- Shipping values are preferred; billing values are used only as fallbacks.
+- Phone values are normalized and the dial code is stored separately.
+- Products match by exact `Lineitem sku`, then exact `Lineitem name`.
+- Missing line-item products are created under the `Shopify CSV Import` vendor with zero opening inventory, so they appear in Items and Add Lead.
+- Existing checkout IDs are skipped, making repeat uploads duplicate-safe.
+- UTF-8 CSV files up to 10 MB and 5,000 data rows are accepted.
+
 ### Lead detail
 
 `GET /leads/{id}/`
@@ -143,7 +205,12 @@ Returns the complete lead plus `activities`, `follow_ups`, `lead_notes`, and con
 
 `PUT /leads/{id}/` or `PATCH /leads/{id}/`
 
-Use the same fields as create. Status changes are saved to both activity and status history. Conversion and lost status require their dedicated endpoints.
+`PUT` requires the complete required lead data. `PATCH` is a true partial update and accepts only the fields being changed. Status changes are saved to both activity and status history. Conversion and lost status require their dedicated endpoints.
+
+Lead responses include customer/shipping fields, selected `products`, assignment,
+creator/updater data, import identifiers (`external_source`, `external_checkout_id`),
+lost-lead details, next follow-up and timestamps. Detail responses additionally include
+`activities`, `follow_ups`, `lead_notes` and conversion details.
 
 ### Delete lead
 

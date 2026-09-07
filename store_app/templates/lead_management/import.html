@@ -1,0 +1,92 @@
+{% extends "lead_management/base.html" %}
+{% block title %}Bulk Upload Leads{% endblock %}
+{% block extra_head %}
+<style>
+    .import-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:18px;align-items:start}
+    .upload-card{padding:24px}.upload-zone{border:1.5px dashed #B8B4E8;border-radius:16px;background:#FAFAFF;padding:34px 22px;text-align:center;transition:.2s}
+    .upload-zone.dragging{border-color:var(--accent);background:#F2F0FF}.upload-icon{width:54px;height:54px;border-radius:16px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 14px}
+    .upload-zone h2{font-size:17px;margin-bottom:6px}.upload-zone p{font-size:12px;color:var(--muted);margin-bottom:15px}.file-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}.file-name{font-size:12px;color:var(--brand);font-weight:700;margin-top:12px;min-height:18px}.upload-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
+    .mapping-list{padding:8px 18px 18px}.mapping-row{display:grid;grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr);align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);font-size:11.5px}.mapping-row:last-child{border-bottom:0}.mapping-row i{color:var(--muted);text-align:center}.mapping-row strong{font-size:11.5px}.help-list{padding:16px 20px 20px;color:var(--muted);font-size:12px;line-height:1.55}.help-list li{margin-left:17px;margin-bottom:6px}
+    .result-grid{display:grid;grid-template-columns:repeat(7,minmax(105px,1fr));gap:10px}.result-stat{padding:14px;background:#fff;border:1px solid var(--border);border-radius:13px}.result-stat span{display:block;font-size:10px;color:var(--muted);margin-bottom:5px}.result-stat strong{font-size:20px}.result-details{padding:18px 20px}.result-details h3{font-size:13px;margin-bottom:9px}.compact-list{max-height:220px;overflow:auto;background:var(--surface);border-radius:11px;padding:11px 14px;font-size:11px;color:var(--muted);line-height:1.6}.compact-list + h3{margin-top:16px}
+    @media(max-width:1050px){.import-layout{grid-template-columns:1fr}.result-grid{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:700px){.upload-card{padding:16px}.upload-zone{padding:27px 14px}.upload-actions{flex-direction:column-reverse}.upload-actions .btn{width:100%}.result-grid{grid-template-columns:repeat(2,1fr)}.mapping-row{grid-template-columns:1fr 18px 1fr}}
+</style>
+{% endblock %}
+{% block content %}
+<section class="page-header">
+    <div class="page-title"><h1>Bulk Upload Leads</h1><p>Import Shopify checkout CSV data and link matching products.</p></div>
+    <a class="btn btn-light" href="/api/leads-page/"><i class="bi bi-arrow-left"></i> All Leads</a>
+</section>
+
+<section class="import-layout">
+    <form method="post" enctype="multipart/form-data" class="card upload-card" id="importForm">{% csrf_token %}
+        <div class="upload-zone" id="uploadZone">
+            <div class="upload-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+            <h2>Upload checkout CSV</h2>
+            <p>Select the Shopify checkout export file. Maximum size: 10 MB.</p>
+            <label class="btn btn-primary" for="csvFile"><i class="bi bi-filetype-csv"></i> Choose CSV File</label>
+            <input class="file-input" id="csvFile" type="file" name="file" accept=".csv,text/csv" required>
+            <div class="file-name" id="fileName">No file selected</div>
+        </div>
+        <div class="upload-actions"><a class="btn btn-light" href="/api/leads-page/">Cancel</a><button class="btn btn-primary" type="submit" id="uploadButton"><i class="bi bi-upload"></i> Upload Leads</button></div>
+    </form>
+
+    <aside style="display:flex;flex-direction:column;gap:18px">
+        <article class="card">
+            <div class="card-head"><div class="card-title"><i class="bi bi-arrow-left-right"></i> CSV Mapping</div></div>
+            <div class="mapping-list">
+                <div class="mapping-row"><span>Shipping Name</span><i class="bi bi-arrow-right"></i><strong>Shipping Name</strong></div>
+                <div class="mapping-row"><span>Phone / Shipping Phone</span><i class="bi bi-arrow-right"></i><strong>Country Code + Phone</strong></div>
+                <div class="mapping-row"><span>Shipping Address1/2</span><i class="bi bi-arrow-right"></i><strong>Shipping Address1/2</strong></div>
+                <div class="mapping-row"><span>Shipping City / Zip</span><i class="bi bi-arrow-right"></i><strong>Shipping City / Zip</strong></div>
+                <div class="mapping-row"><span>Shipping Province</span><i class="bi bi-arrow-right"></i><strong>Province + Name</strong></div>
+                <div class="mapping-row"><span>Shipping Country</span><i class="bi bi-arrow-right"></i><strong>Country + Dial Code</strong></div>
+                <div class="mapping-row"><span>Lineitem SKU / Name</span><i class="bi bi-arrow-right"></i><strong>Selected Products</strong></div>
+            </div>
+        </article>
+        <article class="card">
+            <div class="card-head"><div class="card-title"><i class="bi bi-info-circle"></i> Import Rules</div></div>
+            <ul class="help-list">
+                <li>Rows with the same checkout Name are combined into one lead.</li>
+                <li>Shipping fields are preferred; billing fields are used only when shipping values are empty.</li>
+                <li>Phone values are normalized and country code is stored separately.</li>
+                <li>Products are matched by exact SKU first, then exact product name.</li>
+                <li>Missing line-item products are created automatically and become selectable in Add Lead.</li>
+                <li>Existing checkout IDs are skipped to prevent duplicate leads.</li>
+            </ul>
+        </article>
+    </aside>
+</section>
+
+{% if import_result %}
+<section class="result-grid">
+    <div class="result-stat"><span>CSV Rows</span><strong>{{ import_result.source_rows }}</strong></div>
+    <div class="result-stat"><span>Checkouts</span><strong>{{ import_result.checkout_groups }}</strong></div>
+    <div class="result-stat"><span>Leads Created</span><strong>{{ import_result.created }}</strong></div>
+    <div class="result-stat"><span>Duplicates Skipped</span><strong>{{ import_result.duplicates_skipped }}</strong></div>
+    <div class="result-stat"><span>Invalid Skipped</span><strong>{{ import_result.invalid_skipped }}</strong></div>
+    <div class="result-stat"><span>Products Created</span><strong>{{ import_result.products_created }}</strong></div>
+    <div class="result-stat"><span>Product Links</span><strong>{{ import_result.product_links }}</strong></div>
+</section>
+{% if import_result.errors or import_result.unmatched_products %}
+<article class="card result-details">
+    {% if import_result.errors %}<h3>Rows requiring attention</h3><div class="compact-list">{% for error in import_result.errors %}<div>{% if error.checkout %}{{ error.checkout }}{% else %}Row {{ error.row }}{% endif %}: {{ error.detail }}</div>{% endfor %}</div>{% endif %}
+    {% if import_result.unmatched_products %}<h3>Products not matched ({{ import_result.unmatched_product_count }})</h3><div class="compact-list">{% for product in import_result.unmatched_products %}<div>{{ product }}</div>{% endfor %}</div>{% endif %}
+</article>
+{% endif %}
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+const fileInput=document.getElementById('csvFile');
+const fileName=document.getElementById('fileName');
+const uploadZone=document.getElementById('uploadZone');
+const importForm=document.getElementById('importForm');
+function showFile(){fileName.textContent=fileInput.files.length?fileInput.files[0].name:'No file selected'}
+fileInput.addEventListener('change',showFile);
+['dragenter','dragover'].forEach(name=>uploadZone.addEventListener(name,event=>{event.preventDefault();uploadZone.classList.add('dragging')}));
+['dragleave','drop'].forEach(name=>uploadZone.addEventListener(name,event=>{event.preventDefault();uploadZone.classList.remove('dragging')}));
+uploadZone.addEventListener('drop',event=>{if(event.dataTransfer.files.length){fileInput.files=event.dataTransfer.files;showFile()}});
+importForm.addEventListener('submit',()=>{const button=document.getElementById('uploadButton');button.disabled=true;button.innerHTML='<i class="bi bi-hourglass-split"></i> Importing...'});
+</script>
+{% endblock %}

@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "6d3e76c7-7b5d-4edc-a101-109a0dd7d746",
     "name": "StockOS - Lead Management APIs",
-    "description": "Complete Lead Management API collection with request bodies, response examples, tests and automatic variables. Set base_url, username and password, then run folders in order. Login saves token; lead creation saves lead_id; follow-up creation saves follow_up_id. The access user must have Lead Management permissions.",
+    "description": "Complete app-ready Lead Management API collection with Bearer authentication, request bodies, response examples, tests and automatic variables. The default base_url targets the local project; replace it with the deployed /api URL when needed. Set username and password, then run folders in order. Login saves token; lead creation saves lead_id; follow-up creation saves follow_up_id. The access user must have Lead Management permissions.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -29,13 +29,14 @@
     }
   ],
   "variable": [
-    { "key": "base_url", "value": "https://stms.testwebs.in/api", "type": "string" },
+    { "key": "base_url", "value": "http://127.0.0.1:8000/api", "type": "string" },
     { "key": "username", "value": "admin", "type": "string" },
     { "key": "password", "value": "", "type": "string" },
     { "key": "token", "value": "", "type": "string" },
     { "key": "employee_id", "value": "", "type": "string" },
     { "key": "product_id", "value": "1", "type": "string" },
     { "key": "product_id_2", "value": "2", "type": "string" },
+    { "key": "run_csv_import", "value": "false", "type": "string" },
     { "key": "lead_id", "value": "", "type": "string" },
     { "key": "lost_lead_id", "value": "", "type": "string" },
     { "key": "follow_up_id", "value": "", "type": "string" },
@@ -183,8 +184,8 @@
           "name": "PATCH Lead",
           "request": {
             "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"shipping_name\": \"Postman Lead Updated\",\n  \"country_code\": \"+91\",\n  \"phone\": \"9876543210\",\n  \"shipping_phone\": \"9876543211\",\n  \"shipping_city\": \"Pune\",\n  \"shipping_country\": \"India\",\n  \"product_ids\": [{{product_id}}, {{product_id_2}}]\n}", "options": { "raw": { "language": "json" } } },
-            "url": "{{base_url}}/leads/{{lead_id}}/", "description": "Updates customer shipping information and selected products. Include shipping_name and phone in the current API implementation."
+            "body": { "mode": "raw", "raw": "{\n  \"shipping_city\": \"Pune\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/leads/{{lead_id}}/", "description": "True partial update: send only the fields that should change."
           },
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Lead patched', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().shipping_city).to.eql('Pune');"] } }],
           "response": [{
@@ -449,7 +450,58 @@
       ]
     },
     {
-      "name": "08 - Export, Errors and Cleanup",
+      "name": "08 - Manual CSV Import",
+      "description": "Select the checkout CSV file in Postman before sending. This request is intentionally manual because Postman file paths are machine-specific.",
+      "item": [
+        {
+          "name": "Bulk Import Shopify Checkouts",
+          "event": [{
+            "listen": "prerequest",
+            "script": { "type": "text/javascript", "exec": [
+              "if (pm.collectionVariables.get('run_csv_import') !== 'true') {",
+              "  console.log('CSV import skipped. Set run_csv_import=true to run it.');",
+              "  pm.execution.skipRequest();",
+              "}"
+            ] }
+          }, {
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('CSV import accepted', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+              "const json = pm.response.json();",
+              "pm.expect(json).to.have.property('checkout_groups');",
+              "pm.expect(json).to.have.property('products_created');"
+            ] }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "/Users/admin/Downloads/checkouts_export (1).csv" }
+              ]
+            },
+            "url": "{{base_url}}/leads/import/",
+            "description": "Imports a Shopify checkout CSV. Set collection variable run_csv_import=true before sending. Rows sharing a checkout Name become one lead; products match by SKU/name and missing products are created automatically; existing checkout IDs are skipped. Requires Lead Management add permission."
+          },
+          "response": [{
+            "name": "201 - Leads Imported",
+            "originalRequest": { "method": "POST", "url": "{{base_url}}/leads/import/" },
+            "status": "Created", "code": 201, "_postman_previewlanguage": "json",
+            "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+            "body": "{\n  \"source_rows\": 60,\n  \"checkout_groups\": 50,\n  \"created\": 50,\n  \"duplicates_skipped\": 0,\n  \"invalid_skipped\": 0,\n  \"products_created\": 31,\n  \"product_links\": 32,\n  \"name_fallbacks\": 8,\n  \"errors\": [],\n  \"unmatched_products\": [],\n  \"unmatched_product_count\": 0\n}"
+          }, {
+            "name": "400 - Invalid CSV",
+            "originalRequest": { "method": "POST", "url": "{{base_url}}/leads/import/" },
+            "status": "Bad Request", "code": 400, "_postman_previewlanguage": "json",
+            "header": [{ "key": "Content-Type", "value": "application/json" }], "cookie": [],
+            "body": "{\n  \"detail\": \"Missing required column(s): Shipping Name.\"\n}"
+          }]
+        }
+      ]
+    },
+    {
+      "name": "09 - Export, Errors and Cleanup",
       "item": [
         {
           "name": "Export Filtered Leads CSV",

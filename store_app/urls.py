@@ -176,6 +176,7 @@ urlpatterns = [
     # Lead Management (isolated web pages and APIs)
     path("leads-page/", lead_management.lead_list_page, name="lead-list-page"),
     path("leads-page/add/", lead_management.lead_form_page, name="lead-add-page"),
+    path("leads-page/import/", lead_management.lead_import_page, name="lead-import-page"),
     path("leads-page/follow-ups/", lead_management.follow_ups_page, name="lead-follow-ups-page"),
     path("leads-page/export/", lead_management.export_leads, name="lead-export"),
     path("leads-page/bulk/", lead_management.bulk_lead_action, name="lead-bulk-action"),
@@ -186,6 +187,7 @@ urlpatterns = [
 
     path("leads/", lead_management.LeadListCreateAPI.as_view(), name="lead-list-create-api"),
     path("leads/options/", lead_management.LeadOptionsAPI.as_view(), name="lead-options-api"),
+    path("leads/import/", lead_management.LeadImportAPI.as_view(), name="lead-import-api"),
     path("leads/stats/", lead_management.LeadStatsAPI.as_view(), name="lead-stats-api"),
     path("leads/bulk/", lead_management.LeadBulkAPI.as_view(), name="lead-bulk-api"),
     path("leads/export/", lead_management.export_leads, name="lead-export-api"),

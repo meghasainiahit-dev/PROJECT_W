@@ -1,5 +1,8 @@
 import csv
+import hashlib
+import io
 import json
+import re
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
@@ -17,8 +20,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from .models import (
-    Lead, LeadActivity, LeadConversion, LeadFollowUp, LeadNote, Product,
-    LeadStatusHistory,
+    Inventory, Lead, LeadActivity, LeadConversion, LeadFollowUp, LeadNote,
+    Product, Vendor, LeadStatusHistory,
 )
 
 
@@ -57,6 +60,18 @@ COUNTRY_DIAL_CODES = [
     ("Thailand", "+66"), ("Turkey", "+90"), ("United Arab Emirates", "+971"),
     ("United Kingdom", "+44"), ("United States", "+1"), ("Vietnam", "+84"),
 ]
+
+CSV_REQUIRED_COLUMNS = {
+    "Name", "Email", "Lineitem name", "Shipping Name", "Shipping Address1",
+    "Shipping City", "Shipping Country",
+}
+COUNTRY_IMPORT_NAMES = {
+    "IN": "India", "US": "United States", "GB": "United Kingdom",
+    "AE": "United Arab Emirates", "CA": "Canada", "AU": "Australia",
+    "SG": "Singapore", "HK": "Hong Kong", "NZ": "New Zealand",
+    "SA": "Saudi Arabia", "QA": "Qatar", "KW": "Kuwait", "OM": "Oman",
+    "BD": "Bangladesh", "NP": "Nepal", "LK": "Sri Lanka",
+}
 
 
 class MiddlewareUserAuthentication(BaseAuthentication):
@@ -109,6 +124,263 @@ def _product_ids_from_data(data):
     if not isinstance(raw_ids, (list, tuple)):
         return []
     return [int(value) for value in raw_ids if str(value).isdigit()]
+
+
+def _first_csv_value(rows, *columns):
+    for column in columns:
+        for row in rows:
+            value = str(row.get(column) or "").strip()
+            if value:
+                return value
+    return ""
+
+
+def _country_name(value):
+    cleaned = str(value or "").strip()
+    if not cleaned:
+        return ""
+    alias = COUNTRY_IMPORT_NAMES.get(cleaned.upper())
+    if alias:
+        return alias
+    for country, _code in COUNTRY_DIAL_CODES:
+        if country.casefold() == cleaned.casefold():
+            return country
+    return cleaned
+
+
+def _normalize_phone(raw_value, country_name=""):
+    raw = str(raw_value or "").strip().lstrip("'")
+    digits = re.sub(r"\D", "", raw)
+    if not digits:
+        return "+91", ""
+
+    dial_by_country = {country: code for country, code in COUNTRY_DIAL_CODES}
+    dial_code = dial_by_country.get(country_name, "")
+    if raw.startswith("+"):
+        for candidate in sorted(set(dial_by_country.values()), key=len, reverse=True):
+            candidate_digits = candidate[1:]
+            if digits.startswith(candidate_digits) and len(digits) - len(candidate_digits) >= 7:
+                dial_code = candidate
+                digits = digits[len(candidate_digits):]
+                break
+    elif dial_code:
+        prefix = dial_code[1:]
+        if digits.startswith(prefix) and len(digits) - len(prefix) >= 7:
+            digits = digits[len(prefix):]
+
+    if (dial_code or "+91") == "+91" and len(digits) == 11 and digits.startswith("0"):
+        digits = digits[1:]
+    return dial_code or "+91", digits
+
+
+def _generated_import_sku(name):
+    """Return a stable SKU for Shopify line items that do not provide one."""
+    cleaned = re.sub(r"[^A-Z0-9]+", "-", str(name or "").upper()).strip("-")
+    digest = hashlib.sha1(str(name or "").casefold().encode("utf-8")).hexdigest()[:8].upper()
+    return f"SHOPIFY-{cleaned[:24] or 'ITEM'}-{digest}"
+
+
+def sync_checkout_products(rows):
+    """Make CSV line items selectable in Items and Lead Management."""
+    products = list(Product.objects.select_related("vendor").all())
+    by_sku = {product.sku.strip().casefold(): product for product in products if product.sku.strip()}
+    by_name = {product.name.strip().casefold(): product for product in products if product.name.strip()}
+    created = 0
+    matched = 0
+    import_vendor = None
+
+    for row in rows:
+        name = str(row.get("Lineitem name") or "").strip()
+        source_sku = str(row.get("Lineitem sku") or "").strip()
+        if not name and not source_sku:
+            continue
+
+        product = by_sku.get(source_sku.casefold()) if source_sku else None
+        if not product and name:
+            product = by_name.get(name.casefold())
+        if product:
+            Inventory.objects.get_or_create(product=product, defaults={"quantity": 0})
+            matched += 1
+            continue
+
+        if import_vendor is None:
+            import_vendor = Vendor.objects.filter(name="Shopify CSV Import").order_by("id").first()
+            if not import_vendor:
+                import_vendor = Vendor.objects.create(
+                    name="Shopify CSV Import", mobile="", city="", state="",
+                    country="India", pin_code="",
+                )
+
+        sku = source_sku or _generated_import_sku(name)
+        try:
+            price = Decimal(str(row.get("Lineitem price") or "0").strip() or "0")
+        except InvalidOperation:
+            price = Decimal("0")
+        product = Product.objects.create(
+            vendor=import_vendor, name=name or source_sku, sku=sku,
+            barcode=sku, retailer_price=max(price, Decimal("0")),
+        )
+        Inventory.objects.get_or_create(product=product, defaults={"quantity": 0})
+        by_sku[sku.casefold()] = product
+        by_name[product.name.casefold()] = product
+        created += 1
+
+    return {"created": created, "matched": matched}
+
+
+def import_leads_csv(upload, actor=None):
+    if not upload:
+        raise ValueError("Please select a CSV file.")
+    if not str(getattr(upload, "name", "")).lower().endswith(".csv"):
+        raise ValueError("Only CSV files are supported.")
+    if getattr(upload, "size", 0) > 10 * 1024 * 1024:
+        raise ValueError("CSV file must be 10 MB or smaller.")
+
+    raw = upload.read(10 * 1024 * 1024 + 1)
+    if len(raw) > 10 * 1024 * 1024:
+        raise ValueError("CSV file must be 10 MB or smaller.")
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise ValueError("CSV must use UTF-8 encoding.") from exc
+
+    reader = csv.DictReader(io.StringIO(text))
+    headers = set(reader.fieldnames or [])
+    missing = sorted(CSV_REQUIRED_COLUMNS - headers)
+    if missing:
+        raise ValueError(f"Missing required column(s): {', '.join(missing)}.")
+
+    groups = {}
+    source_rows = 0
+    ungrouped_rows = []
+    for row_number, row in enumerate(reader, start=2):
+        if not any(str(value or "").strip() for value in row.values()):
+            continue
+        source_rows += 1
+        if source_rows > 5000:
+            raise ValueError("CSV can contain at most 5,000 data rows.")
+        checkout_key = str(row.get("Name") or row.get("Id") or "").strip()
+        if not checkout_key:
+            ungrouped_rows.append(row_number)
+            continue
+        row["_row_number"] = row_number
+        groups.setdefault(checkout_key, []).append(row)
+
+    all_rows = [row for rows in groups.values() for row in rows]
+    with transaction.atomic():
+        product_sync = sync_checkout_products(all_rows)
+
+    product_rows = list(Product.objects.all())
+    products_by_sku = {product.sku.strip().casefold(): product for product in product_rows if product.sku.strip()}
+    products_by_name = {product.name.strip().casefold(): product for product in product_rows if product.name.strip()}
+    summary = {
+        "source_rows": source_rows, "checkout_groups": len(groups), "created": 0,
+        "duplicates_skipped": 0, "invalid_skipped": len(ungrouped_rows),
+        "product_links": 0, "name_fallbacks": 0, "errors": [],
+        "products_created": product_sync["created"],
+        "unmatched_products": [],
+    }
+    unmatched = set()
+    for row_number in ungrouped_rows:
+        summary["errors"].append({"row": row_number, "detail": "Checkout Name/Id is missing."})
+
+    for checkout_key, rows in groups.items():
+        external_id = _first_csv_value(rows, "Id") or checkout_key.lstrip("#")
+        if Lead.objects.filter(external_checkout_id=external_id).exists():
+            summary["duplicates_skipped"] += 1
+            continue
+
+        email = _first_csv_value(rows, "Email")
+        shipping_name = _first_csv_value(rows, "Shipping Name", "Billing Name")
+        if not shipping_name and email:
+            shipping_name = re.sub(r"[._-]+", " ", email.split("@", 1)[0]).strip().title()
+            summary["name_fallbacks"] += 1
+        country = _country_name(_first_csv_value(rows, "Shipping Country", "Billing Country"))
+        phone_raw = _first_csv_value(rows, "Phone", "Shipping Phone", "Billing Phone")
+        if not phone_raw:
+            note_attributes = _first_csv_value(rows, "Note Attributes")
+            match = re.search(r"_otpVerifiedPhoneNumber:\s*([^\s]+)", note_attributes)
+            phone_raw = match.group(1) if match else ""
+        country_code, phone = _normalize_phone(phone_raw, country)
+        if not country:
+            country = next((name for name, code in COUNTRY_DIAL_CODES if code == country_code), "India")
+
+        shipping_phone_raw = _first_csv_value(rows, "Shipping Phone", "Phone", "Billing Phone") or phone_raw
+        _shipping_code, shipping_phone = _normalize_phone(shipping_phone_raw, country)
+        if not shipping_name or not phone:
+            summary["invalid_skipped"] += 1
+            summary["errors"].append({
+                "checkout": checkout_key,
+                "row": rows[0].get("_row_number"),
+                "detail": "Shipping name and phone could not be determined.",
+            })
+            continue
+
+        matched_products = {}
+        line_items = []
+        for row in rows:
+            sku = str(row.get("Lineitem sku") or "").strip()
+            item_name = str(row.get("Lineitem name") or "").strip()
+            product = products_by_sku.get(sku.casefold()) if sku else None
+            if not product and item_name:
+                product = products_by_name.get(item_name.casefold())
+            if product:
+                matched_products[product.id] = product
+            elif sku or item_name:
+                unmatched.add(f"{sku} — {item_name}" if sku else item_name)
+            line_items.append({
+                "sku": sku, "name": item_name,
+                "quantity": str(row.get("Lineitem quantity") or "").strip(),
+            })
+
+        address1 = _first_csv_value(rows, "Shipping Address1", "Shipping Street", "Billing Address1", "Billing Street")
+        address2 = _first_csv_value(rows, "Shipping Address2", "Billing Address2")
+        city = _first_csv_value(rows, "Shipping City", "Billing City")
+        province = _first_csv_value(rows, "Shipping Province", "Billing Province")
+        province_name = _first_csv_value(rows, "Shipping Province Name", "Billing Province Name") or province
+        shipping_zip = _first_csv_value(rows, "Shipping Zip", "Billing Zip").lstrip("'")
+        notes = _first_csv_value(rows, "Notes")
+        tags = _first_csv_value(rows, "Tags")
+
+        try:
+            with transaction.atomic():
+                lead = Lead.objects.create(
+                    full_name=shipping_name, shipping_name=shipping_name,
+                    country_code=country_code, phone=phone,
+                    shipping_phone=shipping_phone, whatsapp_number=shipping_phone,
+                    email=email, shipping_address1=address1, shipping_address2=address2,
+                    shipping_city=city, shipping_zip=shipping_zip,
+                    shipping_province=province, shipping_province_name=province_name,
+                    shipping_country=country, address="\n".join(filter(None, [address1, address2])),
+                    city=city, state=province_name, country=country, pincode=shipping_zip,
+                    source="website", tags=tags, notes=notes,
+                    external_source="shopify_checkout_csv", external_checkout_id=external_id,
+                    created_by=actor, updated_by=actor,
+                )
+                lead.products.set(matched_products.values())
+                LeadActivity.objects.create(
+                    lead=lead, event="created", title="Lead Imported",
+                    description=f"Imported from checkout {checkout_key}", actor=actor,
+                    metadata={
+                        "source": "shopify_checkout_csv", "checkout": checkout_key,
+                        "external_id": external_id,
+                        "checkout_created_at": _first_csv_value(rows, "Created at"),
+                        "line_items": line_items,
+                    },
+                )
+        except Exception as exc:
+            summary["invalid_skipped"] += 1
+            summary["errors"].append({
+                "checkout": checkout_key, "row": rows[0].get("_row_number"),
+                "detail": str(exc),
+            })
+            continue
+        summary["created"] += 1
+        summary["product_links"] += len(matched_products)
+
+    summary["unmatched_products"] = sorted(unmatched)[:100]
+    summary["unmatched_product_count"] = len(unmatched)
+    return summary
 
 
 def _validation_errors(data, partial=False):
@@ -373,6 +645,8 @@ def serialize_lead(lead, detailed=False):
         "shipping_province": lead.shipping_province,
         "shipping_province_name": lead.shipping_province_name,
         "shipping_country": lead.shipping_country,
+        "external_source": lead.external_source,
+        "external_checkout_id": lead.external_checkout_id,
         "products": [{
             "id": product.id, "name": product.name, "sku": product.sku,
             "size": product.size, "color": product.color,
@@ -380,8 +654,16 @@ def serialize_lead(lead, detailed=False):
             "wholesale_price": str(product.wholesale_price),
         } for product in lead.products.all()],
         "notes": lead.notes,
+        "lost_reason": lead.lost_reason,
+        "lost_reason_display": lead.get_lost_reason_display() if lead.lost_reason else "",
+        "lost_notes": lead.lost_notes,
+        "lost_at": lead.lost_at.isoformat() if lead.lost_at else None,
+        "lost_by": lead.lost_by_id,
+        "lost_by_name": (lead.lost_by.get_full_name() or lead.lost_by.username) if lead.lost_by else None,
         "next_follow_up": _serialize_follow_up(next_item) if next_item else None,
         "created_at": lead.created_at.isoformat(), "updated_at": lead.updated_at.isoformat(),
+        "created_by": lead.created_by_id,
+        "created_by_name": (lead.created_by.get_full_name() or lead.created_by.username) if lead.created_by else None,
         "updated_by": lead.updated_by_id,
         "updated_by_name": (lead.updated_by.get_full_name() or lead.updated_by.username) if lead.updated_by else None,
     }
@@ -401,7 +683,9 @@ def serialize_lead(lead, detailed=False):
 
 
 def filtered_leads(request):
-    leads = Lead.objects.filter(is_deleted=False).select_related("assigned_to", "updated_by").prefetch_related("products")
+    leads = Lead.objects.filter(is_deleted=False).select_related(
+        "assigned_to", "created_by", "updated_by", "lost_by",
+    ).prefetch_related("products")
     search = request.GET.get("search", "").strip()
     if search:
         leads = leads.filter(
@@ -489,6 +773,15 @@ class LeadOptionsAPI(LeadAPIView):
         })
 
 
+class LeadImportAPI(LeadAPIView):
+    def post(self, request):
+        try:
+            result = import_leads_csv(request.FILES.get("file"), _user(request))
+        except ValueError as exc:
+            return JsonResponse({"detail": str(exc)}, status=400)
+        return JsonResponse(result, status=201 if result["created"] else 200)
+
+
 class LeadStatsAPI(LeadAPIView):
     def get(self, request):
         return JsonResponse(lead_statistics())
@@ -529,23 +822,31 @@ class LeadFollowUpListAPI(LeadAPIView):
 
 class LeadDetailAPI(LeadAPIView):
     def _lead(self, pk):
-        return get_object_or_404(Lead.objects.select_related("assigned_to", "updated_by"), pk=pk, is_deleted=False)
+        return get_object_or_404(
+            Lead.objects.select_related("assigned_to", "created_by", "updated_by", "lost_by").prefetch_related("products"),
+            pk=pk, is_deleted=False,
+        )
 
     def get(self, request, pk):
         return JsonResponse(serialize_lead(self._lead(pk), True))
 
     @transaction.atomic
     def put(self, request, pk):
+        return self._update(request, pk, partial=False)
+
+    @transaction.atomic
+    def patch(self, request, pk):
+        return self._update(request, pk, partial=True)
+
+    def _update(self, request, pk, partial):
         lead, data = self._lead(pk), _payload(request)
         if data.get("status") in {Lead.STATUS_CONVERTED, Lead.STATUS_LOST} and data.get("status") != lead.status:
             return JsonResponse({"detail": "Use Convert Lead or Mark Lost to capture the required details."}, status=400)
-        errors = _validation_errors(data, partial=False)
+        errors = _validation_errors(data, partial=partial)
         if errors:
             return JsonResponse({"detail": "Please correct the highlighted fields.", "errors": errors}, status=400)
         _set_lead_fields(lead, data, request)
         return JsonResponse(serialize_lead(lead, True))
-
-    patch = put
 
     def delete(self, request, pk):
         lead = self._lead(pk)
@@ -740,6 +1041,22 @@ def lead_form_page(request, pk=None):
         "products": products,
     })
     return render(request, "lead_management/form.html", context)
+
+
+def lead_import_page(request):
+    result = None
+    if request.method == "POST":
+        try:
+            result = import_leads_csv(request.FILES.get("file"), _user(request))
+            if result["created"]:
+                messages.success(request, f"{result['created']} lead(s) imported successfully.")
+            elif result["duplicates_skipped"]:
+                messages.success(request, "No new leads imported; all checkout IDs already exist.")
+        except ValueError as exc:
+            messages.error(request, str(exc))
+    context = _base_context(request)
+    context["import_result"] = result
+    return render(request, "lead_management/import.html", context)
 
 
 def lead_detail_page(request, pk):

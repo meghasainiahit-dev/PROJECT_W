@@ -1023,6 +1023,8 @@ class Lead(models.Model):
     shipping_province_name = models.CharField(max_length=100, blank=True)
     shipping_country = models.CharField(max_length=100, blank=True, default="India")
     products = models.ManyToManyField(Product, blank=True, related_name="leads")
+    external_source = models.CharField(max_length=40, blank=True)
+    external_checkout_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
     notes = models.TextField(blank=True)
     lost_reason = models.CharField(max_length=30, choices=LOST_REASON_CHOICES, blank=True)
     lost_notes = models.TextField(blank=True)
