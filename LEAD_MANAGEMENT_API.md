@@ -9,6 +9,15 @@ Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
+If an Apache/Passenger proxy removes the standard `Authorization` header, the
+same token is also accepted through this app-safe fallback header:
+
+```http
+X-Access-Token: <token>
+```
+
+The supplied Postman collection sends both headers automatically after login.
+
 ## Authentication and access
 
 ### Login

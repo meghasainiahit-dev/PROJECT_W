@@ -301,6 +301,10 @@ class LeadManagementTests(TestCase):
         self.assertEqual(login.status_code, 200)
         token = login.json()["token"]
         auth = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
+        self.assertEqual(
+            client.get("/api/leads/options/", HTTP_X_ACCESS_TOKEN=token).status_code,
+            200,
+        )
 
         def request(method, path, payload=None):
             kwargs = dict(auth)

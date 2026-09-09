@@ -23,6 +23,8 @@
           "const future = new Date(now); future.setDate(now.getDate() + 3);",
           "pm.collectionVariables.set('today', formatDate(now));",
           "pm.collectionVariables.set('follow_up_date', formatDate(future));",
+          "const appToken = pm.collectionVariables.get('token');",
+          "if (appToken) pm.request.headers.upsert({key: 'X-Access-Token', value: appToken});",
           "if (!pm.collectionVariables.get('unique_suffix')) pm.collectionVariables.set('unique_suffix', String(Date.now()));"
         ]
       }

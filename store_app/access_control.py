@@ -283,13 +283,18 @@ def action_for_request(request):
     return "view"
 
 
+def request_access_token(request):
+    """Read the standard Bearer token or the proxy-safe app fallback header."""
+    auth_header = (request.headers.get("Authorization") or "").strip()
+    if auth_header.lower().startswith("bearer "):
+        return auth_header.split(None, 1)[1].strip()
+    return (request.headers.get("X-Access-Token") or "").strip()
+
+
 def attach_bearer_user(request):
     if request.user.is_authenticated:
         return
-    auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
-        return
-    token_value = auth_header.split(" ", 1)[1].strip()
+    token_value = request_access_token(request)
     if not token_value:
         return
     try:

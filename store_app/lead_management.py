@@ -19,6 +19,7 @@ from rest_framework.authentication import BaseAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
+from .access_control import attach_bearer_user
 from .models import (
     Inventory, Lead, LeadActivity, LeadConversion, LeadFollowUp, LeadNote,
     Product, Vendor, LeadStatusHistory,
@@ -75,13 +76,17 @@ COUNTRY_IMPORT_NAMES = {
 
 
 class MiddlewareUserAuthentication(BaseAuthentication):
-    """Use the session/JWT user resolved by the existing access middleware."""
+    """Authenticate session or app token, including proxy-safe fallback."""
 
     def authenticate(self, request):
+        attach_bearer_user(request._request)
         user = getattr(request._request, "user", None)
         if user and user.is_authenticated:
             return user, None
         return None
+
+    def authenticate_header(self, request):
+        return "Bearer"
 
 
 class LeadAPIView(APIView):
