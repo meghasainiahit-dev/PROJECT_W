@@ -41,6 +41,8 @@
         border-collapse: collapse;
     }
 
+    /* ================= HEADER ================= */
+
     .head-table {
         border: 1px solid #000;
         border-bottom: none;
@@ -75,6 +77,8 @@
         margin-top: 1px;
         font-weight: 500;
         padding: 3px 6px;
+        line-height: 1.25;
+        overflow-wrap: break-word;
     }
 
     .info-grid {
@@ -108,6 +112,8 @@
         display: block;
     }
 
+    /* ================= PARTY ================= */
+
     .party-block-cell {
         padding: 3px 6px !important;
         border-bottom: 1px solid #000;
@@ -125,16 +131,32 @@
         font-weight: bold;
     }
 
+    .party-lines {
+        line-height: 1.25;
+        overflow-wrap: break-word;
+    }
+
     .terms-cell {
         padding: 3px 6px !important;
         height: 100%;
     }
 
-    /*
-     * ============================================================
-     * ITEMS TABLE
-     * ============================================================
-     */
+    .custom-tr {
+        height: 42px !important;
+    }
+
+    .custom-tr td {
+        height: 42px !important;
+    }
+
+    .terms-row td {
+        height: auto !important;
+        min-height: 40px;
+    }
+
+    /* =========================================================
+       ITEMS TABLE
+       ========================================================= */
 
     .items-table {
         width: 100%;
@@ -167,26 +189,22 @@
         border-left: 1px solid #000;
     }
 
-    /*
-     * Prevent numeric values from breaking into
-     * multiple lines.
-     */
+    /* Numbers */
+
     .items-table td.num {
         text-align: right;
         white-space: nowrap;
     }
 
-    /*
-     * Center values such as PCS and dates.
-     */
+    /* Center */
+
     .items-table td.center {
         text-align: center;
         white-space: nowrap;
     }
 
-    /*
-     * Description column can wrap if required.
-     */
+    /* Description */
+
     .items-table td.desc {
         text-align: left;
         font-weight: bold;
@@ -194,13 +212,24 @@
         overflow-wrap: break-word;
     }
 
-    /*
-     * Amount should always stay on one line.
-     */
+    /* Amount */
+
     .items-table td.amt {
         text-align: right;
         font-weight: bold;
         white-space: nowrap;
+    }
+
+    /* DATE - IMPORTANT */
+
+    .items-table td.dateval {
+        text-align: center;
+        white-space: nowrap !important;
+        word-break: keep-all;
+        overflow-wrap: normal;
+        font-size: 10px;
+        font-style: italic;
+        font-weight: 600;
     }
 
     .taxline {
@@ -221,17 +250,6 @@
         white-space: nowrap;
     }
 
-    /*
-     * Date must never wrap.
-     */
-    .dateval {
-        font-style: italic;
-        font-size: 10px;
-        font-weight: 600;
-        white-space: nowrap;
-        text-align: center;
-    }
-
     .filler-row td {
         height: 18px;
         border-top: none;
@@ -243,12 +261,11 @@
         vertical-align: middle;
     }
 
-    /*
-     * Keep total amount in one line.
-     */
     .total-row .amt {
         white-space: nowrap;
     }
+
+    /* ================= BOTTOM ================= */
 
     .bottom-table {
         height: 140px;
@@ -291,6 +308,8 @@
         margin-top: 2px;
     }
 
+    /* ================= SIGNATURE ================= */
+
     .sig-table {
         width: 100%;
         border: 1px solid #000;
@@ -315,45 +334,15 @@
         vertical-align: bottom;
     }
 
+    /* ================= FOOTER ================= */
+
     .footer-note {
         text-align: center;
         font-size: 11px;
         padding-top: 6px;
     }
 
-    /*
-     * Custom header row
-     */
-    .custom-tr {
-        height: 42px !important;
-    }
-
-    .custom-tr td {
-        height: 42px !important;
-    }
-
-    /*
-     * Terms row
-     */
-    .terms-row td {
-        height: auto !important;
-        min-height: 40px;
-    }
-
-    /*
-     * Keep common quotation values from overflowing.
-     */
-    .company-address,
-    .party-lines {
-        line-height: 1.25;
-        overflow-wrap: break-word;
-    }
-
-    /*
-     * ============================================================
-     * PRINT
-     * ============================================================
-     */
+    /* ================= PRINT ================= */
 
     @media print {
 
@@ -377,6 +366,10 @@
         .items-table td {
             font-size: 11px;
         }
+
+        .items-table td.dateval {
+            white-space: nowrap !important;
+        }
     }
 </style>
 
@@ -386,14 +379,19 @@
 
 <div class="page">
 
-    <div class="title">QUOTATION</div>
+    <!-- ================= TITLE ================= -->
+
+    <div class="title">
+        QUOTATION
+    </div>
+
 
     <!-- =========================================================
          HEADER BLOCK
-         Company Information + Voucher / Date Grid
          ========================================================= -->
 
     <table class="head-table">
+
         <tr>
 
             <td class="left-col" rowspan="2">
@@ -403,55 +401,95 @@
                 </div>
 
                 <div class="company-address">
+
                     BASEMENT, 57 SHRI GURUKRIPA NAGAR NIGAM COLONY<br>
+
                     GOLIMAR GARDEN SCHEME AMER ROAD JAIPUR<br>
+
                     302002<br>
+
                     GSTIN/UIN: 08AAVCA7886Q1Z8<br>
+
                     State Name&nbsp; :&nbsp; Rajasthan, Code : 08<br>
+
                     E-Mail : ASHUTOSH.BURMAN@a2groups.org
+
                 </div>
 
             </td>
+
 
             <td class="right-col" style="padding:0;">
 
                 <table class="info-grid">
 
                     <tr>
+
                         <td>
-                            <span class="label">Voucher No.</span>
-                            <strong>2</strong>
+                            <span class="label">
+                                Voucher No.
+                            </span>
+
+                            <strong>
+                                2
+                            </strong>
                         </td>
 
                         <td>
-                            <span class="label">Dated</span>
-                            <strong>3-Aug-26</strong>
+
+                            <span class="label">
+                                Dated
+                            </span>
+
+                            <strong>
+                                3-Aug-26
+                            </strong>
+
                         </td>
+
                     </tr>
 
+
                     <tr>
-                        <td>&nbsp;</td>
 
                         <td>
+                            &nbsp;
+                        </td>
+
+                        <td>
+
                             <span class="label">
                                 Mode/Terms of Payment
                             </span>
+
                         </td>
+
                     </tr>
 
+
                     <tr>
+
                         <td>
+
                             <span class="label">
                                 Buyer's Ref./Order No.
                             </span>
-                            <strong>2</strong>
+
+                            <strong>
+                                2
+                            </strong>
+
                         </td>
 
+
                         <td>
+
                             <span class="label">
                                 Other References
                             </span>
+
                         </td>
+
                     </tr>
 
                 </table>
@@ -459,11 +497,12 @@
             </td>
 
         </tr>
+
     </table>
 
 
     <!-- =========================================================
-         CONSIGNEE / BUYER + DELIVERY
+         CONSIGNEE / BUYER
          ========================================================= -->
 
     <table class="head-table">
@@ -492,7 +531,9 @@
                     <div class="party-lines">
 
                         36/38/3, Ram Charan Sett Road, Ramrajatala,<br>
+
                         Howrah, West Bengal &ndash; 711104,<br>
+
                         State Name&nbsp; :&nbsp; West Bengal, Code : 19
 
                     </div>
@@ -520,7 +561,9 @@
                     <div class="party-lines">
 
                         36/38/3, Ram Charan Sett Road, Ramrajatala,<br>
+
                         Howrah, West Bengal &ndash; 711104,<br>
+
                         State Name&nbsp; :&nbsp; West Bengal, Code : 19
 
                     </div>
@@ -530,7 +573,7 @@
             </td>
 
 
-            <!-- Delivery information -->
+            <!-- Delivery -->
 
             <td class="right-col" style="padding:0;">
 
@@ -542,15 +585,19 @@
                     <tr class="custom-tr">
 
                         <td>
+
                             <span class="label">
                                 Dispatched through
                             </span>
+
                         </td>
 
                         <td>
+
                             <span class="label">
                                 Destination
                             </span>
+
                         </td>
 
                     </tr>
@@ -588,30 +635,51 @@
     <table class="items-table">
 
         <!--
-            IMPORTANT:
-            Widths adjusted to prevent text overflow.
+            COLUMN WIDTHS
+
+            Sl No       = 3%
+            Description = 35%
+            Due on       = 15%
+            Quantity     = 11%
+            Rate         = 9%
+            Per          = 6%
+            Disc %       = 7%
+            Amount       = 14%
+
+            TOTAL = 100%
         -->
 
         <colgroup>
 
             <col style="width:3%">
-            <col style="width:38%">
-            <col style="width:12%">
+
+            <col style="width:35%">
+
+            <!-- DATE COLUMN WIDENED -->
+            <col style="width:15%">
+
             <col style="width:11%">
+
             <col style="width:9%">
+
             <col style="width:6%">
+
             <col style="width:7%">
+
             <col style="width:14%">
 
         </colgroup>
 
+
+        <!-- ================= TABLE HEADER ================= -->
 
         <thead>
 
             <tr>
 
                 <th>
-                    Sl<br>No.
+                    Sl<br>
+                    No.
                 </th>
 
                 <th>
@@ -650,9 +718,7 @@
 
         <tbody>
 
-            <!-- =================================================
-                 ITEM 1
-                 ================================================= -->
+            <!-- ================= ITEM 1 ================= -->
 
             <tr>
 
@@ -664,7 +730,7 @@
                     Ceramic Tile 8*8
                 </td>
 
-                <td class="center dateval">
+                <td class="dateval">
                     3-Aug-26
                 </td>
 
@@ -691,9 +757,7 @@
             </tr>
 
 
-            <!-- =================================================
-                 ITEM 2
-                 ================================================= -->
+            <!-- ================= ITEM 2 ================= -->
 
             <tr>
 
@@ -705,7 +769,7 @@
                     Ceramic Tile 12*6
                 </td>
 
-                <td class="center dateval">
+                <td class="dateval">
                     3-Aug-26
                 </td>
 
@@ -732,9 +796,7 @@
             </tr>
 
 
-            <!-- =================================================
-                 SUB TOTAL
-                 ================================================= -->
+            <!-- ================= SUB TOTAL ================= -->
 
             <tr>
 
@@ -743,10 +805,15 @@
                 </td>
 
                 <td></td>
+
                 <td></td>
+
                 <td></td>
+
                 <td></td>
+
                 <td></td>
+
                 <td></td>
 
                 <td
@@ -759,9 +826,7 @@
             </tr>
 
 
-            <!-- =================================================
-                 GST
-                 ================================================= -->
+            <!-- ================= GST ================= -->
 
             <tr>
 
@@ -774,6 +839,7 @@
                 </td>
 
                 <td></td>
+
                 <td></td>
 
                 <td
@@ -796,9 +862,7 @@
             </tr>
 
 
-            <!-- =================================================
-                 SHIPPING CHARGES
-                 ================================================= -->
+            <!-- ================= SHIPPING ================= -->
 
             <tr>
 
@@ -811,9 +875,13 @@
                 </td>
 
                 <td></td>
+
                 <td></td>
+
                 <td></td>
+
                 <td></td>
+
                 <td></td>
 
                 <td class="taxamt">
@@ -823,9 +891,7 @@
             </tr>
 
 
-            <!-- =================================================
-                 SHIPPING SUBLINE
-                 ================================================= -->
+            <!-- ================= SHIPPING SUBLINE ================= -->
 
             <tr>
 
@@ -838,20 +904,24 @@
                 </td>
 
                 <td></td>
+
                 <td></td>
+
                 <td></td>
+
                 <td></td>
+
                 <td></td>
+
                 <td></td>
 
             </tr>
 
 
-            <!-- =================================================
-                 FILLER ROWS
-                 ================================================= -->
+            <!-- ================= FILLER ================= -->
 
             <tr class="filler-row">
+
                 <td>&nbsp;</td>
                 <td></td>
                 <td></td>
@@ -860,9 +930,12 @@
                 <td></td>
                 <td></td>
                 <td></td>
+
             </tr>
 
+
             <tr class="filler-row">
+
                 <td>&nbsp;</td>
                 <td></td>
                 <td></td>
@@ -871,9 +944,12 @@
                 <td></td>
                 <td></td>
                 <td></td>
+
             </tr>
 
+
             <tr class="filler-row">
+
                 <td>&nbsp;</td>
                 <td></td>
                 <td></td>
@@ -882,9 +958,12 @@
                 <td></td>
                 <td></td>
                 <td></td>
+
             </tr>
 
+
             <tr class="filler-row">
+
                 <td>&nbsp;</td>
                 <td></td>
                 <td></td>
@@ -893,9 +972,12 @@
                 <td></td>
                 <td></td>
                 <td></td>
+
             </tr>
 
+
             <tr class="filler-row">
+
                 <td>&nbsp;</td>
                 <td></td>
                 <td></td>
@@ -904,12 +986,11 @@
                 <td></td>
                 <td></td>
                 <td></td>
+
             </tr>
 
 
-            <!-- =================================================
-                 TOTAL
-                 ================================================= -->
+            <!-- ================= TOTAL ================= -->
 
             <tr class="total-row">
 
@@ -927,7 +1008,9 @@
                 </td>
 
                 <td></td>
+
                 <td></td>
+
                 <td></td>
 
                 <td class="amt">
@@ -963,7 +1046,9 @@
 
 
             <td class="eoe-cell">
+
                 E. &amp; O.E
+
             </td>
 
         </tr>
@@ -999,12 +1084,12 @@
     </table>
 
 
-    <!-- =========================================================
-         FOOTER
-         ========================================================= -->
+    <!-- ================= FOOTER ================= -->
 
     <div class="footer-note">
+
         This is a Computer Generated Document
+
     </div>
 
 </div>
